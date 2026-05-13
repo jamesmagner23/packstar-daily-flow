@@ -14,7 +14,588 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      boq_lines: {
+        Row: {
+          category: string
+          depth_band_m: number | null
+          description: string
+          diameter_mm: number | null
+          id: string
+          material: string | null
+          pit_dimensions_mm: string | null
+          pit_type: string | null
+          project_id: string | null
+          rate: number
+          ref: string
+          unit: string
+        }
+        Insert: {
+          category: string
+          depth_band_m?: number | null
+          description: string
+          diameter_mm?: number | null
+          id?: string
+          material?: string | null
+          pit_dimensions_mm?: string | null
+          pit_type?: string | null
+          project_id?: string | null
+          rate: number
+          ref: string
+          unit: string
+        }
+        Update: {
+          category?: string
+          depth_band_m?: number | null
+          description?: string
+          diameter_mm?: number | null
+          id?: string
+          material?: string | null
+          pit_dimensions_mm?: string | null
+          pit_type?: string | null
+          project_id?: string | null
+          rate?: number
+          ref?: string
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boq_lines_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crew_members: {
+        Row: {
+          active: boolean | null
+          cost_rate_nt: number | null
+          cost_rate_ot: number | null
+          id: string
+          name: string
+          project_id: string | null
+          role: string
+        }
+        Insert: {
+          active?: boolean | null
+          cost_rate_nt?: number | null
+          cost_rate_ot?: number | null
+          id?: string
+          name: string
+          project_id?: string | null
+          role: string
+        }
+        Update: {
+          active?: boolean | null
+          cost_rate_nt?: number | null
+          cost_rate_ot?: number | null
+          id?: string
+          name?: string
+          project_id?: string | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crew_members_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_reports: {
+        Row: {
+          complete: boolean | null
+          cost_aud: number | null
+          created_at: string | null
+          crew_hours: Json | null
+          email_sent_at: string | null
+          id: string
+          margin_aud: number | null
+          plant_hours: Json | null
+          productivity_note: string | null
+          productivity_pct: number | null
+          project_id: string | null
+          raw_transcript: string | null
+          report_date: string
+          revenue_aud: number | null
+          structured: Json | null
+          supervisor_id: string | null
+          updated_at: string | null
+          works_completed: Json | null
+        }
+        Insert: {
+          complete?: boolean | null
+          cost_aud?: number | null
+          created_at?: string | null
+          crew_hours?: Json | null
+          email_sent_at?: string | null
+          id?: string
+          margin_aud?: number | null
+          plant_hours?: Json | null
+          productivity_note?: string | null
+          productivity_pct?: number | null
+          project_id?: string | null
+          raw_transcript?: string | null
+          report_date: string
+          revenue_aud?: number | null
+          structured?: Json | null
+          supervisor_id?: string | null
+          updated_at?: string | null
+          works_completed?: Json | null
+        }
+        Update: {
+          complete?: boolean | null
+          cost_aud?: number | null
+          created_at?: string | null
+          crew_hours?: Json | null
+          email_sent_at?: string | null
+          id?: string
+          margin_aud?: number | null
+          plant_hours?: Json | null
+          productivity_note?: string | null
+          productivity_pct?: number | null
+          project_id?: string | null
+          raw_transcript?: string | null
+          report_date?: string
+          revenue_aud?: number | null
+          structured?: Json | null
+          supervisor_id?: string | null
+          updated_at?: string | null
+          works_completed?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_reports_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_reports_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "supervisors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photos: {
+        Row: {
+          created_at: string | null
+          id: string
+          slack_file_id: string | null
+          storage_path: string
+          variation_flag_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          slack_file_id?: string | null
+          storage_path: string
+          variation_flag_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          slack_file_id?: string | null
+          storage_path?: string
+          variation_flag_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photos_variation_flag_id_fkey"
+            columns: ["variation_flag_id"]
+            isOneToOne: false
+            referencedRelation: "variation_flags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pits: {
+        Row: {
+          id: string
+          pit_id: string
+          project_id: string | null
+          separable_portion_code: string | null
+          status: string | null
+        }
+        Insert: {
+          id?: string
+          pit_id: string
+          project_id?: string | null
+          separable_portion_code?: string | null
+          status?: string | null
+        }
+        Update: {
+          id?: string
+          pit_id?: string
+          project_id?: string | null
+          separable_portion_code?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pits_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plant_items: {
+        Row: {
+          active: boolean | null
+          cost_rate_nt: number | null
+          cost_rate_ot: number | null
+          description: string | null
+          id: string
+          plant_id_code: string
+          project_id: string | null
+          tonnage_class: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          cost_rate_nt?: number | null
+          cost_rate_ot?: number | null
+          description?: string | null
+          id?: string
+          plant_id_code: string
+          project_id?: string | null
+          tonnage_class?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          cost_rate_nt?: number | null
+          cost_rate_ot?: number | null
+          description?: string | null
+          id?: string
+          plant_id_code?: string
+          project_id?: string | null
+          tonnage_class?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plant_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          active: boolean | null
+          additional_qualifying_causes_of_delay: string[] | null
+          code: string
+          contract_date: string | null
+          contract_type: string | null
+          created_at: string | null
+          defects_liability_period_months: number | null
+          expected_daily_revenue_aud: number | null
+          head_contractor: string
+          head_contractor_rep: Json | null
+          id: string
+          liquidated_damages_cap_pct_of_contract: number | null
+          max_daily_delay_costs_aud: number | null
+          max_total_delay_costs_pct_of_contract: number | null
+          name: string
+          pacc_rep: Json | null
+          package: string | null
+          payment_claim_dates: string | null
+          payment_claim_method: string | null
+          principal: string | null
+          raw_contract_json: Json | null
+          site_address: string | null
+          working_days: string | null
+          working_hours_end: string | null
+          working_hours_start: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          additional_qualifying_causes_of_delay?: string[] | null
+          code: string
+          contract_date?: string | null
+          contract_type?: string | null
+          created_at?: string | null
+          defects_liability_period_months?: number | null
+          expected_daily_revenue_aud?: number | null
+          head_contractor: string
+          head_contractor_rep?: Json | null
+          id?: string
+          liquidated_damages_cap_pct_of_contract?: number | null
+          max_daily_delay_costs_aud?: number | null
+          max_total_delay_costs_pct_of_contract?: number | null
+          name: string
+          pacc_rep?: Json | null
+          package?: string | null
+          payment_claim_dates?: string | null
+          payment_claim_method?: string | null
+          principal?: string | null
+          raw_contract_json?: Json | null
+          site_address?: string | null
+          working_days?: string | null
+          working_hours_end?: string | null
+          working_hours_start?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          additional_qualifying_causes_of_delay?: string[] | null
+          code?: string
+          contract_date?: string | null
+          contract_type?: string | null
+          created_at?: string | null
+          defects_liability_period_months?: number | null
+          expected_daily_revenue_aud?: number | null
+          head_contractor?: string
+          head_contractor_rep?: Json | null
+          id?: string
+          liquidated_damages_cap_pct_of_contract?: number | null
+          max_daily_delay_costs_aud?: number | null
+          max_total_delay_costs_pct_of_contract?: number | null
+          name?: string
+          pacc_rep?: Json | null
+          package?: string | null
+          payment_claim_dates?: string | null
+          payment_claim_method?: string | null
+          principal?: string | null
+          raw_contract_json?: Json | null
+          site_address?: string | null
+          working_days?: string | null
+          working_hours_end?: string | null
+          working_hours_start?: string | null
+        }
+        Relationships: []
+      }
+      separable_portions: {
+        Row: {
+          code: string
+          commencement: string | null
+          completion: string | null
+          id: string
+          ld_per_day_aud: number | null
+          name: string
+          project_id: string | null
+        }
+        Insert: {
+          code: string
+          commencement?: string | null
+          completion?: string | null
+          id?: string
+          ld_per_day_aud?: number | null
+          name: string
+          project_id?: string | null
+        }
+        Update: {
+          code?: string
+          commencement?: string | null
+          completion?: string | null
+          id?: string
+          ld_per_day_aud?: number | null
+          name?: string
+          project_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "separable_portions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supervisors: {
+        Row: {
+          active: boolean | null
+          email: string | null
+          id: string
+          name: string
+          project_id: string | null
+          slack_user_id: string
+        }
+        Insert: {
+          active?: boolean | null
+          email?: string | null
+          id?: string
+          name: string
+          project_id?: string | null
+          slack_user_id: string
+        }
+        Update: {
+          active?: boolean | null
+          email?: string | null
+          id?: string
+          name?: string
+          project_id?: string | null
+          slack_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supervisors_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      variation_clauses: {
+        Row: {
+          claim_type: string
+          clause_ref: string
+          condition_precedent: boolean | null
+          early_warning_deadline_bd: number | null
+          full_report_deadline_bd: number | null
+          id: string
+          notes: string | null
+          notice_before_complying: boolean | null
+          notice_deadline_bd: number | null
+          particulars_deadline_bd: number | null
+          project_id: string | null
+        }
+        Insert: {
+          claim_type: string
+          clause_ref: string
+          condition_precedent?: boolean | null
+          early_warning_deadline_bd?: number | null
+          full_report_deadline_bd?: number | null
+          id?: string
+          notes?: string | null
+          notice_before_complying?: boolean | null
+          notice_deadline_bd?: number | null
+          particulars_deadline_bd?: number | null
+          project_id?: string | null
+        }
+        Update: {
+          claim_type?: string
+          clause_ref?: string
+          condition_precedent?: boolean | null
+          early_warning_deadline_bd?: number | null
+          full_report_deadline_bd?: number | null
+          id?: string
+          notes?: string | null
+          notice_before_complying?: boolean | null
+          notice_deadline_bd?: number | null
+          particulars_deadline_bd?: number | null
+          project_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "variation_clauses_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      variation_flags: {
+        Row: {
+          claim_type: string
+          clause_ref: string
+          created_at: string | null
+          daily_report_id: string | null
+          deadline_at: string | null
+          description: string | null
+          duration_impact_hours: number | null
+          id: string
+          notice_deadline_bd: number | null
+          notice_sent_at: string | null
+          photo_urls: string[] | null
+          project_id: string | null
+          status: string | null
+          symal_rep_saw: boolean | null
+          trigger_phrase: string | null
+        }
+        Insert: {
+          claim_type: string
+          clause_ref: string
+          created_at?: string | null
+          daily_report_id?: string | null
+          deadline_at?: string | null
+          description?: string | null
+          duration_impact_hours?: number | null
+          id?: string
+          notice_deadline_bd?: number | null
+          notice_sent_at?: string | null
+          photo_urls?: string[] | null
+          project_id?: string | null
+          status?: string | null
+          symal_rep_saw?: boolean | null
+          trigger_phrase?: string | null
+        }
+        Update: {
+          claim_type?: string
+          clause_ref?: string
+          created_at?: string | null
+          daily_report_id?: string | null
+          deadline_at?: string | null
+          description?: string | null
+          duration_impact_hours?: number | null
+          id?: string
+          notice_deadline_bd?: number | null
+          notice_sent_at?: string | null
+          photo_urls?: string[] | null
+          project_id?: string | null
+          status?: string | null
+          symal_rep_saw?: boolean | null
+          trigger_phrase?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "variation_flags_daily_report_id_fkey"
+            columns: ["daily_report_id"]
+            isOneToOne: false
+            referencedRelation: "daily_reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variation_flags_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      variation_triggers: {
+        Row: {
+          claim_type: string
+          clause_ref: string
+          id: string
+          keywords: string[]
+          project_id: string | null
+        }
+        Insert: {
+          claim_type: string
+          clause_ref: string
+          id?: string
+          keywords: string[]
+          project_id?: string | null
+        }
+        Update: {
+          claim_type?: string
+          clause_ref?: string
+          id?: string
+          keywords?: string[]
+          project_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "variation_triggers_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
