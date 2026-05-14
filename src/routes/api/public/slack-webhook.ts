@@ -327,14 +327,14 @@ async function processEvent(body: any) {
         .from("variation_flags")
         .select("id", { count: "exact", head: true })
         .eq("daily_report_id", report.id);
-      const url = new URL(request_url_for_origin);
+      const siteOrigin = process.env.SITE_ORIGIN ?? "https://packstar-daily-flow.lovable.app";
       await notifyDirectorOnWrap({
         reportId: report.id,
         projectId: projectId as string,
         supervisorName: supervisor.name,
         productivityPct: computed.productivity_pct,
         variationCount: vfCount ?? 0,
-        siteOrigin: `${url.protocol}//${url.host}`,
+        siteOrigin,
       });
     } catch (e) {
       console.error("[slack-webhook] post-complete pipeline failed:", (e as Error).message);
