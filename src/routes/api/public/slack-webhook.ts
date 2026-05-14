@@ -358,7 +358,15 @@ async function processEvent(body: any) {
     }
   }
 
-  // If the wrap just flipped to complete, compute financials and DM the director.
+  // Recompute and persist totals after every update so the dashboard reflects
+  // in-progress wraps, not just completed ones.
+  try {
+    await persistComputedReport(report.id);
+  } catch (e) {
+    console.error("[slack-webhook] incremental recompute failed:", (e as Error).message);
+  }
+
+  // If the wrap just flipped to complete, also DM the director.
   const justCompleted = updates.complete === true && report.complete !== true;
   if (justCompleted) {
     try {
