@@ -75,10 +75,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "PACC HQ — PACC operational dashboard" },
       { name: "description", content: "Daily P&L, productivity, and variations for PACC project sites." },
       { name: "author", content: "PACC Civil" },
-      { property: "og:title", content: "PACC HQ" },
-      { property: "og:description", content: "PACC operational dashboard." },
+      { property: "og:title", content: "PACC HQ — PACC operational dashboard" },
+      { property: "og:description", content: "Daily P&L, productivity, and variations for PACC project sites." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "PACC HQ — PACC operational dashboard" },
+      { name: "twitter:description", content: "Daily P&L, productivity, and variations for PACC project sites." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d00aba93-6b03-468b-8663-f9ee1ec2668d/id-preview-449a0f3a--ddbf9551-8559-4dc0-9584-8960c16a8139.lovable.app-1778718727822.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/d00aba93-6b03-468b-8663-f9ee1ec2668d/id-preview-449a0f3a--ddbf9551-8559-4dc0-9584-8960c16a8139.lovable.app-1778718727822.png" },
     ],
     links: [
       {
