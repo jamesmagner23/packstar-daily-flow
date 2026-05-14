@@ -89,12 +89,16 @@ async function postSlackDM(userId: string, text: string) {
 }
 
 async function runDailyPrompt(opts: { force?: boolean } = {}) {
-  const { iso, weekday } = melbourneToday();
+  const { iso, weekday, hour } = melbourneNow();
   const isWeekend = weekday === 0 || weekday === 6;
   const isHoliday = VIC_PUBLIC_HOLIDAYS.has(iso);
+  // Cron fires at both 05:30 and 06:30 UTC to cover DST. Only the firing that
+  // lands at Melbourne hour 16 should send; the other returns early. force=1 bypasses.
+  const wrongHour = hour !== 16;
 
-  if (!opts.force && (isWeekend || isHoliday)) {
-    return { skipped: true, reason: isWeekend ? "weekend" : "public_holiday", date: iso };
+  if (!opts.force && (isWeekend || isHoliday || wrongHour)) {
+    const reason = isWeekend ? "weekend" : isHoliday ? "public_holiday" : "wrong_hour";
+    return { skipped: true, reason, date: iso, melbourne_hour: hour };
   }
 
   const { data: supervisors, error } = await supabaseAdmin
