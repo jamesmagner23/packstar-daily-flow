@@ -93,7 +93,7 @@ function Dashboard() {
 
         <section>
           <div className="t-eyebrow mb-4">Today at a glance</div>
-          <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-5 gap-8">
+          <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-8 md:gap-8">
             <StatCard label="Revenue" value={aud(today?.revenue_aud)} tone="revenue" />
             <StatCard label="Cost" value={aud(today?.cost_aud)} tone="cost" />
             <StatCard label="Margin (GP)" value={aud(today?.margin_aud)} tone="margin" />
