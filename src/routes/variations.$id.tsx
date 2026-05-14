@@ -6,7 +6,7 @@ import { shortDate, longDate, businessDaysRemaining } from "@/lib/format";
 
 export const Route = createFileRoute("/variations/$id")({
   head: () => ({
-    meta: [{ title: "Variation flag — PackHQ" }],
+    meta: [{ title: "Variation flag — PACC HQ" }],
   }),
   component: VariationDetail,
 });
