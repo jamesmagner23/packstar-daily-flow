@@ -63,6 +63,9 @@ export const Route = createFileRoute("/api/public/hooks/run-evening-summary")({
         }
         const report = reports[0];
 
+        if (!report.project_id || !report.supervisor_id) {
+          return Response.json({ ok: false, error: "Report missing project_id or supervisor_id" }, { status: 400 });
+        }
         // Project + supervisor + variation_flags in parallel
         const [{ data: project }, { data: supervisor }, { data: flags }] = await Promise.all([
           supabaseAdmin.from("projects").select("name, code").eq("id", report.project_id).single(),
