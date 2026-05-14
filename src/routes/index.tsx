@@ -182,29 +182,6 @@ function Dashboard() {
             )}
           </div>
         </section>
-
-        <section>
-          <div className="t-eyebrow mb-1">Separable portions</div>
-          <h2 className="t-headline mb-4">Programme</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4 hairline">
-            {portions.length === 0 && (
-              <p className="text-xs text-meta">No portions configured. Import the contract JSON in project setup.</p>
-            )}
-            {portions.map((p) => {
-              const bd = businessDaysRemaining(p.completion);
-              return (
-                <div key={p.id} className="border border-rule p-5">
-                  <div className="t-eyebrow mb-2">{p.code}</div>
-                  <div className="t-subhead mb-3">{p.name}</div>
-                  <div className="text-xs text-meta">Complete by {shortDate(p.completion)}</div>
-                  <div className={`text-xs mt-2 ${bd !== null && bd < 0 ? "text-[color:var(--brand)] font-semibold" : ""}`}>
-                    {bd === null ? "—" : bd < 0 ? `${Math.abs(bd)} BD overdue` : `${bd} BD remaining`}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
       </div>
     </SiteShell>
   );
