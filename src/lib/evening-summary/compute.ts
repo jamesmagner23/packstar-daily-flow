@@ -53,7 +53,7 @@ export async function computeReport(reportId: string): Promise<ComputedReport> {
     supabaseAdmin.from("projects").select("expected_daily_revenue_aud").eq("id", projectId).single(),
     supabaseAdmin.from("boq_lines").select("ref, rate, description").eq("project_id", projectId),
     supabaseAdmin.from("crew_members").select("name, employment_type").eq("project_id", projectId),
-    supabaseAdmin.from("plant_items").select("plant_id_code, description, tonnage_class").eq("project_id", projectId),
+    supabaseAdmin.from("plant_items").select("plant_id_code, description, tonnage_class, cost_rate_nt, cost_rate_ot").eq("project_id", projectId),
     supabaseAdmin.from("classifications").select("classification, employment_type, nt_cost_per_hr, ot_cost_per_hr"),
   ]);
 
