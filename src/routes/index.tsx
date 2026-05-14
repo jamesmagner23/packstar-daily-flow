@@ -93,7 +93,7 @@ function Dashboard() {
 
         <section>
           <div className="t-eyebrow mb-4">Today at a glance</div>
-          <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-5 gap-8">
+          <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-8 md:gap-8">
             <StatCard label="Revenue" value={aud(today?.revenue_aud)} tone="revenue" />
             <StatCard label="Cost" value={aud(today?.cost_aud)} tone="cost" />
             <StatCard label="Margin (GP)" value={aud(today?.margin_aud)} tone="margin" />
@@ -125,7 +125,8 @@ function Dashboard() {
             {variations.length === 0 ? (
               <p className="text-xs text-meta py-6">No variations flagged. The bot watches for triggers in the daily wrap.</p>
             ) : (
-              <table className="w-full text-left">
+              <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
+              <table className="w-full text-left min-w-[560px]">
                 <thead>
                   <tr className="t-stat-label">
                     <th className="py-2 font-semibold">Type</th>
@@ -159,6 +160,7 @@ function Dashboard() {
                   })}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </section>
