@@ -42,22 +42,24 @@ const OPENERS = [
   "Afternoon {first_name}. Tell me how the day went.",
 ];
 
-function melbourneToday(): { iso: string; weekday: number } {
-  // Get Melbourne local date parts via Intl.
+function melbourneNow(): { iso: string; weekday: number; hour: number } {
   const fmt = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Australia/Melbourne",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
     weekday: "short",
+    hour: "2-digit",
+    hour12: false,
   });
   const parts = fmt.formatToParts(new Date());
   const y = parts.find((p) => p.type === "year")!.value;
   const m = parts.find((p) => p.type === "month")!.value;
   const d = parts.find((p) => p.type === "day")!.value;
   const weekdayShort = parts.find((p) => p.type === "weekday")!.value;
+  const hour = parseInt(parts.find((p) => p.type === "hour")!.value, 10);
   const map: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-  return { iso: `${y}-${m}-${d}`, weekday: map[weekdayShort] };
+  return { iso: `${y}-${m}-${d}`, weekday: map[weekdayShort], hour };
 }
 
 async function postSlackDM(userId: string, text: string) {
