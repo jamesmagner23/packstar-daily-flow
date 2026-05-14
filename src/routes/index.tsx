@@ -14,12 +14,13 @@ export const Route = createFileRoute("/")({
   component: Dashboard,
 });
 
-function StatCard({ label, value, tone = "brand" }: { label: string; value: string; tone?: "brand" | "revenue" | "cost" | "margin" }) {
+function StatCard({ label, value, tone = "brand" }: { label: string; value: string; tone?: "brand" | "revenue" | "cost" | "margin" | "gp" }) {
   const colorMap: Record<string, string> = {
     brand: "var(--brand)",
     revenue: "oklch(0.55 0.15 160)",   // emerald
     cost: "oklch(0.50 0.05 250)",      // slate blue
     margin: "oklch(0.60 0.18 50)",     // amber/gold
+    gp: "oklch(0.58 0.16 290)",        // violet
   };
   return (
     <div className="flex flex-col gap-2">
@@ -92,10 +93,17 @@ function Dashboard() {
 
         <section>
           <div className="t-eyebrow mb-4">Today at a glance</div>
-          <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-5 gap-8">
             <StatCard label="Revenue" value={aud(today?.revenue_aud)} tone="revenue" />
             <StatCard label="Cost" value={aud(today?.cost_aud)} tone="cost" />
             <StatCard label="Margin (GP)" value={aud(today?.margin_aud)} tone="margin" />
+            <StatCard
+              label="GP %"
+              value={today?.revenue_aud && Number(today.revenue_aud) > 0
+                ? pct((Number(today.margin_aud ?? 0) / Number(today.revenue_aud)) * 100)
+                : "—"}
+              tone="gp"
+            />
             <StatCard label="Productivity" value={pct(today?.productivity_pct)} />
           </div>
           {!today && (
