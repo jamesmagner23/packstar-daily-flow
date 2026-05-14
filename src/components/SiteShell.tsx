@@ -16,7 +16,7 @@ export function SiteShell({ section, children }: { section: string; children: Re
       <header className="px-6 md:px-10 py-5 border-b border-rule flex items-center justify-between bg-white">
         <Link to="/" className="flex items-baseline gap-3">
           <span className="brand-wordmark text-2xl text-[color:var(--brand)]">PACC</span>
-          <span className="t-eyebrow">PackHQ</span>
+          <span className="t-eyebrow">PACC HQ</span>
         </Link>
         <nav className="flex gap-6">
           {NAV.map((n) => {
@@ -38,7 +38,7 @@ export function SiteShell({ section, children }: { section: string; children: Re
       <main className="flex-1 px-6 md:px-10 lg:px-14 py-10 max-w-[1400px] w-full mx-auto">
         {children}
       </main>
-      <BrandBarBottom section={section} page="PackHQ v0.1" />
+      <BrandBarBottom section={section} page="PACC HQ v0.1" />
     </div>
   );
 }

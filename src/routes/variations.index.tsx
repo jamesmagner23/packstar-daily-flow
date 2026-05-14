@@ -7,7 +7,7 @@ import { shortDate, businessDaysRemaining } from "@/lib/format";
 export const Route = createFileRoute("/variations/")({
   head: () => ({
     meta: [
-      { title: "Variations register — PackHQ" },
+      { title: "Variations register — PACC HQ" },
       { name: "description", content: "Open and closed variation flags with clause references and notice deadlines." },
     ],
   }),

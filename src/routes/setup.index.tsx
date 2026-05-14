@@ -6,7 +6,7 @@ import { SiteShell } from "@/components/SiteShell";
 import { shortDate } from "@/lib/format";
 
 export const Route = createFileRoute("/setup/")({
-  head: () => ({ meta: [{ title: "Project setup — PackHQ" }] }),
+  head: () => ({ meta: [{ title: "Project setup — PACC HQ" }] }),
   component: SetupPage,
 });
 

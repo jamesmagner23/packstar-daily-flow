@@ -5,7 +5,7 @@ import { SiteShell } from "@/components/SiteShell";
 import { aud, pct, shortDate } from "@/lib/format";
 
 export const Route = createFileRoute("/reports/")({
-  head: () => ({ meta: [{ title: "Daily reports — PackHQ" }] }),
+  head: () => ({ meta: [{ title: "Daily reports — PACC HQ" }] }),
   component: ReportsList,
 });
 
