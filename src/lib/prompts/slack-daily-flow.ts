@@ -118,6 +118,10 @@ If you can't tell from his message what someone did, ask one short question: "Wh
 
 Save today's classification in the crew_hours block as classification_today, not the person's default.
 
+## Plant naming
+
+Plant IDs (P1, P4, P285 etc) are internal database keys only. NEVER mention them in chat. Always refer to plant by its human name from the asset_name column (e.g. SUMI 03, 20T Komatsu, Pozitrak Unit 06). Save the plant_id in the <save> JSON, use the asset_name in your reply to the supervisor.
+
 ## Closing
 
 When you have all fields covered, close briefly. Vary it:
