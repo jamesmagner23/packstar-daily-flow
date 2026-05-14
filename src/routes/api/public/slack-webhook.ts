@@ -1,5 +1,312 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import Anthropic from "@anthropic-ai/sdk";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { SLACK_DAILY_FLOW_PROMPT } from "@/lib/prompts/slack-daily-flow";
+
+const MODEL = "claude-sonnet-4-5";
+const MELB_TZ = "Australia/Melbourne";
+
+type ChatMsg = { role: "user" | "assistant"; content: string; timestamp: string };
+
+function melbDateISO(d = new Date()): string {
+  // YYYY-MM-DD in Melbourne tz
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: MELB_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(d);
+  const y = parts.find((p) => p.type === "year")!.value;
+  const m = parts.find((p) => p.type === "month")!.value;
+  const day = parts.find((p) => p.type === "day")!.value;
+  return `${y}-${m}-${day}`;
+}
+
+function melbHHMM(d = new Date()): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: MELB_TZ,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+}
+
+function melbLongDate(d = new Date()): string {
+  // e.g. "Thursday 14 May 2026"
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: MELB_TZ,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(d);
+}
+
+function addBusinessDays(start: Date, days: number): Date {
+  const d = new Date(start);
+  let added = 0;
+  while (added < days) {
+    d.setUTCDate(d.getUTCDate() + 1);
+    const dow = d.getUTCDay();
+    if (dow !== 0 && dow !== 6) added++;
+  }
+  return d;
+}
+
+function firstName(full: string): string {
+  return (full ?? "").trim().split(/\s+/)[0] ?? "mate";
+}
+
+function extractSaveBlock(text: string): { reply: string; save: any | null } {
+  const m = text.match(/<save>([\s\S]*?)<\/save>/i);
+  if (!m) return { reply: text.trim(), save: null };
+  const raw = m[1].trim().replace(/^```(?:json)?\s*/i, "").replace(/```$/, "").trim();
+  let save: any = null;
+  try {
+    save = JSON.parse(raw);
+  } catch (e) {
+    console.error("[slack-webhook] save JSON parse failed:", (e as Error).message);
+  }
+  const reply = text.replace(/<save>[\s\S]*?<\/save>/i, "").trim();
+  return { reply, save };
+}
+
+async function postToSlack(channel: string, text: string) {
+  try {
+    const res = await fetch("https://slack.com/api/chat.postMessage", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}`,
+        "Content-Type": "application/json; charset=utf-8",
+      },
+      body: JSON.stringify({ channel, text }),
+    });
+    const data: any = await res.json();
+    if (!data.ok) console.error("[slack-webhook] chat.postMessage failed:", data.error);
+    return data;
+  } catch (e) {
+    console.error("[slack-webhook] chat.postMessage threw:", (e as Error).message);
+    return null;
+  }
+}
+
+async function processEvent(body: any) {
+  const event = body?.event;
+  if (!event) return;
+
+  // Filter
+  if (event.type !== "message") return;
+  if (event.channel_type !== "im") return;
+  if (event.bot_id) return;
+  if (event.subtype) return;
+  const botUserId: string | undefined = body.authorizations?.[0]?.user_id;
+  if (botUserId && event.user === botUserId) return;
+  const slackUserId: string = event.user;
+  const userText: string = event.text ?? "";
+  const channel: string = event.channel;
+
+  // Supervisor lookup
+  const { data: supervisor, error: supErr } = await supabaseAdmin
+    .from("supervisors")
+    .select("id, name, project_id, active")
+    .eq("slack_user_id", slackUserId)
+    .maybeSingle();
+  if (supErr) console.error("[slack-webhook] supervisor lookup error:", supErr.message);
+  if (!supervisor) {
+    console.log("[slack-webhook] unknown slack user, ignoring:", slackUserId);
+    return;
+  }
+  if (!supervisor.project_id) {
+    console.log("[slack-webhook] supervisor has no project assigned:", supervisor.name);
+    return;
+  }
+
+  const supFirst = firstName(supervisor.name);
+  const today = melbDateISO();
+
+  // Load or create today's daily_report
+  const tsPrefix = `[${melbHHMM()}] ${supFirst}: ${userText}\n`;
+  let { data: report, error: repErr } = await supabaseAdmin
+    .from("daily_reports")
+    .select("*")
+    .eq("supervisor_id", supervisor.id)
+    .eq("report_date", today)
+    .maybeSingle();
+  if (repErr) console.error("[slack-webhook] report lookup error:", repErr.message);
+
+  if (!report) {
+    const { data: created, error: insErr } = await supabaseAdmin
+      .from("daily_reports")
+      .insert({
+        supervisor_id: supervisor.id,
+        project_id: supervisor.project_id,
+        report_date: today,
+        raw_transcript: tsPrefix,
+        message_history: [],
+      })
+      .select("*")
+      .single();
+    if (insErr) {
+      console.error("[slack-webhook] daily_reports insert failed:", insErr.message);
+      await postToSlack(channel, "Bot's having a moment. Try again in a minute or just ping James direct.");
+      return;
+    }
+    report = created;
+  } else {
+    const newTranscript = (report.raw_transcript ?? "") + tsPrefix;
+    await supabaseAdmin
+      .from("daily_reports")
+      .update({ raw_transcript: newTranscript })
+      .eq("id", report.id);
+    report.raw_transcript = newTranscript;
+  }
+
+  // Load project context
+  const projectId = supervisor.project_id;
+  const [
+    { data: project },
+    { data: pits },
+    { data: boq },
+    { data: crew },
+    { data: plant },
+    { data: clauses },
+    { data: triggers },
+  ] = await Promise.all([
+    supabaseAdmin.from("projects").select("*").eq("id", projectId).single(),
+    supabaseAdmin.from("pits").select("pit_id, separable_portion_code, status").eq("project_id", projectId),
+    supabaseAdmin.from("boq_lines").select("ref, category, description, material, diameter_mm, depth_band_m, pit_type, pit_dimensions_mm, unit, rate").eq("project_id", projectId),
+    supabaseAdmin.from("crew_members").select("name, role").eq("project_id", projectId).eq("active", true),
+    supabaseAdmin.from("plant_items").select("plant_id_code, description, tonnage_class").eq("project_id", projectId).eq("active", true),
+    supabaseAdmin.from("variation_clauses").select("claim_type, clause_ref, notice_deadline_bd, early_warning_deadline_bd, full_report_deadline_bd, condition_precedent, notes").eq("project_id", projectId),
+    supabaseAdmin.from("variation_triggers").select("keywords, claim_type, clause_ref").eq("project_id", projectId),
+  ]);
+
+  if (!project) {
+    console.error("[slack-webhook] project not found:", projectId);
+    await postToSlack(channel, "Bot's having a moment. Try again in a minute or just ping James direct.");
+    return;
+  }
+
+  const hcRep = (project as any).head_contractor_rep ?? "the head contractor's rep";
+
+  const systemPrompt = SLACK_DAILY_FLOW_PROMPT
+    .replaceAll("{{SUPERVISOR_FIRST_NAME}}", supFirst)
+    .replaceAll("{{TODAY_DATE}}", melbLongDate())
+    .replaceAll("{{PROJECT_NAME}}", project.name)
+    .replaceAll("{{HEAD_CONTRACTOR}}", project.head_contractor)
+    .replaceAll("{{HC_REP_NAME}}", hcRep)
+    .replaceAll("{{PIT_REGISTER_JSON}}", JSON.stringify(pits ?? []))
+    .replaceAll("{{BOQ_JSON}}", JSON.stringify(boq ?? []))
+    .replaceAll("{{CREW_TODAY_JSON}}", JSON.stringify(crew ?? []))
+    .replaceAll("{{PLANT_TODAY_JSON}}", JSON.stringify(plant ?? []))
+    .replaceAll("{{VARIATION_CLAUSES_JSON}}", JSON.stringify(clauses ?? []))
+    .replaceAll("{{VARIATION_TRIGGERS_JSON}}", JSON.stringify(triggers ?? []));
+
+  // Reconstruct conversation
+  const history: ChatMsg[] = Array.isArray(report.message_history)
+    ? (report.message_history as ChatMsg[])
+    : [];
+  const nowIso = new Date().toISOString();
+  const newUserMsg: ChatMsg = { role: "user", content: userText, timestamp: nowIso };
+  const messages = [...history, newUserMsg].map((m) => ({ role: m.role, content: m.content }));
+
+  // Call Claude with prompt caching on the system block
+  let replyText = "Bot's having a moment. Try again in a minute or just ping James direct.";
+  let assistantText = "";
+  let usage: any = null;
+  try {
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const response = await anthropic.messages.create({
+      model: MODEL,
+      max_tokens: 1024,
+      system: [
+        {
+          type: "text",
+          text: systemPrompt,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages,
+    });
+    usage = response.usage;
+    assistantText = response.content
+      .filter((b: any) => b.type === "text")
+      .map((b: any) => b.text)
+      .join("\n")
+      .trim();
+    const parsed = extractSaveBlock(assistantText);
+    replyText = parsed.reply || "Got it.";
+    var saveBlock = parsed.save;
+    console.log("[slack-webhook] claude usage:", JSON.stringify(usage));
+  } catch (e) {
+    console.error("[slack-webhook] anthropic call failed:", (e as Error).message);
+    await postToSlack(channel, replyText);
+    return;
+  }
+
+  // Persist conversation turns + structured updates
+  const newAssistantMsg: ChatMsg = { role: "assistant", content: assistantText, timestamp: new Date().toISOString() };
+  const updatedHistory: ChatMsg[] = [...history, newUserMsg, newAssistantMsg];
+
+  const updates: Record<string, any> = { message_history: updatedHistory };
+  if (saveBlock && typeof saveBlock === "object") {
+    if ("works_completed" in saveBlock) updates.works_completed = saveBlock.works_completed;
+    if ("crew_hours" in saveBlock) updates.crew_hours = saveBlock.crew_hours;
+    if ("plant_hours" in saveBlock) updates.plant_hours = saveBlock.plant_hours;
+    if ("productivity_note" in saveBlock && saveBlock.productivity_note != null) {
+      updates.productivity_note = saveBlock.productivity_note;
+    }
+    if (saveBlock.complete === true) updates.complete = true;
+  }
+
+  const { error: updErr } = await supabaseAdmin
+    .from("daily_reports")
+    .update(updates)
+    .eq("id", report.id);
+  if (updErr) console.error("[slack-webhook] daily_reports update failed:", updErr.message);
+
+  // Variation flags upsert
+  if (saveBlock && Array.isArray(saveBlock.variation_flags)) {
+    for (const vf of saveBlock.variation_flags) {
+      try {
+        const noticeBd: number = Number(vf.notice_deadline_bd ?? 1);
+        const deadline = addBusinessDays(new Date(), noticeBd);
+        const { error: vfErr } = await supabaseAdmin.from("variation_flags").insert({
+          daily_report_id: report.id,
+          project_id: projectId,
+          claim_type: vf.claim_type,
+          clause_ref: vf.clause_ref,
+          trigger_phrase: vf.trigger_phrase ?? null,
+          notice_deadline_bd: noticeBd,
+          deadline_at: deadline.toISOString(),
+          duration_impact_hours: vf.duration_impact_hours ?? null,
+          symal_rep_saw: vf.hc_rep_saw ?? null,
+          status: "flagged",
+        });
+        if (vfErr) console.error("[slack-webhook] variation_flag insert failed:", vfErr.message);
+      } catch (e) {
+        console.error("[slack-webhook] variation_flag loop error:", (e as Error).message);
+      }
+    }
+  }
+
+  console.log(
+    "[slack-webhook] processed",
+    JSON.stringify({
+      event_id: body.event_id,
+      supervisor: supervisor.name,
+      msg_preview: userText.slice(0, 80),
+      report_id: report.id,
+      save_present: !!saveBlock,
+      usage,
+    }),
+  );
+
+  // Post reply
+  const post = await postToSlack(channel, replyText);
+  console.log("[slack-webhook] slack post ok:", post?.ok ?? false);
+}
 
 export const Route = createFileRoute("/api/public/slack-webhook")({
   server: {
@@ -7,17 +314,14 @@ export const Route = createFileRoute("/api/public/slack-webhook")({
       POST: async ({ request }) => {
         const rawBody = await request.text();
 
-        // Try to parse JSON first (Events API uses JSON)
         let payload: any = null;
         try {
           payload = JSON.parse(rawBody);
         } catch {
-          // Could be form-encoded (slash commands / interactivity)
+          // form-encoded etc
         }
 
-        // Slack URL verification handshake — must echo `challenge` ASAP,
-        // BEFORE signature checks (Slack's verifier sometimes runs before
-        // signing secret is configured on first paste).
+        // 1. URL verification handshake (unsigned, must run first)
         if (payload?.type === "url_verification" && typeof payload.challenge === "string") {
           return new Response(payload.challenge, {
             status: 200,
@@ -25,29 +329,37 @@ export const Route = createFileRoute("/api/public/slack-webhook")({
           });
         }
 
-        // Verify Slack signature for everything else
+        // 2. Signature verification
         const signingSecret = process.env.SLACK_SIGNING_SECRET;
-        if (signingSecret) {
-          const ts = request.headers.get("x-slack-request-timestamp") ?? "";
-          const sig = request.headers.get("x-slack-signature") ?? "";
-          const fiveMinutes = 60 * 5;
-          if (Math.abs(Date.now() / 1000 - Number(ts)) > fiveMinutes) {
-            return new Response("Stale request", { status: 401 });
-          }
-          const base = `v0:${ts}:${rawBody}`;
-          const expected = `v0=${createHmac("sha256", signingSecret).update(base).digest("hex")}`;
-          const a = Buffer.from(expected);
-          const b = Buffer.from(sig);
-          if (a.length !== b.length || !timingSafeEqual(a, b)) {
-            return new Response("Bad signature", { status: 401 });
-          }
+        if (!signingSecret) {
+          console.error("[slack-webhook] SLACK_SIGNING_SECRET not set");
+          return new Response("Server misconfigured", { status: 500 });
+        }
+        const ts = request.headers.get("x-slack-request-timestamp") ?? "";
+        const sig = request.headers.get("x-slack-signature") ?? "";
+        const fiveMinutes = 60 * 5;
+        if (!ts || Math.abs(Date.now() / 1000 - Number(ts)) > fiveMinutes) {
+          return new Response("Stale request", { status: 401 });
+        }
+        const base = `v0:${ts}:${rawBody}`;
+        const expected = `v0=${createHmac("sha256", signingSecret).update(base).digest("hex")}`;
+        const a = Buffer.from(expected);
+        const b = Buffer.from(sig);
+        if (a.length !== b.length || !timingSafeEqual(a, b)) {
+          return new Response("Bad signature", { status: 401 });
         }
 
-        // TODO: route events / slash commands / interactivity to handlers
-        // (daily report capture, variation flagging, etc.)
-        console.log("[slack-webhook] event", payload?.event?.type ?? payload?.command ?? "unknown");
+        // 3. Fire-and-forget background processing, ack within 3s
+        if (payload?.type === "event_callback") {
+          // Don't await; let the response return immediately.
+          processEvent(payload).catch((e) =>
+            console.error("[slack-webhook] processEvent threw:", (e as Error).message),
+          );
+        } else {
+          console.log("[slack-webhook] non-event payload type:", payload?.type);
+        }
 
-        return new Response("ok", { status: 200 });
+        return new Response("", { status: 200 });
       },
     },
   },
