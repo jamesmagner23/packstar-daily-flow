@@ -97,12 +97,38 @@ async function processEvent(body: any) {
   if (!event) return;
 
   // Filter
-  if (event.type !== "message") return;
-  if (event.channel_type !== "im") return;
-  if (event.bot_id) return;
-  if (event.subtype) return;
+  if (event.type !== "message") {
+    console.log("[slack-webhook] skip: type", event.type);
+    return;
+  }
+  if (event.channel_type !== "im") {
+    console.log("[slack-webhook] skip: channel_type", event.channel_type);
+    return;
+  }
+  if (event.bot_id) {
+    console.log("[slack-webhook] skip: bot_id present");
+    return;
+  }
+  // Slack stamps a subtype on lots of legitimate user messages
+  // (file_share, thread_broadcast, etc). Only drop the ones that
+  // aren't a fresh user message we want to capture.
+  const SKIP_SUBTYPES = new Set([
+    "bot_message",
+    "message_changed",
+    "message_deleted",
+    "channel_join",
+    "channel_leave",
+    "tombstone",
+  ]);
+  if (event.subtype && SKIP_SUBTYPES.has(event.subtype)) {
+    console.log("[slack-webhook] skip: subtype", event.subtype);
+    return;
+  }
   const botUserId: string | undefined = body.authorizations?.[0]?.user_id;
-  if (botUserId && event.user === botUserId) return;
+  if (botUserId && event.user === botUserId) {
+    console.log("[slack-webhook] skip: bot's own message");
+    return;
+  }
   const slackUserId: string = event.user;
   const userText: string = event.text ?? "";
   const channel: string = event.channel;
