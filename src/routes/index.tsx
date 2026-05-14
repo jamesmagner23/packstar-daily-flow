@@ -125,7 +125,8 @@ function Dashboard() {
             {variations.length === 0 ? (
               <p className="text-xs text-meta py-6">No variations flagged. The bot watches for triggers in the daily wrap.</p>
             ) : (
-              <table className="w-full text-left">
+              <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
+              <table className="w-full text-left min-w-[560px]">
                 <thead>
                   <tr className="t-stat-label">
                     <th className="py-2 font-semibold">Type</th>
