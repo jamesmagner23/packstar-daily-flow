@@ -114,6 +114,7 @@ export type Database = {
           email_sent_at: string | null
           id: string
           margin_aud: number | null
+          message_history: Json
           plant_hours: Json | null
           productivity_note: string | null
           productivity_pct: number | null
@@ -134,6 +135,7 @@ export type Database = {
           email_sent_at?: string | null
           id?: string
           margin_aud?: number | null
+          message_history?: Json
           plant_hours?: Json | null
           productivity_note?: string | null
           productivity_pct?: number | null
@@ -154,6 +156,7 @@ export type Database = {
           email_sent_at?: string | null
           id?: string
           margin_aud?: number | null
+          message_history?: Json
           plant_hours?: Json | null
           productivity_note?: string | null
           productivity_pct?: number | null
