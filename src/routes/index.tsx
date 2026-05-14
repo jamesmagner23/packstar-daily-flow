@@ -132,13 +132,15 @@ function Dashboard() {
                     const bd = businessDaysRemaining(v.deadline_at);
                     const urgent = bd !== null && bd < 1;
                     return (
-                      <tr key={v.id} className="border-t border-rule">
+                      <tr
+                        key={v.id}
+                        onClick={() => (window.location.href = `/variations/${v.id}`)}
+                        className="border-t border-rule cursor-pointer hover:bg-[color:var(--accent)] transition-colors"
+                      >
                         <td className="py-3 text-xs">{v.claim_type}</td>
                         <td className="py-3 text-xs font-mono">{v.clause_ref}</td>
                         <td className="py-3 text-xs max-w-md truncate">
-                          <Link to="/variations/$id" params={{ id: v.id }} className="hover:text-[color:var(--brand)]">
-                            {v.description ?? v.trigger_phrase ?? "—"}
-                          </Link>
+                          {v.description ?? v.trigger_phrase ?? "—"}
                         </td>
                         <td className={`py-3 text-xs ${urgent ? "text-[color:var(--brand)] font-semibold" : ""}`}>
                           {bd === null ? "—" : bd < 0 ? `${Math.abs(bd)} BD overdue` : `${bd} BD`}
