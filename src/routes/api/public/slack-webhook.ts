@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import Anthropic from "@anthropic-ai/sdk";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { SLACK_DAILY_FLOW_PROMPT } from "@/lib/prompts/slack-daily-flow";
+import { persistComputedReport, notifyDirectorOnWrap } from "@/lib/evening-summary/persist";
 
 const MODEL = "claude-sonnet-4-5";
 const MELB_TZ = "Australia/Melbourne";
@@ -314,6 +315,29 @@ async function processEvent(body: any) {
       } catch (e) {
         console.error("[slack-webhook] variation_flag loop error:", (e as Error).message);
       }
+    }
+  }
+
+  // If the wrap just flipped to complete, compute financials and DM the director.
+  const justCompleted = updates.complete === true && report.complete !== true;
+  if (justCompleted) {
+    try {
+      const computed = await persistComputedReport(report.id);
+      const { count: vfCount } = await supabaseAdmin
+        .from("variation_flags")
+        .select("id", { count: "exact", head: true })
+        .eq("daily_report_id", report.id);
+      const siteOrigin = process.env.SITE_ORIGIN ?? "https://packstar-daily-flow.lovable.app";
+      await notifyDirectorOnWrap({
+        reportId: report.id,
+        projectId: projectId as string,
+        supervisorName: supervisor.name,
+        productivityPct: computed.productivity_pct,
+        variationCount: vfCount ?? 0,
+        siteOrigin,
+      });
+    } catch (e) {
+      console.error("[slack-webhook] post-complete pipeline failed:", (e as Error).message);
     }
   }
 

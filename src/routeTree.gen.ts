@@ -16,7 +16,7 @@ import { Route as ReportsIndexRouteImport } from './routes/reports.index'
 import { Route as VariationsIdRouteImport } from './routes/variations.$id'
 import { Route as ReportsIdRouteImport } from './routes/reports.$id'
 import { Route as ApiPublicSlackWebhookRouteImport } from './routes/api/public/slack-webhook'
-import { Route as ApiPublicHooksRunEveningSummaryRouteImport } from './routes/api/public/hooks/run-evening-summary'
+import { Route as ApiPublicHooksRecomputeReportRouteImport } from './routes/api/public/hooks/recompute-report'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -53,10 +53,10 @@ const ApiPublicSlackWebhookRoute = ApiPublicSlackWebhookRouteImport.update({
   path: '/api/public/slack-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicHooksRunEveningSummaryRoute =
-  ApiPublicHooksRunEveningSummaryRouteImport.update({
-    id: '/api/public/hooks/run-evening-summary',
-    path: '/api/public/hooks/run-evening-summary',
+const ApiPublicHooksRecomputeReportRoute =
+  ApiPublicHooksRecomputeReportRouteImport.update({
+    id: '/api/public/hooks/recompute-report',
+    path: '/api/public/hooks/recompute-report',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -68,7 +68,7 @@ export interface FileRoutesByFullPath {
   '/setup/': typeof SetupIndexRoute
   '/variations/': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
-  '/api/public/hooks/run-evening-summary': typeof ApiPublicHooksRunEveningSummaryRoute
+  '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,7 +78,7 @@ export interface FileRoutesByTo {
   '/setup': typeof SetupIndexRoute
   '/variations': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
-  '/api/public/hooks/run-evening-summary': typeof ApiPublicHooksRunEveningSummaryRoute
+  '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,7 +89,7 @@ export interface FileRoutesById {
   '/setup/': typeof SetupIndexRoute
   '/variations/': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
-  '/api/public/hooks/run-evening-summary': typeof ApiPublicHooksRunEveningSummaryRoute
+  '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,7 +101,7 @@ export interface FileRouteTypes {
     | '/setup/'
     | '/variations/'
     | '/api/public/slack-webhook'
-    | '/api/public/hooks/run-evening-summary'
+    | '/api/public/hooks/recompute-report'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,7 +111,7 @@ export interface FileRouteTypes {
     | '/setup'
     | '/variations'
     | '/api/public/slack-webhook'
-    | '/api/public/hooks/run-evening-summary'
+    | '/api/public/hooks/recompute-report'
   id:
     | '__root__'
     | '/'
@@ -121,7 +121,7 @@ export interface FileRouteTypes {
     | '/setup/'
     | '/variations/'
     | '/api/public/slack-webhook'
-    | '/api/public/hooks/run-evening-summary'
+    | '/api/public/hooks/recompute-report'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,7 +132,7 @@ export interface RootRouteChildren {
   SetupIndexRoute: typeof SetupIndexRoute
   VariationsIndexRoute: typeof VariationsIndexRoute
   ApiPublicSlackWebhookRoute: typeof ApiPublicSlackWebhookRoute
-  ApiPublicHooksRunEveningSummaryRoute: typeof ApiPublicHooksRunEveningSummaryRoute
+  ApiPublicHooksRecomputeReportRoute: typeof ApiPublicHooksRecomputeReportRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -186,11 +186,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSlackWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/run-evening-summary': {
-      id: '/api/public/hooks/run-evening-summary'
-      path: '/api/public/hooks/run-evening-summary'
-      fullPath: '/api/public/hooks/run-evening-summary'
-      preLoaderRoute: typeof ApiPublicHooksRunEveningSummaryRouteImport
+    '/api/public/hooks/recompute-report': {
+      id: '/api/public/hooks/recompute-report'
+      path: '/api/public/hooks/recompute-report'
+      fullPath: '/api/public/hooks/recompute-report'
+      preLoaderRoute: typeof ApiPublicHooksRecomputeReportRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -204,7 +204,7 @@ const rootRouteChildren: RootRouteChildren = {
   SetupIndexRoute: SetupIndexRoute,
   VariationsIndexRoute: VariationsIndexRoute,
   ApiPublicSlackWebhookRoute: ApiPublicSlackWebhookRoute,
-  ApiPublicHooksRunEveningSummaryRoute: ApiPublicHooksRunEveningSummaryRoute,
+  ApiPublicHooksRecomputeReportRoute: ApiPublicHooksRecomputeReportRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
