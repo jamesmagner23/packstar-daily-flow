@@ -93,10 +93,17 @@ function Dashboard() {
 
         <section>
           <div className="t-eyebrow mb-4">Today at a glance</div>
-          <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-5 gap-8">
             <StatCard label="Revenue" value={aud(today?.revenue_aud)} tone="revenue" />
             <StatCard label="Cost" value={aud(today?.cost_aud)} tone="cost" />
             <StatCard label="Margin (GP)" value={aud(today?.margin_aud)} tone="margin" />
+            <StatCard
+              label="GP %"
+              value={today?.revenue_aud && Number(today.revenue_aud) > 0
+                ? pct((Number(today.margin_aud ?? 0) / Number(today.revenue_aud)) * 100)
+                : "—"}
+              tone="gp"
+            />
             <StatCard label="Productivity" value={pct(today?.productivity_pct)} />
           </div>
           {!today && (
