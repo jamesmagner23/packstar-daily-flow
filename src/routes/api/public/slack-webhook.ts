@@ -130,8 +130,22 @@ async function processEvent(body: any) {
     return;
   }
   const slackUserId: string = event.user;
-  const userText: string = event.text ?? "";
+  const userText: string = (event.text ?? "").trim();
   const channel: string = event.channel;
+  const hasFiles = Array.isArray(event.files) && event.files.length > 0;
+
+  // Voice notes / file-only messages have no text. Claude rejects empty
+  // user content, so nudge instead of calling the model.
+  if (!userText) {
+    console.log("[slack-webhook] empty text", { hasFiles, subtype: event.subtype });
+    await postToSlack(
+      channel,
+      hasFiles
+        ? "Can't listen to voice notes yet mate — type the wrap out and I'll log it."
+        : "Didn't catch that — send it as text and I'll log it.",
+    );
+    return;
+  }
 
   // Supervisor lookup
   const { data: supervisor, error: supErr } = await supabaseAdmin
