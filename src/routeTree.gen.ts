@@ -10,33 +10,102 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VariationsIndexRouteImport } from './routes/variations.index'
+import { Route as SetupIndexRouteImport } from './routes/setup.index'
+import { Route as ReportsIndexRouteImport } from './routes/reports.index'
+import { Route as VariationsIdRouteImport } from './routes/variations.$id'
+import { Route as ReportsIdRouteImport } from './routes/reports.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VariationsIndexRoute = VariationsIndexRouteImport.update({
+  id: '/variations/',
+  path: '/variations/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SetupIndexRoute = SetupIndexRouteImport.update({
+  id: '/setup/',
+  path: '/setup/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsIndexRoute = ReportsIndexRouteImport.update({
+  id: '/reports/',
+  path: '/reports/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VariationsIdRoute = VariationsIdRouteImport.update({
+  id: '/variations/$id',
+  path: '/variations/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsIdRoute = ReportsIdRouteImport.update({
+  id: '/reports/$id',
+  path: '/reports/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/reports/$id': typeof ReportsIdRoute
+  '/variations/$id': typeof VariationsIdRoute
+  '/reports/': typeof ReportsIndexRoute
+  '/setup/': typeof SetupIndexRoute
+  '/variations/': typeof VariationsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/reports/$id': typeof ReportsIdRoute
+  '/variations/$id': typeof VariationsIdRoute
+  '/reports': typeof ReportsIndexRoute
+  '/setup': typeof SetupIndexRoute
+  '/variations': typeof VariationsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/reports/$id': typeof ReportsIdRoute
+  '/variations/$id': typeof VariationsIdRoute
+  '/reports/': typeof ReportsIndexRoute
+  '/setup/': typeof SetupIndexRoute
+  '/variations/': typeof VariationsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/reports/$id'
+    | '/variations/$id'
+    | '/reports/'
+    | '/setup/'
+    | '/variations/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/reports/$id'
+    | '/variations/$id'
+    | '/reports'
+    | '/setup'
+    | '/variations'
+  id:
+    | '__root__'
+    | '/'
+    | '/reports/$id'
+    | '/variations/$id'
+    | '/reports/'
+    | '/setup/'
+    | '/variations/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ReportsIdRoute: typeof ReportsIdRoute
+  VariationsIdRoute: typeof VariationsIdRoute
+  ReportsIndexRoute: typeof ReportsIndexRoute
+  SetupIndexRoute: typeof SetupIndexRoute
+  VariationsIndexRoute: typeof VariationsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +117,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/variations/': {
+      id: '/variations/'
+      path: '/variations'
+      fullPath: '/variations/'
+      preLoaderRoute: typeof VariationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/setup/': {
+      id: '/setup/'
+      path: '/setup'
+      fullPath: '/setup/'
+      preLoaderRoute: typeof SetupIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports/': {
+      id: '/reports/'
+      path: '/reports'
+      fullPath: '/reports/'
+      preLoaderRoute: typeof ReportsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/variations/$id': {
+      id: '/variations/$id'
+      path: '/variations/$id'
+      fullPath: '/variations/$id'
+      preLoaderRoute: typeof VariationsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports/$id': {
+      id: '/reports/$id'
+      path: '/reports/$id'
+      fullPath: '/reports/$id'
+      preLoaderRoute: typeof ReportsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ReportsIdRoute: ReportsIdRoute,
+  VariationsIdRoute: VariationsIdRoute,
+  ReportsIndexRoute: ReportsIndexRoute,
+  SetupIndexRoute: SetupIndexRoute,
+  VariationsIndexRoute: VariationsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
