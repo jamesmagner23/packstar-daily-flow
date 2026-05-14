@@ -266,25 +266,51 @@ async function processEvent(body: any) {
     .eq("id", report.id);
   if (updErr) console.error("[slack-webhook] daily_reports update failed:", updErr.message);
 
-  // Variation flags upsert
+  // Variation flags: upsert on natural key (daily_report_id, claim_type, clause_ref, trigger_phrase)
+  // so re-mentions of the same claim across turns update the existing row instead of duplicating.
   if (saveBlock && Array.isArray(saveBlock.variation_flags)) {
     for (const vf of saveBlock.variation_flags) {
       try {
         const noticeBd: number = Number(vf.notice_deadline_bd ?? 1);
         const deadline = addBusinessDays(new Date(), noticeBd);
-        const { error: vfErr } = await supabaseAdmin.from("variation_flags").insert({
+        const triggerPhrase: string | null = vf.trigger_phrase ?? null;
+
+        // Look up existing row by natural key (matches the unique expression index)
+        let existingQuery = supabaseAdmin
+          .from("variation_flags")
+          .select("id")
+          .eq("daily_report_id", report.id)
+          .eq("claim_type", vf.claim_type)
+          .eq("clause_ref", vf.clause_ref);
+        existingQuery = triggerPhrase === null
+          ? existingQuery.is("trigger_phrase", null)
+          : existingQuery.eq("trigger_phrase", triggerPhrase);
+        const { data: existing, error: exErr } = await existingQuery.maybeSingle();
+        if (exErr) console.error("[slack-webhook] variation_flag lookup failed:", exErr.message);
+
+        const payload = {
           daily_report_id: report.id,
           project_id: projectId,
           claim_type: vf.claim_type,
           clause_ref: vf.clause_ref,
-          trigger_phrase: vf.trigger_phrase ?? null,
+          trigger_phrase: triggerPhrase,
           notice_deadline_bd: noticeBd,
           deadline_at: deadline.toISOString(),
           duration_impact_hours: vf.duration_impact_hours ?? null,
           symal_rep_saw: vf.hc_rep_saw ?? null,
           status: "flagged",
-        });
-        if (vfErr) console.error("[slack-webhook] variation_flag insert failed:", vfErr.message);
+        };
+
+        if (existing?.id) {
+          const { error: vfErr } = await supabaseAdmin
+            .from("variation_flags")
+            .update(payload)
+            .eq("id", existing.id);
+          if (vfErr) console.error("[slack-webhook] variation_flag update failed:", vfErr.message);
+        } else {
+          const { error: vfErr } = await supabaseAdmin.from("variation_flags").insert(payload);
+          if (vfErr) console.error("[slack-webhook] variation_flag insert failed:", vfErr.message);
+        }
       } catch (e) {
         console.error("[slack-webhook] variation_flag loop error:", (e as Error).message);
       }
