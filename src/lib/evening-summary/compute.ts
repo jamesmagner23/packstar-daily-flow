@@ -122,13 +122,3 @@ export async function computeReport(reportId: string): Promise<ComputedReport> {
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
-
-// Plant_items uses cost_rate_nt naming; pull it via a second query helper since
-// the original select above didn't include cost_rate_*. Fix by re-selecting.
-export async function fetchPlantCostRates(projectId: string) {
-  const { data } = await supabaseAdmin
-    .from("plant_items")
-    .select("plant_id_code, description, tonnage_class, cost_rate_nt, cost_rate_ot")
-    .eq("project_id", projectId);
-  return data ?? [];
-}
