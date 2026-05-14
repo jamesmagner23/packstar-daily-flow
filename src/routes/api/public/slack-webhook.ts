@@ -349,12 +349,23 @@ export const Route = createFileRoute("/api/public/slack-webhook")({
           return new Response("Bad signature", { status: 401 });
         }
 
-        // 3. Fire-and-forget background processing, ack within 3s
+        // 3. Process event. Await so the Worker doesn't kill background work
+        // when the response returns. Slack retries (x-slack-retry-num) are
+        // ack'd immediately to prevent duplicate processing while Claude runs.
         if (payload?.type === "event_callback") {
-          // Don't await; let the response return immediately.
-          processEvent(payload).catch((e) =>
-            console.error("[slack-webhook] processEvent threw:", (e as Error).message),
-          );
+          if (request.headers.get("x-slack-retry-num")) {
+            console.log("[slack-webhook] ignoring slack retry", {
+              event_id: payload.event_id,
+              retry_num: request.headers.get("x-slack-retry-num"),
+              retry_reason: request.headers.get("x-slack-retry-reason"),
+            });
+            return new Response("", { status: 200 });
+          }
+          try {
+            await processEvent(payload);
+          } catch (e) {
+            console.error("[slack-webhook] processEvent threw:", (e as Error).message);
+          }
         } else {
           console.log("[slack-webhook] non-event payload type:", payload?.type);
         }
