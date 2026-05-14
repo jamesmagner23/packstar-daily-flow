@@ -372,6 +372,33 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_card_variations: {
+        Row: {
+          created_at: string
+          id: string
+          project_id: string | null
+          rate: number
+          resource: string
+          time_band: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          project_id?: string | null
+          rate: number
+          resource: string
+          time_band: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          project_id?: string | null
+          rate?: number
+          resource?: string
+          time_band?: string
+        }
+        Relationships: []
+      }
       separable_portions: {
         Row: {
           code: string
