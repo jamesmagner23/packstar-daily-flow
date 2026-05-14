@@ -79,14 +79,6 @@ function Dashboard() {
     },
   });
 
-  const { data: portions = [] } = useQuery({
-    queryKey: ["portions"],
-    queryFn: async () => {
-      const { data } = await supabase.from("separable_portions").select("*").order("completion");
-      return data ?? [];
-    },
-  });
-
   return (
     <SiteShell section="Dashboard">
       <div className="space-y-12">
