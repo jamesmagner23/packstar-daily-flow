@@ -67,11 +67,44 @@ export type Database = {
           },
         ]
       }
+      classifications: {
+        Row: {
+          classification: string
+          created_at: string
+          description: string | null
+          eba_source: string | null
+          employment_type: string
+          id: string
+          nt_cost_per_hr: number
+          ot_cost_per_hr: number
+        }
+        Insert: {
+          classification: string
+          created_at?: string
+          description?: string | null
+          eba_source?: string | null
+          employment_type: string
+          id?: string
+          nt_cost_per_hr: number
+          ot_cost_per_hr: number
+        }
+        Update: {
+          classification?: string
+          created_at?: string
+          description?: string | null
+          eba_source?: string | null
+          employment_type?: string
+          id?: string
+          nt_cost_per_hr?: number
+          ot_cost_per_hr?: number
+        }
+        Relationships: []
+      }
       crew_members: {
         Row: {
           active: boolean | null
-          cost_rate_nt: number | null
-          cost_rate_ot: number | null
+          capabilities: string[]
+          employment_type: string | null
           id: string
           name: string
           project_id: string | null
@@ -79,8 +112,8 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
-          cost_rate_nt?: number | null
-          cost_rate_ot?: number | null
+          capabilities?: string[]
+          employment_type?: string | null
           id?: string
           name: string
           project_id?: string | null
@@ -88,8 +121,8 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
-          cost_rate_nt?: number | null
-          cost_rate_ot?: number | null
+          capabilities?: string[]
+          employment_type?: string | null
           id?: string
           name?: string
           project_id?: string | null
@@ -249,6 +282,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      plant_hire_rate_card: {
+        Row: {
+          active: boolean
+          created_at: string
+          dry_hire_daily: number | null
+          dry_hire_weekly: number | null
+          id: string
+          notes: string | null
+          size_class: string
+          type: string
+          wet_hire_night_hr: number | null
+          wet_hire_nt_hr: number | null
+          wet_hire_ot_hr: number | null
+          wet_hire_ph_hr: number | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          dry_hire_daily?: number | null
+          dry_hire_weekly?: number | null
+          id?: string
+          notes?: string | null
+          size_class: string
+          type: string
+          wet_hire_night_hr?: number | null
+          wet_hire_nt_hr?: number | null
+          wet_hire_ot_hr?: number | null
+          wet_hire_ph_hr?: number | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          dry_hire_daily?: number | null
+          dry_hire_weekly?: number | null
+          id?: string
+          notes?: string | null
+          size_class?: string
+          type?: string
+          wet_hire_night_hr?: number | null
+          wet_hire_nt_hr?: number | null
+          wet_hire_ot_hr?: number | null
+          wet_hire_ph_hr?: number | null
+        }
+        Relationships: []
       }
       plant_items: {
         Row: {
