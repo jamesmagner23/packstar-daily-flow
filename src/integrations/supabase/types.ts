@@ -138,6 +138,36 @@ export type Database = {
           },
         ]
       }
+      daily_prompts_sent: {
+        Row: {
+          id: string
+          opener_used: string
+          sent_at: string
+          sent_for_date: string
+          slack_channel: string | null
+          slack_ts: string | null
+          supervisor_id: string
+        }
+        Insert: {
+          id?: string
+          opener_used: string
+          sent_at?: string
+          sent_for_date: string
+          slack_channel?: string | null
+          slack_ts?: string | null
+          supervisor_id: string
+        }
+        Update: {
+          id?: string
+          opener_used?: string
+          sent_at?: string
+          sent_for_date?: string
+          slack_channel?: string | null
+          slack_ts?: string | null
+          supervisor_id?: string
+        }
+        Relationships: []
+      }
       daily_reports: {
         Row: {
           complete: boolean | null
