@@ -318,6 +318,29 @@ async function processEvent(body: any) {
     }
   }
 
+  // If the wrap just flipped to complete, compute financials and DM the director.
+  const justCompleted = updates.complete === true && report.complete !== true;
+  if (justCompleted) {
+    try {
+      const computed = await persistComputedReport(report.id);
+      const { count: vfCount } = await supabaseAdmin
+        .from("variation_flags")
+        .select("id", { count: "exact", head: true })
+        .eq("daily_report_id", report.id);
+      const url = new URL(request_url_for_origin);
+      await notifyDirectorOnWrap({
+        reportId: report.id,
+        projectId: projectId as string,
+        supervisorName: supervisor.name,
+        productivityPct: computed.productivity_pct,
+        variationCount: vfCount ?? 0,
+        siteOrigin: `${url.protocol}//${url.host}`,
+      });
+    } catch (e) {
+      console.error("[slack-webhook] post-complete pipeline failed:", (e as Error).message);
+    }
+  }
+
   console.log(
     "[slack-webhook] processed",
     JSON.stringify({
