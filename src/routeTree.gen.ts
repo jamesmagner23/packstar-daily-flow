@@ -15,6 +15,7 @@ import { Route as SetupIndexRouteImport } from './routes/setup.index'
 import { Route as ReportsIndexRouteImport } from './routes/reports.index'
 import { Route as VariationsIdRouteImport } from './routes/variations.$id'
 import { Route as ReportsIdRouteImport } from './routes/reports.$id'
+import { Route as ApiPublicSlackWebhookRouteImport } from './routes/api/public/slack-webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +47,11 @@ const ReportsIdRoute = ReportsIdRouteImport.update({
   path: '/reports/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSlackWebhookRoute = ApiPublicSlackWebhookRouteImport.update({
+  id: '/api/public/slack-webhook',
+  path: '/api/public/slack-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/reports/': typeof ReportsIndexRoute
   '/setup/': typeof SetupIndexRoute
   '/variations/': typeof VariationsIndexRoute
+  '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/reports': typeof ReportsIndexRoute
   '/setup': typeof SetupIndexRoute
   '/variations': typeof VariationsIndexRoute
+  '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +79,7 @@ export interface FileRoutesById {
   '/reports/': typeof ReportsIndexRoute
   '/setup/': typeof SetupIndexRoute
   '/variations/': typeof VariationsIndexRoute
+  '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,6 +90,7 @@ export interface FileRouteTypes {
     | '/reports/'
     | '/setup/'
     | '/variations/'
+    | '/api/public/slack-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -89,6 +99,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/setup'
     | '/variations'
+    | '/api/public/slack-webhook'
   id:
     | '__root__'
     | '/'
@@ -97,6 +108,7 @@ export interface FileRouteTypes {
     | '/reports/'
     | '/setup/'
     | '/variations/'
+    | '/api/public/slack-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,6 +118,7 @@ export interface RootRouteChildren {
   ReportsIndexRoute: typeof ReportsIndexRoute
   SetupIndexRoute: typeof SetupIndexRoute
   VariationsIndexRoute: typeof VariationsIndexRoute
+  ApiPublicSlackWebhookRoute: typeof ApiPublicSlackWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -152,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/slack-webhook': {
+      id: '/api/public/slack-webhook'
+      path: '/api/public/slack-webhook'
+      fullPath: '/api/public/slack-webhook'
+      preLoaderRoute: typeof ApiPublicSlackWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -162,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReportsIndexRoute: ReportsIndexRoute,
   SetupIndexRoute: SetupIndexRoute,
   VariationsIndexRoute: VariationsIndexRoute,
+  ApiPublicSlackWebhookRoute: ApiPublicSlackWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
