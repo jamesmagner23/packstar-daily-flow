@@ -262,7 +262,7 @@ async function processEvent(body: any) {
 
   const { error: updErr } = await supabaseAdmin
     .from("daily_reports")
-    .update(updates)
+    .update(updates as any)
     .eq("id", report.id);
   if (updErr) console.error("[slack-webhook] daily_reports update failed:", updErr.message);
 
