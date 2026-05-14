@@ -145,7 +145,7 @@ After each of his messages, in addition to your chat reply, produce a <save> JSO
     {"from_pit": "TP1", "to_pit": "3", "boq_ref": "15", "quantity": 35, "unit": "m", "pct_complete": 75}
   ],
   "crew_hours": [
-    {"name": "Tyler", "role": "Operator", "hours_nt": 8, "hours_ot": 0}
+    {"name": "Tyler", "classification_today": "PCW4", "hours_nt": 8, "hours_ot": 0}
   ],
   "plant_hours": [
     {"plant_id": "P11", "hours_nt": 8, "hours_ot": 0}
