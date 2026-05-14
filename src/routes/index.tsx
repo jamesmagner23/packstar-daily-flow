@@ -14,10 +14,16 @@ export const Route = createFileRoute("/")({
   component: Dashboard,
 });
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function StatCard({ label, value, tone = "brand" }: { label: string; value: string; tone?: "brand" | "revenue" | "cost" | "margin" }) {
+  const colorMap: Record<string, string> = {
+    brand: "var(--brand)",
+    revenue: "oklch(0.55 0.15 160)",   // emerald
+    cost: "oklch(0.50 0.05 250)",      // slate blue
+    margin: "oklch(0.60 0.18 50)",     // amber/gold
+  };
   return (
     <div className="flex flex-col gap-2">
-      <div className="t-stat">{value}</div>
+      <div className="t-stat" style={{ color: colorMap[tone] }}>{value}</div>
       <div className="t-stat-label">{label}</div>
     </div>
   );
@@ -73,14 +79,6 @@ function Dashboard() {
     },
   });
 
-  const { data: portions = [] } = useQuery({
-    queryKey: ["portions"],
-    queryFn: async () => {
-      const { data } = await supabase.from("separable_portions").select("*").order("completion");
-      return data ?? [];
-    },
-  });
-
   return (
     <SiteShell section="Dashboard">
       <div className="space-y-12">
@@ -95,9 +93,9 @@ function Dashboard() {
         <section>
           <div className="t-eyebrow mb-4">Today at a glance</div>
           <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-4 gap-8">
-            <StatCard label="Revenue" value={aud(today?.revenue_aud)} />
-            <StatCard label="Cost" value={aud(today?.cost_aud)} />
-            <StatCard label="Margin" value={aud(today?.margin_aud)} />
+            <StatCard label="Revenue" value={aud(today?.revenue_aud)} tone="revenue" />
+            <StatCard label="Cost" value={aud(today?.cost_aud)} tone="cost" />
+            <StatCard label="Margin (GP)" value={aud(today?.margin_aud)} tone="margin" />
             <StatCard label="Productivity" value={pct(today?.productivity_pct)} />
           </div>
           {!today && (
@@ -134,13 +132,15 @@ function Dashboard() {
                     const bd = businessDaysRemaining(v.deadline_at);
                     const urgent = bd !== null && bd < 1;
                     return (
-                      <tr key={v.id} className="border-t border-rule">
+                      <tr
+                        key={v.id}
+                        onClick={() => (window.location.href = `/variations/${v.id}`)}
+                        className="border-t border-rule cursor-pointer hover:bg-[color:var(--accent)] transition-colors"
+                      >
                         <td className="py-3 text-xs">{v.claim_type}</td>
                         <td className="py-3 text-xs font-mono">{v.clause_ref}</td>
                         <td className="py-3 text-xs max-w-md truncate">
-                          <Link to="/variations/$id" params={{ id: v.id }} className="hover:text-[color:var(--brand)]">
-                            {v.description ?? v.trigger_phrase ?? "—"}
-                          </Link>
+                          {v.description ?? v.trigger_phrase ?? "—"}
                         </td>
                         <td className={`py-3 text-xs ${urgent ? "text-[color:var(--brand)] font-semibold" : ""}`}>
                           {bd === null ? "—" : bd < 0 ? `${Math.abs(bd)} BD overdue` : `${bd} BD`}
@@ -180,29 +180,6 @@ function Dashboard() {
                 ))}
               </ul>
             )}
-          </div>
-        </section>
-
-        <section>
-          <div className="t-eyebrow mb-1">Separable portions</div>
-          <h2 className="t-headline mb-4">Programme</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4 hairline">
-            {portions.length === 0 && (
-              <p className="text-xs text-meta">No portions configured. Import the contract JSON in project setup.</p>
-            )}
-            {portions.map((p) => {
-              const bd = businessDaysRemaining(p.completion);
-              return (
-                <div key={p.id} className="border border-rule p-5">
-                  <div className="t-eyebrow mb-2">{p.code}</div>
-                  <div className="t-subhead mb-3">{p.name}</div>
-                  <div className="text-xs text-meta">Complete by {shortDate(p.completion)}</div>
-                  <div className={`text-xs mt-2 ${bd !== null && bd < 0 ? "text-[color:var(--brand)] font-semibold" : ""}`}>
-                    {bd === null ? "—" : bd < 0 ? `${Math.abs(bd)} BD overdue` : `${bd} BD remaining`}
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </section>
       </div>
