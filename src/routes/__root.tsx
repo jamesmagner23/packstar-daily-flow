@@ -72,10 +72,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PackHQ — PACC operational dashboard" },
+      { title: "PACC HQ — PACC operational dashboard" },
       { name: "description", content: "Daily P&L, productivity, and variations for PACC project sites." },
       { name: "author", content: "PACC Civil" },
-      { property: "og:title", content: "PackHQ" },
+      { property: "og:title", content: "PACC HQ" },
       { property: "og:description", content: "PACC operational dashboard." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

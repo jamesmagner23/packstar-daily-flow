@@ -7,7 +7,7 @@ import { aud, pct, shortDate, businessDaysRemaining } from "@/lib/format";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PackHQ — PACC operational dashboard" },
+      { title: "PACC HQ — PACC operational dashboard" },
       { name: "description", content: "Daily P&L, productivity, and variations register for PACC project sites." },
     ],
   }),
