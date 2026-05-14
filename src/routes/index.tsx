@@ -14,10 +14,16 @@ export const Route = createFileRoute("/")({
   component: Dashboard,
 });
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function StatCard({ label, value, tone = "brand" }: { label: string; value: string; tone?: "brand" | "revenue" | "cost" | "margin" }) {
+  const colorMap: Record<string, string> = {
+    brand: "var(--brand)",
+    revenue: "oklch(0.55 0.15 160)",   // emerald
+    cost: "oklch(0.50 0.05 250)",      // slate blue
+    margin: "oklch(0.60 0.18 50)",     // amber/gold
+  };
   return (
     <div className="flex flex-col gap-2">
-      <div className="t-stat">{value}</div>
+      <div className="t-stat" style={{ color: colorMap[tone] }}>{value}</div>
       <div className="t-stat-label">{label}</div>
     </div>
   );
