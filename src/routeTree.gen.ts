@@ -17,6 +17,7 @@ import { Route as VariationsIdRouteImport } from './routes/variations.$id'
 import { Route as ReportsIdRouteImport } from './routes/reports.$id'
 import { Route as ApiPublicSlackWebhookRouteImport } from './routes/api/public/slack-webhook'
 import { Route as ApiPublicHooksRecomputeReportRouteImport } from './routes/api/public/hooks/recompute-report'
+import { Route as ApiPublicHooksDailyPromptRouteImport } from './routes/api/public/hooks/daily-prompt'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -59,6 +60,12 @@ const ApiPublicHooksRecomputeReportRoute =
     path: '/api/public/hooks/recompute-report',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksDailyPromptRoute =
+  ApiPublicHooksDailyPromptRouteImport.update({
+    id: '/api/public/hooks/daily-prompt',
+    path: '/api/public/hooks/daily-prompt',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/setup/': typeof SetupIndexRoute
   '/variations/': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
+  '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
 }
 export interface FileRoutesByTo {
@@ -78,6 +86,7 @@ export interface FileRoutesByTo {
   '/setup': typeof SetupIndexRoute
   '/variations': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
+  '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
 }
 export interface FileRoutesById {
@@ -89,6 +98,7 @@ export interface FileRoutesById {
   '/setup/': typeof SetupIndexRoute
   '/variations/': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
+  '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
 }
 export interface FileRouteTypes {
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
     | '/setup/'
     | '/variations/'
     | '/api/public/slack-webhook'
+    | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/recompute-report'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '/setup'
     | '/variations'
     | '/api/public/slack-webhook'
+    | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/recompute-report'
   id:
     | '__root__'
@@ -121,6 +133,7 @@ export interface FileRouteTypes {
     | '/setup/'
     | '/variations/'
     | '/api/public/slack-webhook'
+    | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/recompute-report'
   fileRoutesById: FileRoutesById
 }
@@ -132,6 +145,7 @@ export interface RootRouteChildren {
   SetupIndexRoute: typeof SetupIndexRoute
   VariationsIndexRoute: typeof VariationsIndexRoute
   ApiPublicSlackWebhookRoute: typeof ApiPublicSlackWebhookRoute
+  ApiPublicHooksDailyPromptRoute: typeof ApiPublicHooksDailyPromptRoute
   ApiPublicHooksRecomputeReportRoute: typeof ApiPublicHooksRecomputeReportRoute
 }
 
@@ -193,6 +207,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksRecomputeReportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/daily-prompt': {
+      id: '/api/public/hooks/daily-prompt'
+      path: '/api/public/hooks/daily-prompt'
+      fullPath: '/api/public/hooks/daily-prompt'
+      preLoaderRoute: typeof ApiPublicHooksDailyPromptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,8 +225,19 @@ const rootRouteChildren: RootRouteChildren = {
   SetupIndexRoute: SetupIndexRoute,
   VariationsIndexRoute: VariationsIndexRoute,
   ApiPublicSlackWebhookRoute: ApiPublicSlackWebhookRoute,
+  ApiPublicHooksDailyPromptRoute: ApiPublicHooksDailyPromptRoute,
   ApiPublicHooksRecomputeReportRoute: ApiPublicHooksRecomputeReportRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
