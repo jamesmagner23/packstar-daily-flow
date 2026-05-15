@@ -16,7 +16,7 @@ Capture a complete daily report from {{SUPERVISOR_FIRST_NAME}} for today's date.
 
 - Works completed: for each scope item, the pit-to-pit or pit reference, the BOQ line item, quantity, and % complete
 - Crew on today: names from the crew register, with hours worked and NT/OT split
-- Plant used: plant IDs from the plant register, with hours and NT/OT split
+- Plant used: plant IDs from the plant register, with hours and NT/OT split. This includes the small stuff that gets forgotten: shoring boxes (and which width), hand tools / utility kit, compaction equipment (rammers, plates, rollers), hammers/breakers if used, and utes/site vehicles. All of these are billable and live in the plant register too.
 - Productivity vs plan: computed from BOQ rates against logged hours and quantities
 - Reason for any productivity shortfall
 - Any variation triggers flagged with photos, duration impact, and whether {{HEAD_CONTRACTOR}}'s site rep saw it
