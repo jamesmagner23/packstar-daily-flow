@@ -5,6 +5,9 @@ import { BrandBarTop, BrandBarBottom } from "./BrandBar";
 // will be added next to Finance over time.
 const TABS = [
   { key: "finance", label: "Finance", to: "/" as const },
+  { key: "compliance", label: "Compliance", to: "/compliance" as const },
+  { key: "safety", label: "Safety", to: "/safety" as const },
+  { key: "utilisation", label: "Utilisation", to: "/utilisation" as const },
 ];
 
 // Sub-nav rendered when the Finance tab is active.
@@ -20,7 +23,15 @@ const FINANCE_PATHS = ["/", "/variations", "/reports", "/setup"];
 export function SiteShell({ section, children }: { section: string; children: React.ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const inFinance = FINANCE_PATHS.some((p) => (p === "/" ? path === "/" : path.startsWith(p)));
-  const activeTab = inFinance ? "finance" : null;
+  const activeTab = path.startsWith("/compliance")
+    ? "compliance"
+    : path.startsWith("/safety")
+      ? "safety"
+      : path.startsWith("/utilisation")
+        ? "utilisation"
+        : inFinance
+          ? "finance"
+          : null;
 
   return (
     <div className="min-h-screen flex flex-col">

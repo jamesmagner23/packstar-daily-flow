@@ -11,8 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VariationsIndexRouteImport } from './routes/variations.index'
+import { Route as UtilisationIndexRouteImport } from './routes/utilisation.index'
 import { Route as SetupIndexRouteImport } from './routes/setup.index'
+import { Route as SafetyIndexRouteImport } from './routes/safety.index'
 import { Route as ReportsIndexRouteImport } from './routes/reports.index'
+import { Route as ComplianceIndexRouteImport } from './routes/compliance.index'
 import { Route as VariationsIdRouteImport } from './routes/variations.$id'
 import { Route as ReportsIdRouteImport } from './routes/reports.$id'
 import { Route as ApiPublicSlackWebhookRouteImport } from './routes/api/public/slack-webhook'
@@ -29,14 +32,29 @@ const VariationsIndexRoute = VariationsIndexRouteImport.update({
   path: '/variations/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UtilisationIndexRoute = UtilisationIndexRouteImport.update({
+  id: '/utilisation/',
+  path: '/utilisation/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SetupIndexRoute = SetupIndexRouteImport.update({
   id: '/setup/',
   path: '/setup/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SafetyIndexRoute = SafetyIndexRouteImport.update({
+  id: '/safety/',
+  path: '/safety/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsIndexRoute = ReportsIndexRouteImport.update({
   id: '/reports/',
   path: '/reports/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComplianceIndexRoute = ComplianceIndexRouteImport.update({
+  id: '/compliance/',
+  path: '/compliance/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VariationsIdRoute = VariationsIdRouteImport.update({
@@ -71,8 +89,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/reports/$id': typeof ReportsIdRoute
   '/variations/$id': typeof VariationsIdRoute
+  '/compliance/': typeof ComplianceIndexRoute
   '/reports/': typeof ReportsIndexRoute
+  '/safety/': typeof SafetyIndexRoute
   '/setup/': typeof SetupIndexRoute
+  '/utilisation/': typeof UtilisationIndexRoute
   '/variations/': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
@@ -82,8 +103,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/reports/$id': typeof ReportsIdRoute
   '/variations/$id': typeof VariationsIdRoute
+  '/compliance': typeof ComplianceIndexRoute
   '/reports': typeof ReportsIndexRoute
+  '/safety': typeof SafetyIndexRoute
   '/setup': typeof SetupIndexRoute
+  '/utilisation': typeof UtilisationIndexRoute
   '/variations': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
@@ -94,8 +118,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/reports/$id': typeof ReportsIdRoute
   '/variations/$id': typeof VariationsIdRoute
+  '/compliance/': typeof ComplianceIndexRoute
   '/reports/': typeof ReportsIndexRoute
+  '/safety/': typeof SafetyIndexRoute
   '/setup/': typeof SetupIndexRoute
+  '/utilisation/': typeof UtilisationIndexRoute
   '/variations/': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
@@ -107,8 +134,11 @@ export interface FileRouteTypes {
     | '/'
     | '/reports/$id'
     | '/variations/$id'
+    | '/compliance/'
     | '/reports/'
+    | '/safety/'
     | '/setup/'
+    | '/utilisation/'
     | '/variations/'
     | '/api/public/slack-webhook'
     | '/api/public/hooks/daily-prompt'
@@ -118,8 +148,11 @@ export interface FileRouteTypes {
     | '/'
     | '/reports/$id'
     | '/variations/$id'
+    | '/compliance'
     | '/reports'
+    | '/safety'
     | '/setup'
+    | '/utilisation'
     | '/variations'
     | '/api/public/slack-webhook'
     | '/api/public/hooks/daily-prompt'
@@ -129,8 +162,11 @@ export interface FileRouteTypes {
     | '/'
     | '/reports/$id'
     | '/variations/$id'
+    | '/compliance/'
     | '/reports/'
+    | '/safety/'
     | '/setup/'
+    | '/utilisation/'
     | '/variations/'
     | '/api/public/slack-webhook'
     | '/api/public/hooks/daily-prompt'
@@ -141,8 +177,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ReportsIdRoute: typeof ReportsIdRoute
   VariationsIdRoute: typeof VariationsIdRoute
+  ComplianceIndexRoute: typeof ComplianceIndexRoute
   ReportsIndexRoute: typeof ReportsIndexRoute
+  SafetyIndexRoute: typeof SafetyIndexRoute
   SetupIndexRoute: typeof SetupIndexRoute
+  UtilisationIndexRoute: typeof UtilisationIndexRoute
   VariationsIndexRoute: typeof VariationsIndexRoute
   ApiPublicSlackWebhookRoute: typeof ApiPublicSlackWebhookRoute
   ApiPublicHooksDailyPromptRoute: typeof ApiPublicHooksDailyPromptRoute
@@ -165,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VariationsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/utilisation/': {
+      id: '/utilisation/'
+      path: '/utilisation'
+      fullPath: '/utilisation/'
+      preLoaderRoute: typeof UtilisationIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/setup/': {
       id: '/setup/'
       path: '/setup'
@@ -172,11 +218,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SetupIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/safety/': {
+      id: '/safety/'
+      path: '/safety'
+      fullPath: '/safety/'
+      preLoaderRoute: typeof SafetyIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports/': {
       id: '/reports/'
       path: '/reports'
       fullPath: '/reports/'
       preLoaderRoute: typeof ReportsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compliance/': {
+      id: '/compliance/'
+      path: '/compliance'
+      fullPath: '/compliance/'
+      preLoaderRoute: typeof ComplianceIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/variations/$id': {
@@ -221,8 +281,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ReportsIdRoute: ReportsIdRoute,
   VariationsIdRoute: VariationsIdRoute,
+  ComplianceIndexRoute: ComplianceIndexRoute,
   ReportsIndexRoute: ReportsIndexRoute,
+  SafetyIndexRoute: SafetyIndexRoute,
   SetupIndexRoute: SetupIndexRoute,
+  UtilisationIndexRoute: UtilisationIndexRoute,
   VariationsIndexRoute: VariationsIndexRoute,
   ApiPublicSlackWebhookRoute: ApiPublicSlackWebhookRoute,
   ApiPublicHooksDailyPromptRoute: ApiPublicHooksDailyPromptRoute,
