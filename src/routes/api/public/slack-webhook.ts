@@ -213,6 +213,7 @@ async function processEvent(body: any) {
     { data: plant },
     { data: clauses },
     { data: triggers },
+    { data: priorReports },
   ] = await Promise.all([
     supabaseAdmin.from("projects").select("*").eq("id", projectId).single(),
     supabaseAdmin.from("pits").select("pit_id, separable_portion_code, status").eq("project_id", projectId),
@@ -221,6 +222,12 @@ async function processEvent(body: any) {
     supabaseAdmin.from("plant_items").select("plant_id_code, description, tonnage_class").eq("project_id", projectId).eq("active", true),
     supabaseAdmin.from("variation_clauses").select("claim_type, clause_ref, notice_deadline_bd, early_warning_deadline_bd, full_report_deadline_bd, condition_precedent, notes").eq("project_id", projectId),
     supabaseAdmin.from("variation_triggers").select("keywords, claim_type, clause_ref").eq("project_id", projectId),
+    supabaseAdmin
+      .from("daily_reports")
+      .select("report_date, works_completed")
+      .eq("project_id", projectId)
+      .neq("id", report.id)
+      .order("report_date", { ascending: true }),
   ]);
 
   if (!project) {
@@ -228,6 +235,8 @@ async function processEvent(body: any) {
     await postToSlack(channel, "Bot's having a moment. Try again in a minute or just ping James direct.");
     return;
   }
+
+  const pitStatus = buildPitStatus(pits ?? [], priorReports ?? []);
 
   const hcRep = (project as any).head_contractor_rep ?? "the head contractor's rep";
 
@@ -238,6 +247,7 @@ async function processEvent(body: any) {
     .replaceAll("{{HEAD_CONTRACTOR}}", project.head_contractor)
     .replaceAll("{{HC_REP_NAME}}", hcRep)
     .replaceAll("{{PIT_REGISTER_JSON}}", JSON.stringify(pits ?? []))
+    .replaceAll("{{PIT_STATUS_JSON}}", JSON.stringify(pitStatus))
     .replaceAll("{{BOQ_JSON}}", JSON.stringify(boq ?? []))
     .replaceAll("{{CREW_TODAY_JSON}}", JSON.stringify(crew ?? []))
     .replaceAll("{{PLANT_TODAY_JSON}}", JSON.stringify(plant ?? []))
