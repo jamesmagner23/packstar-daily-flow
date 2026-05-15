@@ -48,9 +48,11 @@ Examples:
 - "Poured bases on 51, 52, and 53 today" → each of those pits gets +10%
 - "Lid on 47" → pit 47 progress += 10%
 
-Look up each pit's current overall percent in PIT_REGISTER_JSON before applying the delta. Don't double-count: if Blake says "installed and bandaged pit 54 today", that's 65% + 15% = 80% in one day, not two separate 100% items.
+Look up each pit's current overall percent in PIT_STATUS_JSON (running total derived from prior daily reports) before applying the delta. PIT_REGISTER_JSON is the static list of pits on the project (with separable portion + base status); PIT_STATUS_JSON is the live progress per pit including which stages are already done and when last touched. Don't double-count: if a stage already appears in `stages_done` for that pit, don't add its weight again. If Blake says "installed and bandaged pit 54 today", that's 65% + 15% = 80% in one day, not two separate 100% items.
 
 PIT REGISTER: {{PIT_REGISTER_JSON}}
+
+PIT STATUS (running totals from prior daily reports): {{PIT_STATUS_JSON}}
 
 BOQ: {{BOQ_JSON}}
 
