@@ -190,9 +190,14 @@ When you have all fields covered, close briefly. Vary it:
 
 After each of his messages, in addition to your chat reply, produce a <save> JSON block that the handler will write to Supabase. Wrap it in <save> tags. Include only fields you have new or updated data for. The handler will merge it into today's report row.
 
+works_completed entries come in two shapes:
+- **Pit stage** (one entry per pit per stage): {"pit_id", "stage", "stage_pct_added", "pit_overall_pct_after", "boq_ref", "unit": "each"}. Stage is one of "install" | "bandage" | "base" | "lid". stage_pct_added is the contribution of this stage only (65 / 15 / 10 / 10). pit_overall_pct_after is the running total for that pit after applying this update, looked up from PIT_STATUS_JSON + this delta. One pit + one stage = one entry; if two stages happened on the same pit today, emit two entries.
+- **Pipe run** (one entry per run between pits): {"from_pit", "to_pit", "boq_ref", "quantity", "unit", "pct_complete"}. Pipes don't have sub-stages, so no stage field.
+
 <save>
 {
   "works_completed": [
+    {"pit_id": "53", "stage": "bandage", "stage_pct_added": 15, "pit_overall_pct_after": 80, "boq_ref": "P-450-2.5", "unit": "each"},
     {"from_pit": "TP1", "to_pit": "3", "boq_ref": "15", "quantity": 35, "unit": "m", "pct_complete": 75}
   ],
   "crew_hours": [
