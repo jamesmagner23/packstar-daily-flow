@@ -18,6 +18,9 @@ import { Route as ReportsIndexRouteImport } from './routes/reports.index'
 import { Route as ComplianceIndexRouteImport } from './routes/compliance.index'
 import { Route as VariationsIdRouteImport } from './routes/variations.$id'
 import { Route as ReportsIdRouteImport } from './routes/reports.$id'
+import { Route as PeopleTrainingIndexRouteImport } from './routes/people.training.index'
+import { Route as PeopleTeamIndexRouteImport } from './routes/people.team.index'
+import { Route as PeopleRolesIndexRouteImport } from './routes/people.roles.index'
 import { Route as ApiPublicSlackWebhookRouteImport } from './routes/api/public/slack-webhook'
 import { Route as ApiPublicHooksRecomputeReportRouteImport } from './routes/api/public/hooks/recompute-report'
 import { Route as ApiPublicHooksDailyPromptRouteImport } from './routes/api/public/hooks/daily-prompt'
@@ -67,6 +70,21 @@ const ReportsIdRoute = ReportsIdRouteImport.update({
   path: '/reports/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PeopleTrainingIndexRoute = PeopleTrainingIndexRouteImport.update({
+  id: '/people/training/',
+  path: '/people/training/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PeopleTeamIndexRoute = PeopleTeamIndexRouteImport.update({
+  id: '/people/team/',
+  path: '/people/team/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PeopleRolesIndexRoute = PeopleRolesIndexRouteImport.update({
+  id: '/people/roles/',
+  path: '/people/roles/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicSlackWebhookRoute = ApiPublicSlackWebhookRouteImport.update({
   id: '/api/public/slack-webhook',
   path: '/api/public/slack-webhook',
@@ -96,6 +114,9 @@ export interface FileRoutesByFullPath {
   '/utilisation/': typeof UtilisationIndexRoute
   '/variations/': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
+  '/people/roles/': typeof PeopleRolesIndexRoute
+  '/people/team/': typeof PeopleTeamIndexRoute
+  '/people/training/': typeof PeopleTrainingIndexRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
 }
@@ -110,6 +131,9 @@ export interface FileRoutesByTo {
   '/utilisation': typeof UtilisationIndexRoute
   '/variations': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
+  '/people/roles': typeof PeopleRolesIndexRoute
+  '/people/team': typeof PeopleTeamIndexRoute
+  '/people/training': typeof PeopleTrainingIndexRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
 }
@@ -125,6 +149,9 @@ export interface FileRoutesById {
   '/utilisation/': typeof UtilisationIndexRoute
   '/variations/': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
+  '/people/roles/': typeof PeopleRolesIndexRoute
+  '/people/team/': typeof PeopleTeamIndexRoute
+  '/people/training/': typeof PeopleTrainingIndexRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
 }
@@ -141,6 +168,9 @@ export interface FileRouteTypes {
     | '/utilisation/'
     | '/variations/'
     | '/api/public/slack-webhook'
+    | '/people/roles/'
+    | '/people/team/'
+    | '/people/training/'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/recompute-report'
   fileRoutesByTo: FileRoutesByTo
@@ -155,6 +185,9 @@ export interface FileRouteTypes {
     | '/utilisation'
     | '/variations'
     | '/api/public/slack-webhook'
+    | '/people/roles'
+    | '/people/team'
+    | '/people/training'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/recompute-report'
   id:
@@ -169,6 +202,9 @@ export interface FileRouteTypes {
     | '/utilisation/'
     | '/variations/'
     | '/api/public/slack-webhook'
+    | '/people/roles/'
+    | '/people/team/'
+    | '/people/training/'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/recompute-report'
   fileRoutesById: FileRoutesById
@@ -184,6 +220,9 @@ export interface RootRouteChildren {
   UtilisationIndexRoute: typeof UtilisationIndexRoute
   VariationsIndexRoute: typeof VariationsIndexRoute
   ApiPublicSlackWebhookRoute: typeof ApiPublicSlackWebhookRoute
+  PeopleRolesIndexRoute: typeof PeopleRolesIndexRoute
+  PeopleTeamIndexRoute: typeof PeopleTeamIndexRoute
+  PeopleTrainingIndexRoute: typeof PeopleTrainingIndexRoute
   ApiPublicHooksDailyPromptRoute: typeof ApiPublicHooksDailyPromptRoute
   ApiPublicHooksRecomputeReportRoute: typeof ApiPublicHooksRecomputeReportRoute
 }
@@ -253,6 +292,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/people/training/': {
+      id: '/people/training/'
+      path: '/people/training'
+      fullPath: '/people/training/'
+      preLoaderRoute: typeof PeopleTrainingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/people/team/': {
+      id: '/people/team/'
+      path: '/people/team'
+      fullPath: '/people/team/'
+      preLoaderRoute: typeof PeopleTeamIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/people/roles/': {
+      id: '/people/roles/'
+      path: '/people/roles'
+      fullPath: '/people/roles/'
+      preLoaderRoute: typeof PeopleRolesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/slack-webhook': {
       id: '/api/public/slack-webhook'
       path: '/api/public/slack-webhook'
@@ -288,9 +348,22 @@ const rootRouteChildren: RootRouteChildren = {
   UtilisationIndexRoute: UtilisationIndexRoute,
   VariationsIndexRoute: VariationsIndexRoute,
   ApiPublicSlackWebhookRoute: ApiPublicSlackWebhookRoute,
+  PeopleRolesIndexRoute: PeopleRolesIndexRoute,
+  PeopleTeamIndexRoute: PeopleTeamIndexRoute,
+  PeopleTrainingIndexRoute: PeopleTrainingIndexRoute,
   ApiPublicHooksDailyPromptRoute: ApiPublicHooksDailyPromptRoute,
   ApiPublicHooksRecomputeReportRoute: ApiPublicHooksRecomputeReportRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
