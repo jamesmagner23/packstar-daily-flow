@@ -1,37 +1,53 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { BrandBarTop, BrandBarBottom } from "./BrandBar";
 
-// Top-level areas of PACC HQ. More tabs (Safety, People, Plant, etc.)
-// will be added next to Finance over time.
-const TABS = [
-  { key: "finance", label: "Finance", to: "/" as const },
-  { key: "compliance", label: "Compliance", to: "/compliance" as const },
-  { key: "safety", label: "Safety", to: "/safety" as const },
-  { key: "utilisation", label: "Utilisation", to: "/utilisation" as const },
+type SubNavItem = { to: string; label: string };
+type Tab = {
+  key: string;
+  label: string;
+  to: string;
+  paths: string[]; // path prefixes that activate this tab
+  subNav?: SubNavItem[];
+};
+
+// Top-level areas of PACC HQ.
+const TABS: Tab[] = [
+  {
+    key: "finance",
+    label: "Finance",
+    to: "/",
+    paths: ["/", "/variations", "/reports", "/setup"],
+    subNav: [
+      { to: "/", label: "Dashboard" },
+      { to: "/variations", label: "Variations" },
+      { to: "/reports", label: "Reports" },
+      { to: "/setup", label: "Project setup" },
+    ],
+  },
+  {
+    key: "people",
+    label: "People",
+    to: "/people/team",
+    paths: ["/people"],
+    subNav: [
+      { to: "/people/team", label: "Team" },
+      { to: "/people/roles", label: "Roles" },
+      { to: "/people/training", label: "Training" },
+    ],
+  },
+  { key: "compliance", label: "Compliance", to: "/compliance", paths: ["/compliance"] },
+  { key: "safety", label: "Safety", to: "/safety", paths: ["/safety"] },
+  { key: "utilisation", label: "Utilisation", to: "/utilisation", paths: ["/utilisation"] },
 ];
 
-// Sub-nav rendered when the Finance tab is active.
-const FINANCE_NAV = [
-  { to: "/", label: "Dashboard" },
-  { to: "/variations", label: "Variations" },
-  { to: "/reports", label: "Reports" },
-  { to: "/setup", label: "Project setup" },
-];
-
-const FINANCE_PATHS = ["/", "/variations", "/reports", "/setup"];
+function matchPath(path: string, prefix: string) {
+  return prefix === "/" ? path === "/" : path === prefix || path.startsWith(prefix + "/");
+}
 
 export function SiteShell({ section, children }: { section: string; children: React.ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const inFinance = FINANCE_PATHS.some((p) => (p === "/" ? path === "/" : path.startsWith(p)));
-  const activeTab = path.startsWith("/compliance")
-    ? "compliance"
-    : path.startsWith("/safety")
-      ? "safety"
-      : path.startsWith("/utilisation")
-        ? "utilisation"
-        : inFinance
-          ? "finance"
-          : null;
+  const activeTab = TABS.find((t) => t.paths.some((p) => matchPath(path, p))) ?? null;
+  const subNav = activeTab?.subNav;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -44,7 +60,7 @@ export function SiteShell({ section, children }: { section: string; children: Re
           </Link>
           <nav className="flex flex-wrap gap-x-6 gap-y-2">
             {TABS.map((t) => {
-              const active = t.key === activeTab;
+              const active = t.key === activeTab?.key;
               return (
                 <Link
                   key={t.key}
@@ -61,11 +77,11 @@ export function SiteShell({ section, children }: { section: string; children: Re
             })}
           </nav>
         </div>
-        {activeTab === "finance" && (
+        {subNav && (
           <div className="px-4 md:px-10 max-w-[1400px] mx-auto w-full border-t border-rule">
             <nav className="flex flex-wrap gap-x-5 gap-y-2 sm:gap-6 py-3">
-              {FINANCE_NAV.map((n) => {
-                const active = n.to === "/" ? path === "/" : path.startsWith(n.to);
+              {subNav.map((n) => {
+                const active = matchPath(path, n.to);
                 return (
                   <Link
                     key={n.to}
