@@ -55,6 +55,62 @@ function addBusinessDays(start: Date, days: number): Date {
   return d;
 }
 
+// Stage weights for pit installation rollup. Keep in sync with slack-daily-flow.ts.
+const PIT_STAGE_WEIGHTS: Record<string, number> = {
+  install: 65,
+  bandage: 15,
+  base: 10,
+  lid: 10,
+};
+
+function normalizeStage(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const s = raw.toLowerCase();
+  if (s.includes("install") || s.includes("pit in position") || s.includes("set pit") || s.includes("place pit")) return "install";
+  if (s.includes("bandage")) return "bandage";
+  if (s.includes("base")) return "base";
+  if (s.includes("lid")) return "lid";
+  return null;
+}
+
+function buildPitStatus(
+  pits: Array<{ pit_id: string }>,
+  priorReports: Array<{ report_date: string; works_completed: any }>,
+): Array<{ pit_id: string; overall_pct: number; stages_done: string[]; last_touched: string | null }> {
+  const acc = new Map<string, { stages: Set<string>; last: string | null }>();
+  for (const p of pits) acc.set(String(p.pit_id), { stages: new Set(), last: null });
+
+  for (const rep of priorReports) {
+    const lines = Array.isArray(rep.works_completed) ? rep.works_completed : [];
+    for (const line of lines) {
+      if (!line || typeof line !== "object") continue;
+      const stage = normalizeStage((line as any).stage_type ?? (line as any).stage ?? (line as any).description);
+      if (!stage) continue;
+      const pitRefs: string[] = [];
+      const fp = (line as any).from_pit;
+      const tp = (line as any).to_pit;
+      const pid = (line as any).pit_id;
+      if (fp != null) pitRefs.push(String(fp));
+      if (tp != null && tp !== fp) pitRefs.push(String(tp));
+      if (pid != null && !pitRefs.includes(String(pid))) pitRefs.push(String(pid));
+      for (const ref of pitRefs) {
+        const key = ref.replace(/^pit\s*/i, "");
+        if (!acc.has(key)) acc.set(key, { stages: new Set(), last: null });
+        const entry = acc.get(key)!;
+        entry.stages.add(stage);
+        if (!entry.last || rep.report_date > entry.last) entry.last = rep.report_date;
+      }
+    }
+  }
+
+  return Array.from(acc.entries()).map(([pit_id, { stages, last }]) => ({
+    pit_id,
+    overall_pct: Array.from(stages).reduce((sum, s) => sum + (PIT_STAGE_WEIGHTS[s] ?? 0), 0),
+    stages_done: Array.from(stages),
+    last_touched: last,
+  }));
+}
+
 function firstName(full: string): string {
   return (full ?? "").trim().split(/\s+/)[0] ?? "mate";
 }
@@ -213,6 +269,7 @@ async function processEvent(body: any) {
     { data: plant },
     { data: clauses },
     { data: triggers },
+    { data: priorReports },
   ] = await Promise.all([
     supabaseAdmin.from("projects").select("*").eq("id", projectId).single(),
     supabaseAdmin.from("pits").select("pit_id, separable_portion_code, status").eq("project_id", projectId),
@@ -221,6 +278,12 @@ async function processEvent(body: any) {
     supabaseAdmin.from("plant_items").select("plant_id_code, description, tonnage_class").eq("project_id", projectId).eq("active", true),
     supabaseAdmin.from("variation_clauses").select("claim_type, clause_ref, notice_deadline_bd, early_warning_deadline_bd, full_report_deadline_bd, condition_precedent, notes").eq("project_id", projectId),
     supabaseAdmin.from("variation_triggers").select("keywords, claim_type, clause_ref").eq("project_id", projectId),
+    supabaseAdmin
+      .from("daily_reports")
+      .select("report_date, works_completed")
+      .eq("project_id", projectId)
+      .neq("id", report.id)
+      .order("report_date", { ascending: true }),
   ]);
 
   if (!project) {
@@ -228,6 +291,8 @@ async function processEvent(body: any) {
     await postToSlack(channel, "Bot's having a moment. Try again in a minute or just ping James direct.");
     return;
   }
+
+  const pitStatus = buildPitStatus(pits ?? [], priorReports ?? []);
 
   const hcRep = (project as any).head_contractor_rep ?? "the head contractor's rep";
 
@@ -238,6 +303,7 @@ async function processEvent(body: any) {
     .replaceAll("{{HEAD_CONTRACTOR}}", project.head_contractor)
     .replaceAll("{{HC_REP_NAME}}", hcRep)
     .replaceAll("{{PIT_REGISTER_JSON}}", JSON.stringify(pits ?? []))
+    .replaceAll("{{PIT_STATUS_JSON}}", JSON.stringify(pitStatus))
     .replaceAll("{{BOQ_JSON}}", JSON.stringify(boq ?? []))
     .replaceAll("{{CREW_TODAY_JSON}}", JSON.stringify(crew ?? []))
     .replaceAll("{{PLANT_TODAY_JSON}}", JSON.stringify(plant ?? []))
