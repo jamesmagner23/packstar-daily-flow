@@ -17,11 +17,13 @@ import { Route as SafetyIndexRouteImport } from './routes/safety.index'
 import { Route as ReportsIndexRouteImport } from './routes/reports.index'
 import { Route as ComplianceIndexRouteImport } from './routes/compliance.index'
 import { Route as VariationsIdRouteImport } from './routes/variations.$id'
+import { Route as ReportsExportRouteImport } from './routes/reports.export'
 import { Route as ReportsIdRouteImport } from './routes/reports.$id'
 import { Route as PeopleTrainingIndexRouteImport } from './routes/people.training.index'
 import { Route as PeopleTeamIndexRouteImport } from './routes/people.team.index'
 import { Route as PeopleRolesIndexRouteImport } from './routes/people.roles.index'
 import { Route as ApiPublicSlackWebhookRouteImport } from './routes/api/public/slack-webhook'
+import { Route as ApiPublicReportsPdfRouteImport } from './routes/api/public/reports.pdf'
 import { Route as ApiPublicHooksRecomputeReportRouteImport } from './routes/api/public/hooks/recompute-report'
 import { Route as ApiPublicHooksDailyPromptRouteImport } from './routes/api/public/hooks/daily-prompt'
 
@@ -65,6 +67,11 @@ const VariationsIdRoute = VariationsIdRouteImport.update({
   path: '/variations/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReportsExportRoute = ReportsExportRouteImport.update({
+  id: '/reports/export',
+  path: '/reports/export',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsIdRoute = ReportsIdRouteImport.update({
   id: '/reports/$id',
   path: '/reports/$id',
@@ -90,6 +97,11 @@ const ApiPublicSlackWebhookRoute = ApiPublicSlackWebhookRouteImport.update({
   path: '/api/public/slack-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicReportsPdfRoute = ApiPublicReportsPdfRouteImport.update({
+  id: '/api/public/reports/pdf',
+  path: '/api/public/reports/pdf',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksRecomputeReportRoute =
   ApiPublicHooksRecomputeReportRouteImport.update({
     id: '/api/public/hooks/recompute-report',
@@ -106,6 +118,7 @@ const ApiPublicHooksDailyPromptRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/reports/$id': typeof ReportsIdRoute
+  '/reports/export': typeof ReportsExportRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
   '/reports/': typeof ReportsIndexRoute
@@ -119,10 +132,12 @@ export interface FileRoutesByFullPath {
   '/people/training/': typeof PeopleTrainingIndexRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
+  '/api/public/reports/pdf': typeof ApiPublicReportsPdfRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/reports/$id': typeof ReportsIdRoute
+  '/reports/export': typeof ReportsExportRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance': typeof ComplianceIndexRoute
   '/reports': typeof ReportsIndexRoute
@@ -136,11 +151,13 @@ export interface FileRoutesByTo {
   '/people/training': typeof PeopleTrainingIndexRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
+  '/api/public/reports/pdf': typeof ApiPublicReportsPdfRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/reports/$id': typeof ReportsIdRoute
+  '/reports/export': typeof ReportsExportRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
   '/reports/': typeof ReportsIndexRoute
@@ -154,12 +171,14 @@ export interface FileRoutesById {
   '/people/training/': typeof PeopleTrainingIndexRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
+  '/api/public/reports/pdf': typeof ApiPublicReportsPdfRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/reports/$id'
+    | '/reports/export'
     | '/variations/$id'
     | '/compliance/'
     | '/reports/'
@@ -173,10 +192,12 @@ export interface FileRouteTypes {
     | '/people/training/'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/recompute-report'
+    | '/api/public/reports/pdf'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/reports/$id'
+    | '/reports/export'
     | '/variations/$id'
     | '/compliance'
     | '/reports'
@@ -190,10 +211,12 @@ export interface FileRouteTypes {
     | '/people/training'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/recompute-report'
+    | '/api/public/reports/pdf'
   id:
     | '__root__'
     | '/'
     | '/reports/$id'
+    | '/reports/export'
     | '/variations/$id'
     | '/compliance/'
     | '/reports/'
@@ -207,11 +230,13 @@ export interface FileRouteTypes {
     | '/people/training/'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/recompute-report'
+    | '/api/public/reports/pdf'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ReportsIdRoute: typeof ReportsIdRoute
+  ReportsExportRoute: typeof ReportsExportRoute
   VariationsIdRoute: typeof VariationsIdRoute
   ComplianceIndexRoute: typeof ComplianceIndexRoute
   ReportsIndexRoute: typeof ReportsIndexRoute
@@ -225,6 +250,7 @@ export interface RootRouteChildren {
   PeopleTrainingIndexRoute: typeof PeopleTrainingIndexRoute
   ApiPublicHooksDailyPromptRoute: typeof ApiPublicHooksDailyPromptRoute
   ApiPublicHooksRecomputeReportRoute: typeof ApiPublicHooksRecomputeReportRoute
+  ApiPublicReportsPdfRoute: typeof ApiPublicReportsPdfRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -285,6 +311,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VariationsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reports/export': {
+      id: '/reports/export'
+      path: '/reports/export'
+      fullPath: '/reports/export'
+      preLoaderRoute: typeof ReportsExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports/$id': {
       id: '/reports/$id'
       path: '/reports/$id'
@@ -320,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSlackWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/reports/pdf': {
+      id: '/api/public/reports/pdf'
+      path: '/api/public/reports/pdf'
+      fullPath: '/api/public/reports/pdf'
+      preLoaderRoute: typeof ApiPublicReportsPdfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/recompute-report': {
       id: '/api/public/hooks/recompute-report'
       path: '/api/public/hooks/recompute-report'
@@ -340,6 +380,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ReportsIdRoute: ReportsIdRoute,
+  ReportsExportRoute: ReportsExportRoute,
   VariationsIdRoute: VariationsIdRoute,
   ComplianceIndexRoute: ComplianceIndexRoute,
   ReportsIndexRoute: ReportsIndexRoute,
@@ -353,6 +394,7 @@ const rootRouteChildren: RootRouteChildren = {
   PeopleTrainingIndexRoute: PeopleTrainingIndexRoute,
   ApiPublicHooksDailyPromptRoute: ApiPublicHooksDailyPromptRoute,
   ApiPublicHooksRecomputeReportRoute: ApiPublicHooksRecomputeReportRoute,
+  ApiPublicReportsPdfRoute: ApiPublicReportsPdfRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

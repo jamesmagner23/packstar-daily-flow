@@ -24,10 +24,13 @@ function ReportsList() {
 
   return (
     <SiteShell section="Reports">
-      <header className="mb-10">
-        <div className="t-eyebrow">End of day</div>
-        <h1 className="t-display mt-2">Daily wraps</h1>
-        <p className="t-lead mt-3">Captured by Blake via Slack. Productivity and margin computed against the BOQ.</p>
+      <header className="mb-10 flex items-start justify-between gap-6">
+        <div>
+          <div className="t-eyebrow">End of day</div>
+          <h1 className="t-display mt-2">Daily wraps</h1>
+          <p className="t-lead mt-3">Captured by Blake via Slack. Productivity and margin computed against the BOQ.</p>
+        </div>
+        <Link to="/reports/export" className="t-eyebrow text-[color:var(--brand)] whitespace-nowrap">Export PDF →</Link>
       </header>
       <div className="hairline pt-6">
         {data.length === 0 ? (
