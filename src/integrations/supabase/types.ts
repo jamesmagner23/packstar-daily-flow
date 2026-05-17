@@ -174,6 +174,7 @@ export type Database = {
           cost_aud: number | null
           created_at: string | null
           crew_hours: Json | null
+          edits: Json
           email_sent_at: string | null
           id: string
           margin_aud: number | null
@@ -195,6 +196,7 @@ export type Database = {
           cost_aud?: number | null
           created_at?: string | null
           crew_hours?: Json | null
+          edits?: Json
           email_sent_at?: string | null
           id?: string
           margin_aud?: number | null
@@ -216,6 +218,7 @@ export type Database = {
           cost_aud?: number | null
           created_at?: string | null
           crew_hours?: Json | null
+          edits?: Json
           email_sent_at?: string | null
           id?: string
           margin_aud?: number | null
