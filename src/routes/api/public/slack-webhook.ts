@@ -507,6 +507,7 @@ async function processEvent(body: any) {
     }
   }
 
+  // Recompute and persist totals after every update so the dashboard reflects
   // in-progress wraps, not just completed ones.
   try {
     await persistComputedReport(report.id);
