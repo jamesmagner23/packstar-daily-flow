@@ -270,12 +270,13 @@ async function processEvent(body: any) {
     { data: clauses },
     { data: triggers },
     { data: priorReports },
+    { data: openHires },
   ] = await Promise.all([
     supabaseAdmin.from("projects").select("*").eq("id", projectId).single(),
     supabaseAdmin.from("pits").select("pit_id, separable_portion_code, status").eq("project_id", projectId),
     supabaseAdmin.from("boq_lines").select("ref, category, description, material, diameter_mm, depth_band_m, pit_type, pit_dimensions_mm, unit, rate").eq("project_id", projectId),
     supabaseAdmin.from("crew_members").select("name, role").eq("project_id", projectId).eq("active", true),
-    supabaseAdmin.from("plant_items").select("plant_id_code, description, tonnage_class").eq("project_id", projectId).eq("active", true),
+    supabaseAdmin.from("plant_items").select("plant_id_code, description, tonnage_class, rate_basis, daily_rate, weekly_rate").eq("project_id", projectId).eq("active", true),
     supabaseAdmin.from("variation_clauses").select("claim_type, clause_ref, notice_deadline_bd, early_warning_deadline_bd, full_report_deadline_bd, condition_precedent, notes").eq("project_id", projectId),
     supabaseAdmin.from("variation_triggers").select("keywords, claim_type, clause_ref").eq("project_id", projectId),
     supabaseAdmin
@@ -284,6 +285,11 @@ async function processEvent(body: any) {
       .eq("project_id", projectId)
       .neq("id", report.id)
       .order("report_date", { ascending: true }),
+    supabaseAdmin
+      .from("plant_hire_periods")
+      .select("plant_id_code, on_date, rate_basis")
+      .eq("project_id", projectId)
+      .is("off_date", null),
   ]);
 
   if (!project) {
@@ -308,7 +314,8 @@ async function processEvent(body: any) {
     .replaceAll("{{CREW_TODAY_JSON}}", JSON.stringify(crew ?? []))
     .replaceAll("{{PLANT_TODAY_JSON}}", JSON.stringify(plant ?? []))
     .replaceAll("{{VARIATION_CLAUSES_JSON}}", JSON.stringify(clauses ?? []))
-    .replaceAll("{{VARIATION_TRIGGERS_JSON}}", JSON.stringify(triggers ?? []));
+    .replaceAll("{{VARIATION_TRIGGERS_JSON}}", JSON.stringify(triggers ?? []))
+    .replaceAll("{{OPEN_HIRES_JSON}}", JSON.stringify(openHires ?? []));
 
   // Reconstruct conversation
   const history: ChatMsg[] = Array.isArray(report.message_history)
@@ -420,6 +427,82 @@ async function processEvent(body: any) {
         }
       } catch (e) {
         console.error("[slack-webhook] variation_flag loop error:", (e as Error).message);
+      }
+    }
+  }
+
+  // Plant on-hire / off-hire events. "today" / null normalises to report date.
+  const normaliseDate = (raw: any): string => {
+    if (!raw || raw === "today") return today;
+    if (typeof raw === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+    return today;
+  };
+
+  if (saveBlock && Array.isArray(saveBlock.plant_onhires)) {
+    for (const oh of saveBlock.plant_onhires) {
+      try {
+        const code = String(oh.plant_id ?? "").trim();
+        if (!code) continue;
+        const onDate = normaliseDate(oh.on_date);
+        const { data: existing } = await supabaseAdmin
+          .from("plant_hire_periods")
+          .select("id")
+          .eq("project_id", projectId)
+          .eq("plant_id_code", code)
+          .is("off_date", null)
+          .maybeSingle();
+        if (existing?.id) continue; // already open
+        const { data: reg } = await supabaseAdmin
+          .from("plant_items")
+          .select("rate_basis, daily_rate, weekly_rate")
+          .eq("project_id", projectId)
+          .eq("plant_id_code", code)
+          .maybeSingle();
+        const basis = (reg?.rate_basis ?? "daily") as string;
+        const rate = basis === "weekly" ? reg?.weekly_rate : basis === "daily" ? reg?.daily_rate : null;
+        const { error: ohErr } = await supabaseAdmin.from("plant_hire_periods").insert({
+          project_id: projectId,
+          plant_id_code: code,
+          on_date: onDate,
+          rate_basis: basis,
+          rate_snapshot: rate ?? null,
+          source: "slack",
+          notes: oh.notes ?? null,
+        });
+        if (ohErr) console.error("[slack-webhook] plant on-hire insert failed:", ohErr.message);
+      } catch (e) {
+        console.error("[slack-webhook] plant on-hire loop error:", (e as Error).message);
+      }
+    }
+  }
+
+  if (saveBlock && Array.isArray(saveBlock.plant_offhires)) {
+    for (const off of saveBlock.plant_offhires) {
+      try {
+        const code = String(off.plant_id ?? "").trim();
+        if (!code) continue;
+        const offDate = normaliseDate(off.off_date);
+        const { data: open } = await supabaseAdmin
+          .from("plant_hire_periods")
+          .select("id")
+          .eq("project_id", projectId)
+          .eq("plant_id_code", code)
+          .is("off_date", null)
+          .order("on_date", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (!open?.id) continue; // nothing open to close
+        const { error: offErr } = await supabaseAdmin
+          .from("plant_hire_periods")
+          .update({
+            off_date: offDate,
+            notes: off.notes ?? undefined,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", open.id);
+        if (offErr) console.error("[slack-webhook] plant off-hire update failed:", offErr.message);
+      } catch (e) {
+        console.error("[slack-webhook] plant off-hire loop error:", (e as Error).message);
       }
     }
   }

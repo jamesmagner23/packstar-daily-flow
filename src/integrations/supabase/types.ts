@@ -316,6 +316,48 @@ export type Database = {
           },
         ]
       }
+      plant_hire_periods: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          off_date: string | null
+          on_date: string
+          plant_id_code: string
+          project_id: string | null
+          rate_basis: string
+          rate_snapshot: number | null
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          off_date?: string | null
+          on_date: string
+          plant_id_code: string
+          project_id?: string | null
+          rate_basis: string
+          rate_snapshot?: number | null
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          off_date?: string | null
+          on_date?: string
+          plant_id_code?: string
+          project_id?: string | null
+          rate_basis?: string
+          rate_snapshot?: number | null
+          source?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       plant_hire_rate_card: {
         Row: {
           active: boolean
@@ -366,31 +408,40 @@ export type Database = {
           active: boolean | null
           cost_rate_nt: number | null
           cost_rate_ot: number | null
+          daily_rate: number | null
           description: string | null
           id: string
           plant_id_code: string
           project_id: string | null
+          rate_basis: string
           tonnage_class: string | null
+          weekly_rate: number | null
         }
         Insert: {
           active?: boolean | null
           cost_rate_nt?: number | null
           cost_rate_ot?: number | null
+          daily_rate?: number | null
           description?: string | null
           id?: string
           plant_id_code: string
           project_id?: string | null
+          rate_basis?: string
           tonnage_class?: string | null
+          weekly_rate?: number | null
         }
         Update: {
           active?: boolean | null
           cost_rate_nt?: number | null
           cost_rate_ot?: number | null
+          daily_rate?: number | null
           description?: string | null
           id?: string
           plant_id_code?: string
           project_id?: string | null
+          rate_basis?: string
           tonnage_class?: string | null
+          weekly_rate?: number | null
         }
         Relationships: [
           {
