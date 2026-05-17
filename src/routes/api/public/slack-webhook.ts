@@ -270,12 +270,13 @@ async function processEvent(body: any) {
     { data: clauses },
     { data: triggers },
     { data: priorReports },
+    { data: openHires },
   ] = await Promise.all([
     supabaseAdmin.from("projects").select("*").eq("id", projectId).single(),
     supabaseAdmin.from("pits").select("pit_id, separable_portion_code, status").eq("project_id", projectId),
     supabaseAdmin.from("boq_lines").select("ref, category, description, material, diameter_mm, depth_band_m, pit_type, pit_dimensions_mm, unit, rate").eq("project_id", projectId),
     supabaseAdmin.from("crew_members").select("name, role").eq("project_id", projectId).eq("active", true),
-    supabaseAdmin.from("plant_items").select("plant_id_code, description, tonnage_class").eq("project_id", projectId).eq("active", true),
+    supabaseAdmin.from("plant_items").select("plant_id_code, description, tonnage_class, rate_basis, daily_rate, weekly_rate").eq("project_id", projectId).eq("active", true),
     supabaseAdmin.from("variation_clauses").select("claim_type, clause_ref, notice_deadline_bd, early_warning_deadline_bd, full_report_deadline_bd, condition_precedent, notes").eq("project_id", projectId),
     supabaseAdmin.from("variation_triggers").select("keywords, claim_type, clause_ref").eq("project_id", projectId),
     supabaseAdmin
@@ -284,6 +285,11 @@ async function processEvent(body: any) {
       .eq("project_id", projectId)
       .neq("id", report.id)
       .order("report_date", { ascending: true }),
+    supabaseAdmin
+      .from("plant_hire_periods")
+      .select("plant_id_code, on_date, rate_basis")
+      .eq("project_id", projectId)
+      .is("off_date", null),
   ]);
 
   if (!project) {
@@ -308,7 +314,8 @@ async function processEvent(body: any) {
     .replaceAll("{{CREW_TODAY_JSON}}", JSON.stringify(crew ?? []))
     .replaceAll("{{PLANT_TODAY_JSON}}", JSON.stringify(plant ?? []))
     .replaceAll("{{VARIATION_CLAUSES_JSON}}", JSON.stringify(clauses ?? []))
-    .replaceAll("{{VARIATION_TRIGGERS_JSON}}", JSON.stringify(triggers ?? []));
+    .replaceAll("{{VARIATION_TRIGGERS_JSON}}", JSON.stringify(triggers ?? []))
+    .replaceAll("{{OPEN_HIRES_JSON}}", JSON.stringify(openHires ?? []));
 
   // Reconstruct conversation
   const history: ChatMsg[] = Array.isArray(report.message_history)
