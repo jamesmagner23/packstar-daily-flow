@@ -222,6 +222,12 @@ works_completed entries come in two shapes:
   "plant_hours": [
     {"plant_id": "P11", "hours_nt": 8, "hours_ot": 0}
   ],
+  "plant_onhires": [
+    {"plant_id": "P300", "on_date": "today", "notes": "1200 shoring box arrived"}
+  ],
+  "plant_offhires": [
+    {"plant_id": "P304", "off_date": "today", "notes": "jumping jack went back"}
+  ],
   "productivity_note": null,
   "variation_flags": [
     {
