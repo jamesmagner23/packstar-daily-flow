@@ -17,6 +17,7 @@ import { Route as SafetyIndexRouteImport } from './routes/safety.index'
 import { Route as ReportsIndexRouteImport } from './routes/reports.index'
 import { Route as ComplianceIndexRouteImport } from './routes/compliance.index'
 import { Route as VariationsIdRouteImport } from './routes/variations.$id'
+import { Route as ReportsExportRouteImport } from './routes/reports.export'
 import { Route as ReportsIdRouteImport } from './routes/reports.$id'
 import { Route as PeopleTrainingIndexRouteImport } from './routes/people.training.index'
 import { Route as PeopleTeamIndexRouteImport } from './routes/people.team.index'
@@ -66,6 +67,11 @@ const VariationsIdRoute = VariationsIdRouteImport.update({
   path: '/variations/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReportsExportRoute = ReportsExportRouteImport.update({
+  id: '/reports/export',
+  path: '/reports/export',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsIdRoute = ReportsIdRouteImport.update({
   id: '/reports/$id',
   path: '/reports/$id',
@@ -112,6 +118,7 @@ const ApiPublicHooksDailyPromptRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/reports/$id': typeof ReportsIdRoute
+  '/reports/export': typeof ReportsExportRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
   '/reports/': typeof ReportsIndexRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/reports/$id': typeof ReportsIdRoute
+  '/reports/export': typeof ReportsExportRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance': typeof ComplianceIndexRoute
   '/reports': typeof ReportsIndexRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/reports/$id': typeof ReportsIdRoute
+  '/reports/export': typeof ReportsExportRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
   '/reports/': typeof ReportsIndexRoute
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/reports/$id'
+    | '/reports/export'
     | '/variations/$id'
     | '/compliance/'
     | '/reports/'
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/reports/$id'
+    | '/reports/export'
     | '/variations/$id'
     | '/compliance'
     | '/reports'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/reports/$id'
+    | '/reports/export'
     | '/variations/$id'
     | '/compliance/'
     | '/reports/'
@@ -224,6 +236,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ReportsIdRoute: typeof ReportsIdRoute
+  ReportsExportRoute: typeof ReportsExportRoute
   VariationsIdRoute: typeof VariationsIdRoute
   ComplianceIndexRoute: typeof ComplianceIndexRoute
   ReportsIndexRoute: typeof ReportsIndexRoute
@@ -298,6 +311,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VariationsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reports/export': {
+      id: '/reports/export'
+      path: '/reports/export'
+      fullPath: '/reports/export'
+      preLoaderRoute: typeof ReportsExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports/$id': {
       id: '/reports/$id'
       path: '/reports/$id'
@@ -360,6 +380,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ReportsIdRoute: ReportsIdRoute,
+  ReportsExportRoute: ReportsExportRoute,
   VariationsIdRoute: VariationsIdRoute,
   ComplianceIndexRoute: ComplianceIndexRoute,
   ReportsIndexRoute: ReportsIndexRoute,
