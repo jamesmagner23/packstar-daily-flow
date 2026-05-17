@@ -62,11 +62,9 @@ function ReportDetail() {
     },
   });
 
-  if (!r) return <SiteShell section="Reports"><p className="text-xs text-meta">Loading.</p></SiteShell>;
-
-  const works: any[] = (r.works_completed as any[]) ?? [];
-  const crew: any[] = (r.crew_hours as any[]) ?? [];
-  const plant: any[] = (r.plant_hours as any[]) ?? [];
+  const works: any[] = ((r?.works_completed as any[]) ?? []);
+  const crew: any[] = ((r?.crew_hours as any[]) ?? []);
+  const plant: any[] = ((r?.plant_hours as any[]) ?? []);
 
   const boqByRef = useMemo(() => new Map((lookups?.boq ?? []).map((b: any) => [String(b.ref), b])), [lookups]);
   const crewByName = useMemo(() => new Map((lookups?.crewReg ?? []).map((c: any) => [c.name, c])), [lookups]);
@@ -78,7 +76,6 @@ function ReportDetail() {
   const pitToSp = useMemo(() => new Map((lookups?.pits ?? []).map((p: any) => [p.pit_id, p.separable_portion_code])), [lookups]);
   const spByCode = useMemo(() => new Map((lookups?.sps ?? []).map((s: any) => [s.code, s])), [lookups]);
 
-  // Derive separable portions worked from works.from_pit / to_pit
   const portionsWorked = useMemo(() => {
     const codes = new Set<string>();
     for (const w of works) {
@@ -87,6 +84,8 @@ function ReportDetail() {
     }
     return Array.from(codes).map((c) => spByCode.get(c) ?? { code: c, name: c });
   }, [works, pitToSp, spByCode]);
+
+  if (!r) return <SiteShell section="Reports"><p className="text-xs text-meta">Loading.</p></SiteShell>;
 
   return (
     <SiteShell section="Reports">
@@ -107,11 +106,18 @@ function ReportDetail() {
         </p>
       </header>
 
-      <section className="hairline pt-6 grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-        <Stat label="Revenue" value={aud(r.revenue_aud)} />
-        <Stat label="Cost" value={aud(r.cost_aud)} />
-        <Stat label="Margin" value={aud(r.margin_aud)} />
-        <Stat label="Productivity" value={pct(r.productivity_pct)} />
+      <section className="hairline pt-6 grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+        <Stat label="Revenue" value={aud(r.revenue_aud)} tone="revenue" />
+        <Stat label="Cost" value={aud(r.cost_aud)} tone="cost" />
+        <Stat label="Margin (GP)" value={aud(r.margin_aud)} tone="margin" />
+        <Stat
+          label="GP %"
+          value={r.revenue_aud && Number(r.revenue_aud) > 0
+            ? pct((Number(r.margin_aud ?? 0) / Number(r.revenue_aud)) * 100)
+            : "—"}
+          tone="gp"
+        />
+        <Stat label="Productivity" value={pct(r.productivity_pct)} tone="brand" />
       </section>
 
       {r.productivity_note && (
@@ -290,10 +296,17 @@ function ReportDetail() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+const TONES: Record<string, string> = {
+  revenue: "oklch(0.55 0.15 160)",
+  cost: "oklch(0.50 0.05 250)",
+  margin: "oklch(0.60 0.18 50)",
+  gp: "oklch(0.58 0.16 290)",
+  brand: "var(--brand)",
+};
+function Stat({ label, value, tone = "brand" }: { label: string; value: string; tone?: keyof typeof TONES }) {
   return (
     <div>
-      <div className="t-stat">{value}</div>
+      <div className="t-stat" style={{ color: TONES[tone] }}>{value}</div>
       <div className="t-stat-label mt-2">{label}</div>
     </div>
   );
