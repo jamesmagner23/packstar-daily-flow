@@ -53,10 +53,10 @@ export function SiteShell({ section, children }: { section: string; children: Re
     <div className="min-h-screen flex flex-col">
       <BrandBarTop section={section} />
       <header className="border-b border-rule bg-white">
-        <div className="px-4 md:px-10 py-4 md:py-5 max-w-[1400px] mx-auto w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-6">
+        <div className="px-4 md:px-10 py-3 md:py-5 max-w-[1400px] mx-auto w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-6">
           <Link to="/" className="flex items-baseline gap-1.5 shrink-0">
-            <span className="brand-wordmark text-2xl md:text-3xl leading-none text-[color:var(--brand)]">PACC</span>
-            <span className="brand-wordmark md:text-base leading-none tracking-[0.18em] text-meta font-sans text-3xl text-neutral-700">HQ</span>
+            <span className="brand-wordmark text-xl md:text-3xl leading-none text-[color:var(--brand)]">PACC</span>
+            <span className="brand-wordmark text-lg md:text-2xl leading-none tracking-[0.18em] font-sans text-neutral-700">HQ</span>
           </Link>
           <nav className="flex flex-wrap gap-x-6 gap-y-2">
             {TABS.map((t) => {
