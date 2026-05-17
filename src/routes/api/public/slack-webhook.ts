@@ -431,7 +431,82 @@ async function processEvent(body: any) {
     }
   }
 
-  // Recompute and persist totals after every update so the dashboard reflects
+  // Plant on-hire / off-hire events. "today" / null normalises to report date.
+  const normaliseDate = (raw: any): string => {
+    if (!raw || raw === "today") return today;
+    if (typeof raw === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+    return today;
+  };
+
+  if (saveBlock && Array.isArray(saveBlock.plant_onhires)) {
+    for (const oh of saveBlock.plant_onhires) {
+      try {
+        const code = String(oh.plant_id ?? "").trim();
+        if (!code) continue;
+        const onDate = normaliseDate(oh.on_date);
+        const { data: existing } = await supabaseAdmin
+          .from("plant_hire_periods")
+          .select("id")
+          .eq("project_id", projectId)
+          .eq("plant_id_code", code)
+          .is("off_date", null)
+          .maybeSingle();
+        if (existing?.id) continue; // already open
+        const { data: reg } = await supabaseAdmin
+          .from("plant_items")
+          .select("rate_basis, daily_rate, weekly_rate")
+          .eq("project_id", projectId)
+          .eq("plant_id_code", code)
+          .maybeSingle();
+        const basis = (reg?.rate_basis ?? "daily") as string;
+        const rate = basis === "weekly" ? reg?.weekly_rate : basis === "daily" ? reg?.daily_rate : null;
+        const { error: ohErr } = await supabaseAdmin.from("plant_hire_periods").insert({
+          project_id: projectId,
+          plant_id_code: code,
+          on_date: onDate,
+          rate_basis: basis,
+          rate_snapshot: rate ?? null,
+          source: "slack",
+          notes: oh.notes ?? null,
+        });
+        if (ohErr) console.error("[slack-webhook] plant on-hire insert failed:", ohErr.message);
+      } catch (e) {
+        console.error("[slack-webhook] plant on-hire loop error:", (e as Error).message);
+      }
+    }
+  }
+
+  if (saveBlock && Array.isArray(saveBlock.plant_offhires)) {
+    for (const off of saveBlock.plant_offhires) {
+      try {
+        const code = String(off.plant_id ?? "").trim();
+        if (!code) continue;
+        const offDate = normaliseDate(off.off_date);
+        const { data: open } = await supabaseAdmin
+          .from("plant_hire_periods")
+          .select("id")
+          .eq("project_id", projectId)
+          .eq("plant_id_code", code)
+          .is("off_date", null)
+          .order("on_date", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (!open?.id) continue; // nothing open to close
+        const { error: offErr } = await supabaseAdmin
+          .from("plant_hire_periods")
+          .update({
+            off_date: offDate,
+            notes: off.notes ?? undefined,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", open.id);
+        if (offErr) console.error("[slack-webhook] plant off-hire update failed:", offErr.message);
+      } catch (e) {
+        console.error("[slack-webhook] plant off-hire loop error:", (e as Error).message);
+      }
+    }
+  }
+
   // in-progress wraps, not just completed ones.
   try {
     await persistComputedReport(report.id);
