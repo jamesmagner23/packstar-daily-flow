@@ -15,6 +15,7 @@ import { Route as UtilisationIndexRouteImport } from './routes/utilisation.index
 import { Route as SetupIndexRouteImport } from './routes/setup.index'
 import { Route as SafetyIndexRouteImport } from './routes/safety.index'
 import { Route as ReportsIndexRouteImport } from './routes/reports.index'
+import { Route as ProcureIndexRouteImport } from './routes/procure.index'
 import { Route as ComplianceIndexRouteImport } from './routes/compliance.index'
 import { Route as VariationsIdRouteImport } from './routes/variations.$id'
 import { Route as ReportsExportRouteImport } from './routes/reports.export'
@@ -55,6 +56,11 @@ const SafetyIndexRoute = SafetyIndexRouteImport.update({
 const ReportsIndexRoute = ReportsIndexRouteImport.update({
   id: '/reports/',
   path: '/reports/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProcureIndexRoute = ProcureIndexRouteImport.update({
+  id: '/procure/',
+  path: '/procure/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComplianceIndexRoute = ComplianceIndexRouteImport.update({
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/reports/export': typeof ReportsExportRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
+  '/procure/': typeof ProcureIndexRoute
   '/reports/': typeof ReportsIndexRoute
   '/safety/': typeof SafetyIndexRoute
   '/setup/': typeof SetupIndexRoute
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/reports/export': typeof ReportsExportRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance': typeof ComplianceIndexRoute
+  '/procure': typeof ProcureIndexRoute
   '/reports': typeof ReportsIndexRoute
   '/safety': typeof SafetyIndexRoute
   '/setup': typeof SetupIndexRoute
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/reports/export': typeof ReportsExportRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
+  '/procure/': typeof ProcureIndexRoute
   '/reports/': typeof ReportsIndexRoute
   '/safety/': typeof SafetyIndexRoute
   '/setup/': typeof SetupIndexRoute
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
     | '/reports/export'
     | '/variations/$id'
     | '/compliance/'
+    | '/procure/'
     | '/reports/'
     | '/safety/'
     | '/setup/'
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
     | '/reports/export'
     | '/variations/$id'
     | '/compliance'
+    | '/procure'
     | '/reports'
     | '/safety'
     | '/setup'
@@ -219,6 +230,7 @@ export interface FileRouteTypes {
     | '/reports/export'
     | '/variations/$id'
     | '/compliance/'
+    | '/procure/'
     | '/reports/'
     | '/safety/'
     | '/setup/'
@@ -239,6 +251,7 @@ export interface RootRouteChildren {
   ReportsExportRoute: typeof ReportsExportRoute
   VariationsIdRoute: typeof VariationsIdRoute
   ComplianceIndexRoute: typeof ComplianceIndexRoute
+  ProcureIndexRoute: typeof ProcureIndexRoute
   ReportsIndexRoute: typeof ReportsIndexRoute
   SafetyIndexRoute: typeof SafetyIndexRoute
   SetupIndexRoute: typeof SetupIndexRoute
@@ -295,6 +308,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports/'
       preLoaderRoute: typeof ReportsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/procure/': {
+      id: '/procure/'
+      path: '/procure'
+      fullPath: '/procure/'
+      preLoaderRoute: typeof ProcureIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compliance/': {
@@ -383,6 +403,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReportsExportRoute: ReportsExportRoute,
   VariationsIdRoute: VariationsIdRoute,
   ComplianceIndexRoute: ComplianceIndexRoute,
+  ProcureIndexRoute: ProcureIndexRoute,
   ReportsIndexRoute: ReportsIndexRoute,
   SafetyIndexRoute: SafetyIndexRoute,
   SetupIndexRoute: SetupIndexRoute,
@@ -399,3 +420,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
