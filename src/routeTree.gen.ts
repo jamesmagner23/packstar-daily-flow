@@ -15,10 +15,13 @@ import { Route as UtilisationIndexRouteImport } from './routes/utilisation.index
 import { Route as SetupIndexRouteImport } from './routes/setup.index'
 import { Route as SafetyIndexRouteImport } from './routes/safety.index'
 import { Route as ReportsIndexRouteImport } from './routes/reports.index'
+import { Route as ProcureIndexRouteImport } from './routes/procure.index'
 import { Route as ComplianceIndexRouteImport } from './routes/compliance.index'
 import { Route as VariationsIdRouteImport } from './routes/variations.$id'
 import { Route as ReportsExportRouteImport } from './routes/reports.export'
 import { Route as ReportsIdRouteImport } from './routes/reports.$id'
+import { Route as ProcureSuppliersRouteImport } from './routes/procure.suppliers'
+import { Route as ProcureEquipmentRouteImport } from './routes/procure.equipment'
 import { Route as PeopleTrainingIndexRouteImport } from './routes/people.training.index'
 import { Route as PeopleTeamIndexRouteImport } from './routes/people.team.index'
 import { Route as PeopleRolesIndexRouteImport } from './routes/people.roles.index'
@@ -57,6 +60,11 @@ const ReportsIndexRoute = ReportsIndexRouteImport.update({
   path: '/reports/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProcureIndexRoute = ProcureIndexRouteImport.update({
+  id: '/procure/',
+  path: '/procure/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComplianceIndexRoute = ComplianceIndexRouteImport.update({
   id: '/compliance/',
   path: '/compliance/',
@@ -75,6 +83,16 @@ const ReportsExportRoute = ReportsExportRouteImport.update({
 const ReportsIdRoute = ReportsIdRouteImport.update({
   id: '/reports/$id',
   path: '/reports/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProcureSuppliersRoute = ProcureSuppliersRouteImport.update({
+  id: '/procure/suppliers',
+  path: '/procure/suppliers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProcureEquipmentRoute = ProcureEquipmentRouteImport.update({
+  id: '/procure/equipment',
+  path: '/procure/equipment',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PeopleTrainingIndexRoute = PeopleTrainingIndexRouteImport.update({
@@ -117,10 +135,13 @@ const ApiPublicHooksDailyPromptRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/procure/equipment': typeof ProcureEquipmentRoute
+  '/procure/suppliers': typeof ProcureSuppliersRoute
   '/reports/$id': typeof ReportsIdRoute
   '/reports/export': typeof ReportsExportRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
+  '/procure/': typeof ProcureIndexRoute
   '/reports/': typeof ReportsIndexRoute
   '/safety/': typeof SafetyIndexRoute
   '/setup/': typeof SetupIndexRoute
@@ -136,10 +157,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/procure/equipment': typeof ProcureEquipmentRoute
+  '/procure/suppliers': typeof ProcureSuppliersRoute
   '/reports/$id': typeof ReportsIdRoute
   '/reports/export': typeof ReportsExportRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance': typeof ComplianceIndexRoute
+  '/procure': typeof ProcureIndexRoute
   '/reports': typeof ReportsIndexRoute
   '/safety': typeof SafetyIndexRoute
   '/setup': typeof SetupIndexRoute
@@ -156,10 +180,13 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/procure/equipment': typeof ProcureEquipmentRoute
+  '/procure/suppliers': typeof ProcureSuppliersRoute
   '/reports/$id': typeof ReportsIdRoute
   '/reports/export': typeof ReportsExportRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
+  '/procure/': typeof ProcureIndexRoute
   '/reports/': typeof ReportsIndexRoute
   '/safety/': typeof SafetyIndexRoute
   '/setup/': typeof SetupIndexRoute
@@ -177,10 +204,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/procure/equipment'
+    | '/procure/suppliers'
     | '/reports/$id'
     | '/reports/export'
     | '/variations/$id'
     | '/compliance/'
+    | '/procure/'
     | '/reports/'
     | '/safety/'
     | '/setup/'
@@ -196,10 +226,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/procure/equipment'
+    | '/procure/suppliers'
     | '/reports/$id'
     | '/reports/export'
     | '/variations/$id'
     | '/compliance'
+    | '/procure'
     | '/reports'
     | '/safety'
     | '/setup'
@@ -215,10 +248,13 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/procure/equipment'
+    | '/procure/suppliers'
     | '/reports/$id'
     | '/reports/export'
     | '/variations/$id'
     | '/compliance/'
+    | '/procure/'
     | '/reports/'
     | '/safety/'
     | '/setup/'
@@ -235,10 +271,13 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ProcureEquipmentRoute: typeof ProcureEquipmentRoute
+  ProcureSuppliersRoute: typeof ProcureSuppliersRoute
   ReportsIdRoute: typeof ReportsIdRoute
   ReportsExportRoute: typeof ReportsExportRoute
   VariationsIdRoute: typeof VariationsIdRoute
   ComplianceIndexRoute: typeof ComplianceIndexRoute
+  ProcureIndexRoute: typeof ProcureIndexRoute
   ReportsIndexRoute: typeof ReportsIndexRoute
   SafetyIndexRoute: typeof SafetyIndexRoute
   SetupIndexRoute: typeof SetupIndexRoute
@@ -297,6 +336,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/procure/': {
+      id: '/procure/'
+      path: '/procure'
+      fullPath: '/procure/'
+      preLoaderRoute: typeof ProcureIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/compliance/': {
       id: '/compliance/'
       path: '/compliance'
@@ -323,6 +369,20 @@ declare module '@tanstack/react-router' {
       path: '/reports/$id'
       fullPath: '/reports/$id'
       preLoaderRoute: typeof ReportsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/procure/suppliers': {
+      id: '/procure/suppliers'
+      path: '/procure/suppliers'
+      fullPath: '/procure/suppliers'
+      preLoaderRoute: typeof ProcureSuppliersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/procure/equipment': {
+      id: '/procure/equipment'
+      path: '/procure/equipment'
+      fullPath: '/procure/equipment'
+      preLoaderRoute: typeof ProcureEquipmentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/people/training/': {
@@ -379,10 +439,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ProcureEquipmentRoute: ProcureEquipmentRoute,
+  ProcureSuppliersRoute: ProcureSuppliersRoute,
   ReportsIdRoute: ReportsIdRoute,
   ReportsExportRoute: ReportsExportRoute,
   VariationsIdRoute: VariationsIdRoute,
   ComplianceIndexRoute: ComplianceIndexRoute,
+  ProcureIndexRoute: ProcureIndexRoute,
   ReportsIndexRoute: ReportsIndexRoute,
   SafetyIndexRoute: SafetyIndexRoute,
   SetupIndexRoute: SetupIndexRoute,
