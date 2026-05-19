@@ -252,6 +252,39 @@ export type Database = {
           },
         ]
       }
+      equipment_catalogue: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          id: string
+          item_name: string
+          notes: string | null
+          rate_basis: string
+          typical_specs: string | null
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          created_at?: string
+          id?: string
+          item_name: string
+          notes?: string | null
+          rate_basis?: string
+          typical_specs?: string | null
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          id?: string
+          item_name?: string
+          notes?: string | null
+          rate_basis?: string
+          typical_specs?: string | null
+        }
+        Relationships: []
+      }
       photos: {
         Row: {
           created_at: string | null
@@ -636,6 +669,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      suppliers: {
+        Row: {
+          abn: string | null
+          active: boolean
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          credit_terms_days: number | null
+          fleet_notes: string | null
+          id: string
+          name: string
+          payment_terms: string | null
+          updated_at: string
+        }
+        Insert: {
+          abn?: string | null
+          active?: boolean
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          credit_terms_days?: number | null
+          fleet_notes?: string | null
+          id?: string
+          name: string
+          payment_terms?: string | null
+          updated_at?: string
+        }
+        Update: {
+          abn?: string | null
+          active?: boolean
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          credit_terms_days?: number | null
+          fleet_notes?: string | null
+          id?: string
+          name?: string
+          payment_terms?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       variation_clauses: {
         Row: {
