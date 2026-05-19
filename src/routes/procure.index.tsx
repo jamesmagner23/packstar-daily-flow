@@ -1,7 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell } from "@/components/SiteShell";
+import { SupplierFormDialog } from "@/components/procure/SupplierFormDialog";
+import { EquipmentFormDialog } from "@/components/procure/EquipmentFormDialog";
 
 export const Route = createFileRoute("/procure/")({
   head: () => ({ meta: [{ title: "Procure — PACC HQ" }] }),
