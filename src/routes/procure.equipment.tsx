@@ -1,18 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell } from "@/components/SiteShell";
-import { Input } from "@/components/ui/input";
-
-type Equipment = {
-  id: string;
-  category: string;
-  item_name: string;
-  typical_specs: string | null;
-  rate_basis: string;
-  active: boolean;
-};
+import { Button } from "@/components/ui/button";
+import { EquipmentFormDialog, type EquipmentRow } from "@/components/procure/EquipmentFormDialog";
 
 export const Route = createFileRoute("/procure/equipment")({
   head: () => ({ meta: [{ title: "Equipment Catalogue — PACC HQ" }] }),
@@ -20,97 +13,95 @@ export const Route = createFileRoute("/procure/equipment")({
 });
 
 function EquipmentPage() {
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<string>("all");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<EquipmentRow | null>(null);
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["equipment-catalogue"],
     queryFn: async () => {
       const { data } = await supabase
         .from("equipment_catalogue")
-        .select("id, category, item_name, typical_specs, rate_basis, active")
+        .select("id, category, item_name, typical_specs, rate_basis, notes, active")
         .order("category")
         .order("item_name");
-      return (data ?? []) as Equipment[];
+      return (data ?? []) as EquipmentRow[];
     },
   });
 
-  const categories = useMemo(
-    () => Array.from(new Set(items.map((i) => i.category))).sort(),
-    [items],
-  );
+  const grouped = useMemo(() => {
+    const m = new Map<string, EquipmentRow[]>();
+    for (const i of items) {
+      const arr = m.get(i.category) ?? [];
+      arr.push(i);
+      m.set(i.category, arr);
+    }
+    return Array.from(m.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [items]);
 
-  const rows = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return items.filter((i) => {
-      if (category !== "all" && i.category !== category) return false;
-      if (!q) return true;
-      return (
-        i.item_name.toLowerCase().includes(q) ||
-        i.category.toLowerCase().includes(q) ||
-        (i.typical_specs ?? "").toLowerCase().includes(q)
-      );
-    });
-  }, [items, search, category]);
+  function openAdd() {
+    setEditing(null);
+    setDialogOpen(true);
+  }
+  function openEdit(item: EquipmentRow) {
+    setEditing(item);
+    setDialogOpen(true);
+  }
 
   return (
     <SiteShell section="Procure">
-      <header className="mb-6">
-        <div className="t-eyebrow">
-          <Link to="/procure" className="hover:text-ink">Procure</Link> / Equipment Catalogue
+      <header className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <div className="t-eyebrow">
+            <Link to="/procure" className="hover:text-ink">Procure</Link> / Equipment Catalogue
+          </div>
+          <h1 className="t-display mt-2">Equipment Catalogue</h1>
         </div>
-        <h1 className="t-display mt-2">Equipment Catalogue</h1>
+        <Button onClick={openAdd} className="shrink-0">
+          <Plus className="h-4 w-4 mr-1" /> Add Equipment
+        </Button>
       </header>
 
-      <div className="mb-4 flex flex-col sm:flex-row gap-3">
-        <Input
-          placeholder="Search item or specs…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-sm"
-        />
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="border border-rule px-3 py-2 text-sm bg-white"
-        >
-          <option value="all">All categories</option>
-          {categories.map((c) => (
-            <option key={c} value={c}>{c}</option>
+      {isLoading ? (
+        <p className="text-xs text-meta py-6">Loading…</p>
+      ) : grouped.length === 0 ? (
+        <p className="text-xs text-meta py-6">No equipment yet.</p>
+      ) : (
+        <div className="space-y-10">
+          {grouped.map(([category, rows]) => (
+            <section key={category}>
+              <div className="t-eyebrow mb-3">{category}</div>
+              <div className="hairline pt-4">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="t-stat-label">
+                      <th className="py-2 font-semibold w-1/4">Item Name</th>
+                      <th className="py-2 font-semibold">Typical Specs</th>
+                      <th className="py-2 font-semibold w-28">Rate Basis</th>
+                      <th className="py-2 font-semibold w-20">Active</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((i) => (
+                      <tr
+                        key={i.id}
+                        className="border-t border-rule cursor-pointer hover:bg-neutral-50"
+                        onClick={() => openEdit(i)}
+                      >
+                        <td className="py-3 text-xs font-semibold">{i.item_name}</td>
+                        <td className="py-3 text-xs">{i.typical_specs ?? "—"}</td>
+                        <td className="py-3 text-xs">{i.rate_basis}</td>
+                        <td className="py-3 text-xs">{i.active ? "Yes" : "No"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           ))}
-        </select>
-      </div>
+        </div>
+      )}
 
-      <div className="hairline pt-4">
-        {isLoading ? (
-          <p className="text-xs text-meta py-6">Loading…</p>
-        ) : rows.length === 0 ? (
-          <p className="text-xs text-meta py-6">No items.</p>
-        ) : (
-          <table className="w-full text-left">
-            <thead>
-              <tr className="t-stat-label">
-                <th className="py-2 font-semibold">Category</th>
-                <th className="py-2 font-semibold">Item</th>
-                <th className="py-2 font-semibold">Typical Specs</th>
-                <th className="py-2 font-semibold">Rate Basis</th>
-                <th className="py-2 font-semibold">Active</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((i) => (
-                <tr key={i.id} className="border-t border-rule">
-                  <td className="py-3 text-xs uppercase tracking-wider text-meta">{i.category}</td>
-                  <td className="py-3 text-xs font-semibold">{i.item_name}</td>
-                  <td className="py-3 text-xs">{i.typical_specs ?? "—"}</td>
-                  <td className="py-3 text-xs">{i.rate_basis}</td>
-                  <td className="py-3 text-xs">{i.active ? "Yes" : "No"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <EquipmentFormDialog open={dialogOpen} onOpenChange={setDialogOpen} item={editing} />
     </SiteShell>
   );
 }
