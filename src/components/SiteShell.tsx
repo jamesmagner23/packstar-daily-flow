@@ -38,6 +38,17 @@ const TABS: Tab[] = [
   { key: "compliance", label: "Compliance", to: "/compliance", paths: ["/compliance"] },
   { key: "safety", label: "Safety", to: "/safety", paths: ["/safety"] },
   { key: "utilisation", label: "Utilisation", to: "/utilisation", paths: ["/utilisation"] },
+  {
+    key: "procure",
+    label: "Procure",
+    to: "/procure",
+    paths: ["/procure"],
+    subNav: [
+      { to: "/procure", label: "Overview" },
+      { to: "/procure/suppliers", label: "Suppliers" },
+      { to: "/procure/equipment", label: "Equipment Catalogue" },
+    ],
+  },
 ];
 
 function matchPath(path: string, prefix: string) {
