@@ -21,6 +21,7 @@ import { Route as VariationsIdRouteImport } from './routes/variations.$id'
 import { Route as ReportsExportRouteImport } from './routes/reports.export'
 import { Route as ReportsIdRouteImport } from './routes/reports.$id'
 import { Route as ProcureSuppliersRouteImport } from './routes/procure.suppliers'
+import { Route as ProcureEquipmentRouteImport } from './routes/procure.equipment'
 import { Route as PeopleTrainingIndexRouteImport } from './routes/people.training.index'
 import { Route as PeopleTeamIndexRouteImport } from './routes/people.team.index'
 import { Route as PeopleRolesIndexRouteImport } from './routes/people.roles.index'
@@ -89,6 +90,11 @@ const ProcureSuppliersRoute = ProcureSuppliersRouteImport.update({
   path: '/procure/suppliers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProcureEquipmentRoute = ProcureEquipmentRouteImport.update({
+  id: '/procure/equipment',
+  path: '/procure/equipment',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PeopleTrainingIndexRoute = PeopleTrainingIndexRouteImport.update({
   id: '/people/training/',
   path: '/people/training/',
@@ -129,6 +135,7 @@ const ApiPublicHooksDailyPromptRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
   '/reports/$id': typeof ReportsIdRoute
   '/reports/export': typeof ReportsExportRoute
@@ -150,6 +157,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
   '/reports/$id': typeof ReportsIdRoute
   '/reports/export': typeof ReportsExportRoute
@@ -172,6 +180,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
   '/reports/$id': typeof ReportsIdRoute
   '/reports/export': typeof ReportsExportRoute
@@ -195,6 +204,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/procure/equipment'
     | '/procure/suppliers'
     | '/reports/$id'
     | '/reports/export'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/procure/equipment'
     | '/procure/suppliers'
     | '/reports/$id'
     | '/reports/export'
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/procure/equipment'
     | '/procure/suppliers'
     | '/reports/$id'
     | '/reports/export'
@@ -259,6 +271,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ProcureEquipmentRoute: typeof ProcureEquipmentRoute
   ProcureSuppliersRoute: typeof ProcureSuppliersRoute
   ReportsIdRoute: typeof ReportsIdRoute
   ReportsExportRoute: typeof ReportsExportRoute
@@ -365,6 +378,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProcureSuppliersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/procure/equipment': {
+      id: '/procure/equipment'
+      path: '/procure/equipment'
+      fullPath: '/procure/equipment'
+      preLoaderRoute: typeof ProcureEquipmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/people/training/': {
       id: '/people/training/'
       path: '/people/training'
@@ -419,6 +439,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ProcureEquipmentRoute: ProcureEquipmentRoute,
   ProcureSuppliersRoute: ProcureSuppliersRoute,
   ReportsIdRoute: ReportsIdRoute,
   ReportsExportRoute: ReportsExportRoute,
