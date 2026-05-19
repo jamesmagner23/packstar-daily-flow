@@ -83,7 +83,7 @@ function ProcurePage() {
       </div>
 
       <SupplierFormDialog open={supplierOpen} onOpenChange={setSupplierOpen} supplier={null} />
-      <EquipmentFormDialog open={equipOpen} onOpenChange={setEquipOpen} equipment={null} />
+      <EquipmentFormDialog open={equipOpen} onOpenChange={setEquipOpen} item={null} />
     </SiteShell>
   );
 }
