@@ -23,6 +23,7 @@ function SuppliersPage() {
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<SupplierRow | null>(null);
+  const [emailDialog, setEmailDialog] = useState<{ supplier: SupplierRow; kind: "rfq" | "po" } | null>(null);
 
   const { data: suppliers = [], isLoading } = useQuery({
     queryKey: ["suppliers"],
