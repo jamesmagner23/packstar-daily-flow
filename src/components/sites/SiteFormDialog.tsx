@@ -44,6 +44,8 @@ export function SiteFormDialog({
   const [lead, setLead] = useState<number>(3);
   const [projectId, setProjectId] = useState<string>("");
   const [active, setActive] = useState(true);
+  const [platform, setPlatform] = useState("");
+  const [url, setUrl] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -53,6 +55,8 @@ export function SiteFormDialog({
     setLead(site?.induction_lead_time_days ?? 3);
     setProjectId(site?.job_id ?? "");
     setActive(site?.active !== false);
+    setPlatform(site?.induction_platform ?? "");
+    setUrl(site?.induction_url ?? "");
   }, [open, site]);
 
   const { data: projects = [] } = useQuery({
@@ -72,6 +76,8 @@ export function SiteFormDialog({
         head_contractor: hc || null,
         head_contractor_contact: hcContact || null,
         induction_lead_time_days: lead,
+        induction_platform: platform.trim() || null,
+        induction_url: url.trim() || null,
         job_id: projectId || null,
         active,
       };
