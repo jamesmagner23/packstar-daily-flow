@@ -18,6 +18,7 @@ export type CrewRow = {
   employment_type: string | null;
   phone: string | null;
   email: string | null;
+  slack_user_id: string | null;
   project_id: string | null;
   default_supervisor_id: string | null;
   active: boolean | null;
@@ -29,6 +30,7 @@ const schema = z.object({
   employment_type: z.string().trim().max(100).optional().or(z.literal("")),
   phone: z.string().trim().max(50).optional().or(z.literal("")),
   email: z.string().trim().max(255).email("Invalid email").optional().or(z.literal("")),
+  slack_user_id: z.string().trim().max(50).regex(/^[A-Z0-9]*$/i, "Letters/digits only").optional().or(z.literal("")),
   project_id: z.string().uuid("Project required"),
   default_supervisor_id: z.string().uuid().nullable(),
   active: z.boolean(),
@@ -42,6 +44,7 @@ const empty = (projectId: string | null): FormState => ({
   employment_type: "",
   phone: "",
   email: "",
+  slack_user_id: "",
   project_id: projectId ?? "",
   default_supervisor_id: null,
   active: true,
