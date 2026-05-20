@@ -7,6 +7,8 @@ import { persistComputedReport, notifyDirectorOnWrap } from "@/lib/evening-summa
 import { handlePhotoTicket, looksLikeTicketCaption } from "@/lib/slack/photo-ticket";
 import { handleProfileLookup, PROFILE_PATTERN } from "@/lib/slack/profile-lookup";
 import { handleExpiring, EXPIRING_PATTERN } from "@/lib/slack/expiring";
+import { handleInductionPhoto, looksLikeInductionCaption } from "@/lib/slack/induction";
+import { handleEligibilityQuery, ELIGIBILITY_PATTERN } from "@/lib/slack/eligibility-query";
 
 const MODEL = "claude-sonnet-4-5";
 const MELB_TZ = "Australia/Melbourne";
@@ -232,16 +234,29 @@ async function processEvent(body: any) {
   const channel: string = event.channel;
   const hasFiles = Array.isArray(event.files) && event.files.length > 0;
 
-  // ===== Phase 2 dispatch =====
-  // 1. Any file attachment → photo ticket handler (caption optional)
+  // ===== Phase 2/3 dispatch =====
+  // 1. Any file attachment → induction handler if caption looks like one,
+  //    otherwise photo-ticket handler (caption optional).
   if (hasFiles) {
-    console.log("[slack-webhook] dispatch: photo ticket", {
+    // Pull known active site names for caption matching.
+    const { data: siteRows } = await supabaseAdmin
+      .from("sites")
+      .select("name")
+      .eq("active", true);
+    const siteNames = (siteRows ?? []).map((s: any) => s.name as string);
+    const isInduction = looksLikeInductionCaption(userText, siteNames);
+    console.log("[slack-webhook] dispatch: photo", {
       hasCaption: looksLikeTicketCaption(userText),
+      isInduction,
     });
     try {
-      await handlePhotoTicket(event, channel, slackUserId);
+      if (isInduction) {
+        await handleInductionPhoto(event, channel, slackUserId);
+      } else {
+        await handlePhotoTicket(event, channel, slackUserId);
+      }
     } catch (e) {
-      console.error("[slack-webhook] photo ticket handler threw:", (e as Error).message);
+      console.error("[slack-webhook] photo handler threw:", (e as Error).message);
     }
     return;
   }
@@ -262,6 +277,16 @@ async function processEvent(body: any) {
       await handleExpiring(userText, slackUserId);
     } catch (e) {
       console.error("[slack-webhook] expiring handler threw:", (e as Error).message);
+    }
+    return;
+  }
+  // 4. can <name> do <site> [today|tomorrow|on friday]
+  if (ELIGIBILITY_PATTERN.test(userText)) {
+    console.log("[slack-webhook] dispatch: eligibility query");
+    try {
+      await handleEligibilityQuery(userText, slackUserId);
+    } catch (e) {
+      console.error("[slack-webhook] eligibility query handler threw:", (e as Error).message);
     }
     return;
   }
