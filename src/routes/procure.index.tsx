@@ -36,6 +36,22 @@ function ProcurePage() {
     },
   });
 
+  const { data: newQuoteCount = 0 } = useQuery({
+    queryKey: ["procure-quotes-new-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("procure_quotes")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "new");
+      return count ?? 0;
+    },
+  });
+        .from("equipment_catalogue")
+        .select("id", { count: "exact", head: true });
+      return count ?? 0;
+    },
+  });
+
   return (
     <SiteShell section="Procure">
       <header className="mb-10">
