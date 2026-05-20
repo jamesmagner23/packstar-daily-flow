@@ -46,11 +46,6 @@ function ProcurePage() {
       return count ?? 0;
     },
   });
-        .from("equipment_catalogue")
-        .select("id", { count: "exact", head: true });
-      return count ?? 0;
-    },
-  });
 
   return (
     <SiteShell section="Procure">
