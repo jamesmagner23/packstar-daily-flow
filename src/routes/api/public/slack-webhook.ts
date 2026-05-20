@@ -592,9 +592,19 @@ async function processEvent(body: any) {
     }),
   );
 
+  // Always flag the work-date being logged when it isn't the current
+  // calendar day (e.g. early-morning catch-up, weekend backfill), and on
+  // the very first message of a new report so the supervisor can correct
+  // it before more gets logged against the wrong day.
+  let outboundReply = replyText;
+  if (isNewReport || today !== calendarToday) {
+    const banner = `📅 Logging this against *${melbLongDate(today)}*. Reply "actually <date>" if that's wrong.`;
+    outboundReply = `${banner}\n\n${replyText}`;
+  }
+
   // Post reply
-  const post = await postToSlack(channel, replyText);
-  console.log("[slack-webhook] slack post ok:", post?.ok ?? false);
+  const post = await postToSlack(channel, outboundReply);
+  console.log("[slack-webhook] slack post ok:", post?.ok ?? false, "work_date:", today);
 }
 
 export const Route = createFileRoute("/api/public/slack-webhook")({
