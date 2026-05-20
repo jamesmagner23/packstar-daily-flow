@@ -178,6 +178,10 @@ export function CrewFormDialog({
           <Field label="Email" error={errors.email}>
             <Input type="email" value={form.email} onChange={(e) => field("email", e.target.value)} maxLength={255} />
           </Field>
+          <Field label="Slack user ID" error={errors.slack_user_id}>
+            <Input value={form.slack_user_id} onChange={(e) => field("slack_user_id", e.target.value)} maxLength={50}
+              placeholder="e.g. U01ABCDEF" />
+          </Field>
           <Field label="Project *" error={errors.project_id}>
             <select className="w-full border border-rule rounded-md px-3 py-2 text-sm bg-white"
               value={form.project_id}
