@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as VariationsIndexRouteImport } from './routes/variations.index'
 import { Route as UtilisationIndexRouteImport } from './routes/utilisation.index'
 import { Route as TicketsIndexRouteImport } from './routes/tickets.index'
+import { Route as SitesIndexRouteImport } from './routes/sites.index'
 import { Route as SetupIndexRouteImport } from './routes/setup.index'
 import { Route as SafetyIndexRouteImport } from './routes/safety.index'
 import { Route as ReportsIndexRouteImport } from './routes/reports.index'
@@ -22,6 +23,7 @@ import { Route as ProcureIndexRouteImport } from './routes/procure.index'
 import { Route as CrewIndexRouteImport } from './routes/crew.index'
 import { Route as ComplianceIndexRouteImport } from './routes/compliance.index'
 import { Route as VariationsIdRouteImport } from './routes/variations.$id'
+import { Route as SitesIdRouteImport } from './routes/sites.$id'
 import { Route as ReportsExportRouteImport } from './routes/reports.export'
 import { Route as ReportsIdRouteImport } from './routes/reports.$id'
 import { Route as ProcureSuppliersRouteImport } from './routes/procure.suppliers'
@@ -68,6 +70,11 @@ const TicketsIndexRoute = TicketsIndexRouteImport.update({
   path: '/tickets/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitesIndexRoute = SitesIndexRouteImport.update({
+  id: '/sites/',
+  path: '/sites/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SetupIndexRoute = SetupIndexRouteImport.update({
   id: '/setup/',
   path: '/setup/',
@@ -101,6 +108,11 @@ const ComplianceIndexRoute = ComplianceIndexRouteImport.update({
 const VariationsIdRoute = VariationsIdRouteImport.update({
   id: '/variations/$id',
   path: '/variations/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitesIdRoute = SitesIdRouteImport.update({
+  id: '/sites/$id',
+  path: '/sites/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsExportRoute = ReportsExportRouteImport.update({
@@ -193,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/procure/suppliers': typeof ProcureSuppliersRoute
   '/reports/$id': typeof ReportsIdRoute
   '/reports/export': typeof ReportsExportRoute
+  '/sites/$id': typeof SitesIdRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
   '/crew/': typeof CrewIndexRoute
@@ -200,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/reports/': typeof ReportsIndexRoute
   '/safety/': typeof SafetyIndexRoute
   '/setup/': typeof SetupIndexRoute
+  '/sites/': typeof SitesIndexRoute
   '/tickets/': typeof TicketsIndexRoute
   '/utilisation/': typeof UtilisationIndexRoute
   '/variations/': typeof VariationsIndexRoute
@@ -223,6 +237,7 @@ export interface FileRoutesByTo {
   '/procure/suppliers': typeof ProcureSuppliersRoute
   '/reports/$id': typeof ReportsIdRoute
   '/reports/export': typeof ReportsExportRoute
+  '/sites/$id': typeof SitesIdRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance': typeof ComplianceIndexRoute
   '/crew': typeof CrewIndexRoute
@@ -230,6 +245,7 @@ export interface FileRoutesByTo {
   '/reports': typeof ReportsIndexRoute
   '/safety': typeof SafetyIndexRoute
   '/setup': typeof SetupIndexRoute
+  '/sites': typeof SitesIndexRoute
   '/tickets': typeof TicketsIndexRoute
   '/utilisation': typeof UtilisationIndexRoute
   '/variations': typeof VariationsIndexRoute
@@ -254,6 +270,7 @@ export interface FileRoutesById {
   '/procure/suppliers': typeof ProcureSuppliersRoute
   '/reports/$id': typeof ReportsIdRoute
   '/reports/export': typeof ReportsExportRoute
+  '/sites/$id': typeof SitesIdRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
   '/crew/': typeof CrewIndexRoute
@@ -261,6 +278,7 @@ export interface FileRoutesById {
   '/reports/': typeof ReportsIndexRoute
   '/safety/': typeof SafetyIndexRoute
   '/setup/': typeof SetupIndexRoute
+  '/sites/': typeof SitesIndexRoute
   '/tickets/': typeof TicketsIndexRoute
   '/utilisation/': typeof UtilisationIndexRoute
   '/variations/': typeof VariationsIndexRoute
@@ -286,6 +304,7 @@ export interface FileRouteTypes {
     | '/procure/suppliers'
     | '/reports/$id'
     | '/reports/export'
+    | '/sites/$id'
     | '/variations/$id'
     | '/compliance/'
     | '/crew/'
@@ -293,6 +312,7 @@ export interface FileRouteTypes {
     | '/reports/'
     | '/safety/'
     | '/setup/'
+    | '/sites/'
     | '/tickets/'
     | '/utilisation/'
     | '/variations/'
@@ -316,6 +336,7 @@ export interface FileRouteTypes {
     | '/procure/suppliers'
     | '/reports/$id'
     | '/reports/export'
+    | '/sites/$id'
     | '/variations/$id'
     | '/compliance'
     | '/crew'
@@ -323,6 +344,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/safety'
     | '/setup'
+    | '/sites'
     | '/tickets'
     | '/utilisation'
     | '/variations'
@@ -346,6 +368,7 @@ export interface FileRouteTypes {
     | '/procure/suppliers'
     | '/reports/$id'
     | '/reports/export'
+    | '/sites/$id'
     | '/variations/$id'
     | '/compliance/'
     | '/crew/'
@@ -353,6 +376,7 @@ export interface FileRouteTypes {
     | '/reports/'
     | '/safety/'
     | '/setup/'
+    | '/sites/'
     | '/tickets/'
     | '/utilisation/'
     | '/variations/'
@@ -377,6 +401,7 @@ export interface RootRouteChildren {
   ProcureSuppliersRoute: typeof ProcureSuppliersRoute
   ReportsIdRoute: typeof ReportsIdRoute
   ReportsExportRoute: typeof ReportsExportRoute
+  SitesIdRoute: typeof SitesIdRoute
   VariationsIdRoute: typeof VariationsIdRoute
   ComplianceIndexRoute: typeof ComplianceIndexRoute
   CrewIndexRoute: typeof CrewIndexRoute
@@ -384,6 +409,7 @@ export interface RootRouteChildren {
   ReportsIndexRoute: typeof ReportsIndexRoute
   SafetyIndexRoute: typeof SafetyIndexRoute
   SetupIndexRoute: typeof SetupIndexRoute
+  SitesIndexRoute: typeof SitesIndexRoute
   TicketsIndexRoute: typeof TicketsIndexRoute
   UtilisationIndexRoute: typeof UtilisationIndexRoute
   VariationsIndexRoute: typeof VariationsIndexRoute
@@ -441,6 +467,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TicketsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sites/': {
+      id: '/sites/'
+      path: '/sites'
+      fullPath: '/sites/'
+      preLoaderRoute: typeof SitesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/setup/': {
       id: '/setup/'
       path: '/setup'
@@ -488,6 +521,13 @@ declare module '@tanstack/react-router' {
       path: '/variations/$id'
       fullPath: '/variations/$id'
       preLoaderRoute: typeof VariationsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sites/$id': {
+      id: '/sites/$id'
+      path: '/sites/$id'
+      fullPath: '/sites/$id'
+      preLoaderRoute: typeof SitesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports/export': {
@@ -609,6 +649,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProcureSuppliersRoute: ProcureSuppliersRoute,
   ReportsIdRoute: ReportsIdRoute,
   ReportsExportRoute: ReportsExportRoute,
+  SitesIdRoute: SitesIdRoute,
   VariationsIdRoute: VariationsIdRoute,
   ComplianceIndexRoute: ComplianceIndexRoute,
   CrewIndexRoute: CrewIndexRoute,
@@ -616,6 +657,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReportsIndexRoute: ReportsIndexRoute,
   SafetyIndexRoute: SafetyIndexRoute,
   SetupIndexRoute: SetupIndexRoute,
+  SitesIndexRoute: SitesIndexRoute,
   TicketsIndexRoute: TicketsIndexRoute,
   UtilisationIndexRoute: UtilisationIndexRoute,
   VariationsIndexRoute: VariationsIndexRoute,
