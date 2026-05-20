@@ -1118,6 +1118,8 @@ export type Database = {
           head_contractor_contact: string | null
           id: string
           induction_lead_time_days: number | null
+          induction_platform: string | null
+          induction_url: string | null
           job_id: string | null
           name: string
         }
@@ -1127,6 +1129,8 @@ export type Database = {
           head_contractor_contact?: string | null
           id?: string
           induction_lead_time_days?: number | null
+          induction_platform?: string | null
+          induction_url?: string | null
           job_id?: string | null
           name: string
         }
@@ -1136,6 +1140,8 @@ export type Database = {
           head_contractor_contact?: string | null
           id?: string
           induction_lead_time_days?: number | null
+          induction_platform?: string | null
+          induction_url?: string | null
           job_id?: string | null
           name?: string
         }

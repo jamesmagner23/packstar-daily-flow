@@ -41,7 +41,7 @@ function SitesListPage() {
     queryFn: async () => {
       const { data: sites } = await supabase
         .from("sites")
-        .select("id, name, head_contractor, head_contractor_contact, induction_lead_time_days, job_id, active")
+        .select("id, name, head_contractor, head_contractor_contact, induction_lead_time_days, induction_platform, induction_url, job_id, active")
         .order("name");
       const list = (sites ?? []) as SiteRow[];
       if (list.length === 0) return [];
@@ -130,7 +130,14 @@ function SitesListPage() {
                 <tr key={r.id} className="border-t border-rule cursor-pointer hover:bg-neutral-50"
                   onClick={() => navigate({ to: "/sites/$id", params: { id: r.id } })}>
                   <td className="py-3 text-xs font-semibold">
-                    <Link to="/sites/$id" params={{ id: r.id }} className="hover:underline">{r.name}</Link>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Link to="/sites/$id" params={{ id: r.id }} className="hover:underline">{r.name}</Link>
+                      {r.induction_platform && (
+                        <Badge variant="outline" className="text-[10px] font-normal">
+                          {r.induction_platform}
+                        </Badge>
+                      )}
+                    </div>
                   </td>
                   <td className="py-3 text-xs">{r.head_contractor ?? "—"}</td>
                   <td className="py-3 text-xs text-right tabular-nums">{r.induction_lead_time_days ?? "—"}</td>

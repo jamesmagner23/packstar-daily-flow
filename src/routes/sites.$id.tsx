@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell } from "@/components/SiteShell";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ function SiteDetailPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("sites")
-        .select("id, name, head_contractor, head_contractor_contact, induction_lead_time_days, job_id, active")
+        .select("id, name, head_contractor, head_contractor_contact, induction_lead_time_days, induction_platform, induction_url, job_id, active")
         .eq("id", id).maybeSingle();
       return data as SiteRow | null;
     },
@@ -64,6 +64,21 @@ function SiteDetailPage() {
           <p className="text-sm text-meta mt-1">
             {site.head_contractor ?? "—"} · contact {site.head_contractor_contact ?? "—"} · lead {site.induction_lead_time_days ?? "—"}d
           </p>
+          {(site.induction_platform || site.induction_url) && (
+            <p className="text-sm text-meta mt-1 flex items-center gap-2 flex-wrap">
+              <span>Induction: {site.induction_platform ?? "—"}</span>
+              {site.induction_url && (
+                <a
+                  href={site.induction_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-ink hover:underline"
+                >
+                  <ExternalLink className="h-3 w-3" /> Open
+                </a>
+              )}
+            </p>
+          )}
         </div>
         {isAdmin && (
           <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>

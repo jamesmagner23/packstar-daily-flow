@@ -15,9 +15,20 @@ export type SiteRow = {
   head_contractor: string | null;
   head_contractor_contact: string | null;
   induction_lead_time_days: number | null;
+  induction_platform: string | null;
+  induction_url: string | null;
   job_id: string | null;
   active: boolean | null;
 };
+
+export const INDUCTION_PLATFORM_SUGGESTIONS = [
+  "3D Safety",
+  "HammerTech",
+  "Checkrite",
+  "Simpel",
+  "In-Person",
+  "Other",
+];
 
 export function SiteFormDialog({
   open, onOpenChange, site,
@@ -33,6 +44,8 @@ export function SiteFormDialog({
   const [lead, setLead] = useState<number>(3);
   const [projectId, setProjectId] = useState<string>("");
   const [active, setActive] = useState(true);
+  const [platform, setPlatform] = useState("");
+  const [url, setUrl] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -42,6 +55,8 @@ export function SiteFormDialog({
     setLead(site?.induction_lead_time_days ?? 3);
     setProjectId(site?.job_id ?? "");
     setActive(site?.active !== false);
+    setPlatform(site?.induction_platform ?? "");
+    setUrl(site?.induction_url ?? "");
   }, [open, site]);
 
   const { data: projects = [] } = useQuery({
@@ -61,6 +76,8 @@ export function SiteFormDialog({
         head_contractor: hc || null,
         head_contractor_contact: hcContact || null,
         induction_lead_time_days: lead,
+        induction_platform: platform.trim() || null,
+        induction_url: url.trim() || null,
         job_id: projectId || null,
         active,
       };
@@ -108,6 +125,25 @@ export function SiteFormDialog({
               <option value="">— None —</option>
               {(projects as any[]).map((p) => <option key={p.id} value={p.id}>{p.code} — {p.name}</option>)}
             </select>
+          </Field>
+          <Field label="Induction platform">
+            <Input
+              list="induction-platform-suggestions"
+              placeholder="e.g. HammerTech"
+              value={platform}
+              onChange={(e) => setPlatform(e.target.value)}
+            />
+            <datalist id="induction-platform-suggestions">
+              {INDUCTION_PLATFORM_SUGGESTIONS.map((p) => <option key={p} value={p} />)}
+            </datalist>
+          </Field>
+          <Field label="Induction URL" className="sm:col-span-2">
+            <Input
+              type="url"
+              placeholder="https://…"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
           </Field>
           <Field label="Active">
             <label className="flex items-center gap-2 text-sm">
