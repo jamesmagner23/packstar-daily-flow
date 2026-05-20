@@ -126,7 +126,49 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <AuthGate>
+        <Outlet />
+      </AuthGate>
     </QueryClientProvider>
   );
+}
+
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const [status, setStatus] = useState<"loading" | "authed" | "anon">("loading");
+
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      setStatus(data.session ? "authed" : "anon");
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setStatus(session ? "authed" : "anon");
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  const publicPath = isPublicPath(path);
+
+  useEffect(() => {
+    if (status === "anon" && !publicPath) {
+      navigate({ to: "/login" });
+    }
+  }, [status, publicPath, navigate]);
+
+  if (publicPath) return <>{children}</>;
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-sm text-meta">Loading…</div>
+      </div>
+    );
+  }
+  if (status === "anon") return null;
+  return <>{children}</>;
 }
