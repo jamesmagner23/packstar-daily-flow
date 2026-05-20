@@ -99,6 +99,7 @@ function SuppliersPage() {
                 <Th label="Contact Email" k="contact_email" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                 <Th label="Credit Terms (days)" k="credit_terms_days" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
                 <Th label="Active" k="active" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                <th className="py-2 font-semibold text-right">Send</th>
               </tr>
             </thead>
             <tbody>
@@ -112,6 +113,26 @@ function SuppliersPage() {
                   <td className="py-3 text-xs">{s.contact_email ?? "—"}</td>
                   <td className="py-3 text-xs text-right">{s.credit_terms_days ?? "—"}</td>
                   <td className="py-3 text-xs">{s.active ? "Yes" : "No"}</td>
+                  <td className="py-3 text-xs text-right whitespace-nowrap">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setEmailDialog({ supplier: s, kind: "rfq" }); }}
+                      disabled={!s.contact_email}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded border border-rule text-meta hover:text-ink hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed mr-1"
+                      title={s.contact_email ? "Request quote" : "No email on file"}
+                    >
+                      <Mail className="h-3 w-3" /> RFQ
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setEmailDialog({ supplier: s, kind: "po" }); }}
+                      disabled={!s.contact_email}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded border border-rule text-meta hover:text-ink hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed"
+                      title={s.contact_email ? "Send PO" : "No email on file"}
+                    >
+                      <FileText className="h-3 w-3" /> PO
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -120,6 +141,16 @@ function SuppliersPage() {
       </div>
 
       <SupplierFormDialog open={dialogOpen} onOpenChange={setDialogOpen} supplier={editing} />
+      {emailDialog && (
+        <SendEmailDialog
+          open={!!emailDialog}
+          onOpenChange={(o) => !o && setEmailDialog(null)}
+          supplierId={emailDialog.supplier.id}
+          supplierName={emailDialog.supplier.name}
+          defaultTo={emailDialog.supplier.contact_email}
+          kind={emailDialog.kind}
+        />
+      )}
     </SiteShell>
   );
 }
