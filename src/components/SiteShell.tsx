@@ -103,9 +103,12 @@ export function SiteShell({ section, children }: { section: string; children: Re
   // Close mobile drawer on route change
   useEffect(() => { setMobileOpen(false); }, [path]);
 
-  const today = new Intl.DateTimeFormat(undefined, {
-    weekday: "short", day: "numeric", month: "short", year: "numeric",
-  }).format(new Date());
+  const [today, setToday] = useState("");
+  useEffect(() => {
+    setToday(new Intl.DateTimeFormat("en-AU", {
+      weekday: "short", day: "numeric", month: "short", year: "numeric",
+    }).format(new Date()));
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
