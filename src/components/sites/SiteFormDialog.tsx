@@ -126,6 +126,25 @@ export function SiteFormDialog({
               {(projects as any[]).map((p) => <option key={p.id} value={p.id}>{p.code} — {p.name}</option>)}
             </select>
           </Field>
+          <Field label="Induction platform">
+            <Input
+              list="induction-platform-suggestions"
+              placeholder="e.g. HammerTech"
+              value={platform}
+              onChange={(e) => setPlatform(e.target.value)}
+            />
+            <datalist id="induction-platform-suggestions">
+              {INDUCTION_PLATFORM_SUGGESTIONS.map((p) => <option key={p} value={p} />)}
+            </datalist>
+          </Field>
+          <Field label="Induction URL" className="sm:col-span-2">
+            <Input
+              type="url"
+              placeholder="https://…"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
+          </Field>
           <Field label="Active">
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} /> Active
