@@ -21,6 +21,7 @@ export type KpiTotals = {
   margin: number;
   gpPct: number | null;
   productivityPct: number | null;
+  marginVsTargetPct: number | null;
   reportCount: number;
 };
 
@@ -35,7 +36,8 @@ export function aggregateKpis(
   const gpPct = revenue > 0 ? (margin / revenue) * 100 : null;
   const expected = expectedDailyRevenue * Math.max(workingDays, 1);
   const productivityPct = expected > 0 ? (revenue / expected) * 100 : null;
-  return { revenue, cost, margin, gpPct, productivityPct, reportCount: reports.length };
+  const marginVsTargetPct = expected > 0 ? (margin / expected) * 100 : null;
+  return { revenue, cost, margin, gpPct, productivityPct, marginVsTargetPct, reportCount: reports.length };
 }
 
 export type BoqContribution = {
