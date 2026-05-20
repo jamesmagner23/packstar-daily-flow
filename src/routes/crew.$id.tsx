@@ -31,6 +31,7 @@ function CrewProfilePage() {
   const { isAdmin, isCrew, isSupervisor, loading: roleLoading } = useRole();
   const [editCrewOpen, setEditCrewOpen] = useState(false);
   const [ticketDialog, setTicketDialog] = useState<{ open: boolean; ticket: TicketRow | null }>({ open: false, ticket: null });
+  const [inductionDialog, setInductionDialog] = useState<{ open: boolean; induction: InductionRow | null }>({ open: false, induction: null });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   if (!roleLoading && isCrew) {
