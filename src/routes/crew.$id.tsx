@@ -187,6 +187,13 @@ function CrewProfilePage() {
         personId={id}
         ticket={ticketDialog.ticket}
       />
+      <InductionFormDialog
+        open={inductionDialog.open}
+        onOpenChange={(o) => setInductionDialog({ open: o, induction: o ? inductionDialog.induction : null })}
+        personId={id}
+        siteId={inductionDialog.induction?.site_id ?? null}
+        induction={inductionDialog.induction}
+      />
       <Dialog open={!!previewUrl} onOpenChange={(o) => !o && setPreviewUrl(null)}>
         <DialogContent className="max-w-3xl">
           {previewUrl && (
