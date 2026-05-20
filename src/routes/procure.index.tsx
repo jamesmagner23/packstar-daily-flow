@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Inbox } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell } from "@/components/SiteShell";
 import { SupplierFormDialog } from "@/components/procure/SupplierFormDialog";
@@ -52,10 +52,23 @@ function ProcurePage() {
       <header className="mb-10">
         <div className="t-eyebrow">Operations</div>
         <h1 className="t-display mt-2">Procure</h1>
-        <p className="t-lead mt-3">Suppliers and equipment catalogue.</p>
+        <p className="t-lead mt-3">Suppliers, equipment catalogue, and inbound supplier quotes.</p>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <Link to="/procure/quotes" className="hairline p-6 relative hover:bg-neutral-50 transition-colors block">
+          <div className="absolute top-4 right-4 h-8 w-8 inline-flex items-center justify-center rounded-full border border-rule text-meta">
+            <Inbox className="h-4 w-4" />
+          </div>
+          <div className="t-eyebrow">Inbox</div>
+          <h2 className="t-headline mt-2">Quotes</h2>
+          <p className="t-stat-value mt-4">
+            {newQuoteCount}
+            {newQuoteCount > 0 && <span className="ml-2 inline-block h-2.5 w-2.5 rounded-full bg-[color:var(--brand)] align-middle" />}
+          </p>
+          <p className="t-stat-label mt-1">new {newQuoteCount === 1 ? "quote" : "quotes"}</p>
+        </Link>
+
         <div className="hairline p-6 relative hover:bg-neutral-50 transition-colors">
           <button
             type="button"
