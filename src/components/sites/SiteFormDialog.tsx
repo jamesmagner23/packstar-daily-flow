@@ -15,9 +15,20 @@ export type SiteRow = {
   head_contractor: string | null;
   head_contractor_contact: string | null;
   induction_lead_time_days: number | null;
+  induction_platform: string | null;
+  induction_url: string | null;
   job_id: string | null;
   active: boolean | null;
 };
+
+export const INDUCTION_PLATFORM_SUGGESTIONS = [
+  "3D Safety",
+  "HammerTech",
+  "Checkrite",
+  "Simpel",
+  "In-Person",
+  "Other",
+];
 
 export function SiteFormDialog({
   open, onOpenChange, site,
