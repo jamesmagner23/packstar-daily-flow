@@ -236,6 +236,21 @@ function CrewListPage() {
                       </Badge>
                     ) : <span className="text-meta">—</span>}
                   </td>
+                  <td className="py-3 text-xs">
+                    <Badge
+                      className={
+                        r.induction_tone === "green"
+                          ? "bg-emerald-100 text-emerald-900 border-emerald-200 hover:bg-emerald-100"
+                          : r.induction_tone === "amber"
+                          ? "bg-amber-100 text-amber-900 border-amber-200 hover:bg-amber-100"
+                          : r.induction_tone === "red"
+                          ? "bg-red-100 text-red-900 border-red-200 hover:bg-red-100"
+                          : "bg-neutral-100 text-neutral-700 border-neutral-200 hover:bg-neutral-100"
+                      }
+                    >
+                      {r.induction_label}
+                    </Badge>
+                  </td>
                   <td className="py-3 text-xs">{r.active === false ? "No" : "Yes"}</td>
                 </tr>
               ))}
