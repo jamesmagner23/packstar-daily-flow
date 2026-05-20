@@ -51,16 +51,30 @@ async function summarizeOne(c: CrewMatch): Promise<string> {
   const today = new Date().toISOString().slice(0, 10);
   const { data: pcs } = await supabaseAdmin
     .from("person_competencies")
-    .select("expiry_date, competencies(name)")
+    .select("competency_id, expiry_date")
     .eq("person_id", c.id);
-  const rows = (pcs ?? []) as Array<{ expiry_date: string | null; competencies: { name: string } | null }>;
+  const rows = (pcs ?? []) as Array<{ competency_id: string; expiry_date: string | null }>;
 
   const active = rows.filter((r) => !r.expiry_date || r.expiry_date >= today);
   const expiringWindow = 30;
-  const expiringSoon = active
-    .filter((r) => r.expiry_date && r.expiry_date <= addDays(today, expiringWindow))
+  const expiringSoonRaw = active.filter(
+    (r) => r.expiry_date && r.expiry_date <= addDays(today, expiringWindow),
+  );
+
+  // Resolve competency names for the rows we'll display.
+  let nameById = new Map<string, string>();
+  if (expiringSoonRaw.length > 0) {
+    const ids = Array.from(new Set(expiringSoonRaw.map((r) => r.competency_id)));
+    const { data: comps } = await supabaseAdmin
+      .from("competencies")
+      .select("id, name")
+      .in("id", ids);
+    nameById = new Map((comps ?? []).map((x: any) => [x.id, x.name]));
+  }
+
+  const expiringSoon = expiringSoonRaw
     .map((r) => ({
-      name: r.competencies?.name ?? "Ticket",
+      name: nameById.get(r.competency_id) ?? "Ticket",
       days: daysBetween(today, r.expiry_date!),
     }))
     .sort((a, b) => a.days - b.days);
