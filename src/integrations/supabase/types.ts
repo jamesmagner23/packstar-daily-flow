@@ -1448,6 +1448,17 @@ export type Database = {
       }
       current_user_person_id: { Args: never; Returns: string }
       current_user_role: { Args: never; Returns: string }
+      find_crew_by_name: {
+        Args: { p_name: string }
+        Returns: {
+          default_supervisor_id: string
+          employment_type: string
+          id: string
+          name: string
+          role: string
+          similarity: number
+        }[]
+      }
       insert_docket: {
         Args: {
           p_allocation_date: string
@@ -1467,6 +1478,8 @@ export type Database = {
           variance: number
         }[]
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       user_role: "admin" | "supervisor" | "crew"

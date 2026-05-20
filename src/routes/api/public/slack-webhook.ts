@@ -4,6 +4,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { SLACK_DAILY_FLOW_PROMPT } from "@/lib/prompts/slack-daily-flow";
 import { persistComputedReport, notifyDirectorOnWrap } from "@/lib/evening-summary/persist";
+import { handlePhotoTicket, looksLikeTicketCaption } from "@/lib/slack/photo-ticket";
+import { handleProfileLookup, PROFILE_PATTERN } from "@/lib/slack/profile-lookup";
+import { handleExpiring, EXPIRING_PATTERN } from "@/lib/slack/expiring";
 
 const MODEL = "claude-sonnet-4-5";
 const MELB_TZ = "Australia/Melbourne";
@@ -228,6 +231,39 @@ async function processEvent(body: any) {
   const userText: string = (event.text ?? "").trim();
   const channel: string = event.channel;
   const hasFiles = Array.isArray(event.files) && event.files.length > 0;
+
+  // ===== Phase 2 dispatch =====
+  // 1. Photo + ticket caption → photo ticket handler
+  if (hasFiles && looksLikeTicketCaption(userText)) {
+    console.log("[slack-webhook] dispatch: photo ticket");
+    try {
+      await handlePhotoTicket(event, channel, slackUserId);
+    } catch (e) {
+      console.error("[slack-webhook] photo ticket handler threw:", (e as Error).message);
+    }
+    return;
+  }
+  // 2. profile / tickets <name>
+  if (PROFILE_PATTERN.test(userText)) {
+    console.log("[slack-webhook] dispatch: profile lookup");
+    try {
+      await handleProfileLookup(userText, slackUserId);
+    } catch (e) {
+      console.error("[slack-webhook] profile lookup handler threw:", (e as Error).message);
+    }
+    return;
+  }
+  // 3. expiring [days]
+  if (EXPIRING_PATTERN.test(userText)) {
+    console.log("[slack-webhook] dispatch: expiring");
+    try {
+      await handleExpiring(userText, slackUserId);
+    } catch (e) {
+      console.error("[slack-webhook] expiring handler threw:", (e as Error).message);
+    }
+    return;
+  }
+  // 4. Else → existing wrap conversation handler (unchanged below)
 
   // Voice notes / file-only messages have no text. Claude rejects empty
   // user content, so nudge instead of calling the model.
