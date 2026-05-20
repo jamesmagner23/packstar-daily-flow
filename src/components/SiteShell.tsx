@@ -45,10 +45,12 @@ const TABS: Tab[] = [
   {
     key: "people",
     label: "People",
-    to: "/people/team",
+    to: "/crew",
     icon: Users,
-    paths: ["/people"],
+    paths: ["/people", "/crew", "/tickets"],
     subNav: [
+      { to: "/crew", label: "Crew" },
+      { to: "/tickets", label: "Tickets" },
       { to: "/people/team", label: "Team" },
       { to: "/people/roles", label: "Roles" },
       { to: "/people/training", label: "Training" },
