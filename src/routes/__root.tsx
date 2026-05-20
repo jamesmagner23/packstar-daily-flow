@@ -151,7 +151,13 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     });
     return () => {
       active = false;
-      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  if (!mounted || status === "loading") {
+    return <div suppressHydrationWarning className="min-h-screen bg-background" />;
+  }
       sub.subscription.unsubscribe();
     };
   }, []);
