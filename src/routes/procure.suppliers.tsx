@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Plus, Mail, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell } from "@/components/SiteShell";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SupplierFormDialog, type SupplierRow } from "@/components/procure/SupplierFormDialog";
+import { SendEmailDialog } from "@/components/procure/SendEmailDialog";
 
 type SortDir = "asc" | "desc";
 type SortKey = "name" | "contact_email" | "credit_terms_days" | "active";
