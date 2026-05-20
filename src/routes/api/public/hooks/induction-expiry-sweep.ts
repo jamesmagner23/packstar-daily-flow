@@ -1,11 +1,14 @@
 // Phase 3 — Induction expiry sweep.
-// Cron-triggered (pg_cron): runs daily at 21:00 UTC (7am AEDT).
+// Cron-triggered (pg_cron) by two jobs to keep 7am Melbourne year-round:
+//   induction-expiry-sweep-aedt → 20:00 UTC (7am during daylight-saving)
+//   induction-expiry-sweep-aest → 21:00 UTC (7am during standard time)
+// Whichever fires first wins; the second is a no-op via the
+// induction_expiry_notice_log debounce (person_induction_id + sent_on).
 //
 // Walks person_inductions.expires_date within the next 30 days, groups by
-// band (7d / 30d), debounces via induction_expiry_notice_log (PK on
-// person_induction_id + sent_on so we only send once per day per induction),
-// and DMs the admin a grouped summary. Supervisor DMs are sent per crew
-// member when default_supervisor_id is set and resolves to a slack id.
+// band (7d / 30d), and DMs the admin a grouped summary. Supervisor DMs are
+// sent per crew member when default_supervisor_id is set and resolves to a
+// slack id.
 
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
