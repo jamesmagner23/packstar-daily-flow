@@ -54,7 +54,7 @@ function CrewListPage() {
     queryFn: async () => {
       let q = supabase
         .from("crew_members")
-        .select("id, name, role, employment_type, phone, email, project_id, default_supervisor_id, active")
+        .select("id, name, role, employment_type, phone, email, slack_user_id, project_id, default_supervisor_id, active")
         .order("name");
       if (projectId && !isAdmin) q = q.eq("project_id", projectId);
       else if (projectId) q = q.eq("project_id", projectId);
