@@ -95,6 +95,17 @@ type SlackFile = {
 type PersonRow = { id: string; name: string };
 
 async function resolveSender(slackUserId: string): Promise<PersonRow | null> {
+  // Primary: direct match on crew_members.slack_user_id
+  const { data: crewDirect } = await supabaseAdmin
+    .from("crew_members")
+    .select("id, name")
+    .eq("slack_user_id", slackUserId)
+    .eq("active", true)
+    .maybeSingle();
+  if (crewDirect) return crewDirect;
+
+  // Fallback: supervisor slack_user_id → name match on crew_members.
+  // Retained during backfill; remove once all crew have slack_user_id populated.
   const { data: sup } = await supabaseAdmin
     .from("supervisors")
     .select("name")
@@ -107,7 +118,12 @@ async function resolveSender(slackUserId: string): Promise<PersonRow | null> {
       .ilike("name", sup.name)
       .eq("active", true)
       .maybeSingle();
-    if (crew) return crew;
+    if (crew) {
+      console.warn(
+        `[slack-photo] resolved sender ${slackUserId} via supervisor name fallback (${sup.name}); backfill crew_members.slack_user_id to retire this path`,
+      );
+      return crew;
+    }
   }
   return null;
 }

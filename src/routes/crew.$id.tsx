@@ -48,7 +48,7 @@ function CrewProfilePage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("crew_members")
-        .select("id, name, role, employment_type, phone, email, project_id, default_supervisor_id, active, notes")
+        .select("id, name, role, employment_type, phone, email, slack_user_id, project_id, default_supervisor_id, active, notes")
         .eq("id", id).maybeSingle();
       return data as (CrewRow & { notes: string | null }) | null;
     },

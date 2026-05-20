@@ -134,6 +134,7 @@ export type Database = {
           phone: string | null
           project_id: string | null
           role: string
+          slack_user_id: string | null
         }
         Insert: {
           active?: boolean | null
@@ -147,6 +148,7 @@ export type Database = {
           phone?: string | null
           project_id?: string | null
           role: string
+          slack_user_id?: string | null
         }
         Update: {
           active?: boolean | null
@@ -160,6 +162,7 @@ export type Database = {
           phone?: string | null
           project_id?: string | null
           role?: string
+          slack_user_id?: string | null
         }
         Relationships: [
           {

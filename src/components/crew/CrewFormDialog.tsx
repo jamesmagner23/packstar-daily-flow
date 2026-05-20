@@ -18,6 +18,7 @@ export type CrewRow = {
   employment_type: string | null;
   phone: string | null;
   email: string | null;
+  slack_user_id: string | null;
   project_id: string | null;
   default_supervisor_id: string | null;
   active: boolean | null;
@@ -29,6 +30,7 @@ const schema = z.object({
   employment_type: z.string().trim().max(100).optional().or(z.literal("")),
   phone: z.string().trim().max(50).optional().or(z.literal("")),
   email: z.string().trim().max(255).email("Invalid email").optional().or(z.literal("")),
+  slack_user_id: z.string().trim().max(50).regex(/^[A-Z0-9]*$/i, "Letters/digits only").optional().or(z.literal("")),
   project_id: z.string().uuid("Project required"),
   default_supervisor_id: z.string().uuid().nullable(),
   active: z.boolean(),
@@ -42,6 +44,7 @@ const empty = (projectId: string | null): FormState => ({
   employment_type: "",
   phone: "",
   email: "",
+  slack_user_id: "",
   project_id: projectId ?? "",
   default_supervisor_id: null,
   active: true,
@@ -71,6 +74,7 @@ export function CrewFormDialog({
         employment_type: crew.employment_type ?? "",
         phone: crew.phone ?? "",
         email: crew.email ?? "",
+        slack_user_id: crew.slack_user_id ?? "",
         project_id: crew.project_id ?? defaultProjectId ?? "",
         default_supervisor_id: crew.default_supervisor_id ?? null,
         active: crew.active ?? true,
@@ -110,6 +114,7 @@ export function CrewFormDialog({
         employment_type: values.employment_type || null,
         phone: values.phone || null,
         email: values.email || null,
+        slack_user_id: values.slack_user_id ? values.slack_user_id.trim().toUpperCase() : null,
         project_id: values.project_id,
         default_supervisor_id: values.default_supervisor_id || null,
         active: values.active,
@@ -172,6 +177,10 @@ export function CrewFormDialog({
           </Field>
           <Field label="Email" error={errors.email}>
             <Input type="email" value={form.email} onChange={(e) => field("email", e.target.value)} maxLength={255} />
+          </Field>
+          <Field label="Slack user ID" error={errors.slack_user_id}>
+            <Input value={form.slack_user_id} onChange={(e) => field("slack_user_id", e.target.value)} maxLength={50}
+              placeholder="e.g. U01ABCDEF" />
           </Field>
           <Field label="Project *" error={errors.project_id}>
             <select className="w-full border border-rule rounded-md px-3 py-2 text-sm bg-white"
