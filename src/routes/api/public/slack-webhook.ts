@@ -269,6 +269,10 @@ async function processEvent(body: any) {
 
   // Voice notes / file-only messages have no text. Claude rejects empty
   // user content, so nudge instead of calling the model.
+  if (!userText && !hasFiles) {
+    console.log("[slack-webhook] empty event, skipping", { subtype: event.subtype });
+    return;
+  }
   if (!userText) {
     console.log("[slack-webhook] empty text", { hasFiles, subtype: event.subtype });
     await postToSlack(
