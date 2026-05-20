@@ -33,8 +33,14 @@ function melbHHMM(d = new Date()): string {
   }).format(d);
 }
 
-function melbLongDate(d = new Date()): string {
+function melbLongDate(isoOrDate: string | Date = new Date()): string {
   // e.g. "Thursday 14 May 2026"
+  // Accepts a YYYY-MM-DD string (rendered as that calendar date in Melb tz)
+  // or a Date object.
+  const d =
+    typeof isoOrDate === "string"
+      ? new Date(`${isoOrDate}T12:00:00+10:00`)
+      : isoOrDate;
   return new Intl.DateTimeFormat("en-GB", {
     timeZone: MELB_TZ,
     weekday: "long",
@@ -42,6 +48,39 @@ function melbLongDate(d = new Date()): string {
     month: "long",
     year: "numeric",
   }).format(d);
+}
+
+function melbHour(d = new Date()): number {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: MELB_TZ,
+    hour: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+  return parseInt(parts.find((p) => p.type === "hour")!.value, 10);
+}
+
+// Walk back N business days (skip Sat/Sun) from an ISO date in Melbourne tz.
+function previousBusinessDayISO(iso: string): string {
+  // Treat the ISO as a Melbourne calendar date.
+  const d = new Date(`${iso}T12:00:00+10:00`);
+  do {
+    d.setUTCDate(d.getUTCDate() - 1);
+  } while (d.getUTCDay() === 0 || d.getUTCDay() === 6);
+  return melbDateISO(d);
+}
+
+// Which work-day a supervisor message should be attributed to.
+// The daily prompt fires at 16:00 Melb. Anything before 14:00 is almost
+// certainly catch-up for the previous business day, not "today".
+function pickReportDate(d = new Date()): string {
+  const todayIso = melbDateISO(d);
+  const hour = melbHour(d);
+  if (hour < 14) return previousBusinessDayISO(todayIso);
+  // After 14:00 — if today is Sat/Sun, still attribute to last business day.
+  const probe = new Date(`${todayIso}T12:00:00+10:00`);
+  const dow = probe.getUTCDay();
+  if (dow === 0 || dow === 6) return previousBusinessDayISO(todayIso);
+  return todayIso;
 }
 
 function addBusinessDays(start: Date, days: number): Date {
@@ -220,7 +259,8 @@ async function processEvent(body: any) {
   }
 
   const supFirst = firstName(supervisor.name);
-  const today = melbDateISO();
+  const today = pickReportDate();
+  const calendarToday = melbDateISO();
 
   // Load or create today's daily_report
   const tsPrefix = `[${melbHHMM()}] ${supFirst}: ${userText}\n`;
@@ -232,6 +272,7 @@ async function processEvent(body: any) {
     .maybeSingle();
   if (repErr) console.error("[slack-webhook] report lookup error:", repErr.message);
 
+  let isNewReport = false;
   if (!report) {
     const { data: created, error: insErr } = await supabaseAdmin
       .from("daily_reports")
@@ -250,6 +291,7 @@ async function processEvent(body: any) {
       return;
     }
     report = created;
+    isNewReport = true;
   } else {
     const newTranscript = (report.raw_transcript ?? "") + tsPrefix;
     await supabaseAdmin
@@ -304,7 +346,7 @@ async function processEvent(body: any) {
 
   const systemPrompt = SLACK_DAILY_FLOW_PROMPT
     .replaceAll("{{SUPERVISOR_FIRST_NAME}}", supFirst)
-    .replaceAll("{{TODAY_DATE}}", melbLongDate())
+    .replaceAll("{{TODAY_DATE}}", melbLongDate(today))
     .replaceAll("{{PROJECT_NAME}}", project.name)
     .replaceAll("{{HEAD_CONTRACTOR}}", project.head_contractor)
     .replaceAll("{{HC_REP_NAME}}", hcRep)
@@ -550,9 +592,19 @@ async function processEvent(body: any) {
     }),
   );
 
+  // Always flag the work-date being logged when it isn't the current
+  // calendar day (e.g. early-morning catch-up, weekend backfill), and on
+  // the very first message of a new report so the supervisor can correct
+  // it before more gets logged against the wrong day.
+  let outboundReply = replyText;
+  if (isNewReport || today !== calendarToday) {
+    const banner = `📅 Logging this against *${melbLongDate(today)}*. Reply "actually <date>" if that's wrong.`;
+    outboundReply = `${banner}\n\n${replyText}`;
+  }
+
   // Post reply
-  const post = await postToSlack(channel, replyText);
-  console.log("[slack-webhook] slack post ok:", post?.ok ?? false);
+  const post = await postToSlack(channel, outboundReply);
+  console.log("[slack-webhook] slack post ok:", post?.ok ?? false, "work_date:", today);
 }
 
 export const Route = createFileRoute("/api/public/slack-webhook")({
