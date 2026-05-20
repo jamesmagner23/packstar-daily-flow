@@ -14,10 +14,12 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VariationsIndexRouteImport } from './routes/variations.index'
 import { Route as UtilisationIndexRouteImport } from './routes/utilisation.index'
+import { Route as TicketsIndexRouteImport } from './routes/tickets.index'
 import { Route as SetupIndexRouteImport } from './routes/setup.index'
 import { Route as SafetyIndexRouteImport } from './routes/safety.index'
 import { Route as ReportsIndexRouteImport } from './routes/reports.index'
 import { Route as ProcureIndexRouteImport } from './routes/procure.index'
+import { Route as CrewIndexRouteImport } from './routes/crew.index'
 import { Route as ComplianceIndexRouteImport } from './routes/compliance.index'
 import { Route as VariationsIdRouteImport } from './routes/variations.$id'
 import { Route as ReportsExportRouteImport } from './routes/reports.export'
@@ -25,6 +27,7 @@ import { Route as ReportsIdRouteImport } from './routes/reports.$id'
 import { Route as ProcureSuppliersRouteImport } from './routes/procure.suppliers'
 import { Route as ProcureQuotesRouteImport } from './routes/procure.quotes'
 import { Route as ProcureEquipmentRouteImport } from './routes/procure.equipment'
+import { Route as CrewIdRouteImport } from './routes/crew.$id'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as PeopleTrainingIndexRouteImport } from './routes/people.training.index'
 import { Route as PeopleTeamIndexRouteImport } from './routes/people.team.index'
@@ -60,6 +63,11 @@ const UtilisationIndexRoute = UtilisationIndexRouteImport.update({
   path: '/utilisation/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TicketsIndexRoute = TicketsIndexRouteImport.update({
+  id: '/tickets/',
+  path: '/tickets/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SetupIndexRoute = SetupIndexRouteImport.update({
   id: '/setup/',
   path: '/setup/',
@@ -78,6 +86,11 @@ const ReportsIndexRoute = ReportsIndexRouteImport.update({
 const ProcureIndexRoute = ProcureIndexRouteImport.update({
   id: '/procure/',
   path: '/procure/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrewIndexRoute = CrewIndexRouteImport.update({
+  id: '/crew/',
+  path: '/crew/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComplianceIndexRoute = ComplianceIndexRouteImport.update({
@@ -113,6 +126,11 @@ const ProcureQuotesRoute = ProcureQuotesRouteImport.update({
 const ProcureEquipmentRoute = ProcureEquipmentRouteImport.update({
   id: '/procure/equipment',
   path: '/procure/equipment',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrewIdRoute = CrewIdRouteImport.update({
+  id: '/crew/$id',
+  path: '/crew/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -169,6 +187,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/crew/$id': typeof CrewIdRoute
   '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
@@ -176,10 +195,12 @@ export interface FileRoutesByFullPath {
   '/reports/export': typeof ReportsExportRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
+  '/crew/': typeof CrewIndexRoute
   '/procure/': typeof ProcureIndexRoute
   '/reports/': typeof ReportsIndexRoute
   '/safety/': typeof SafetyIndexRoute
   '/setup/': typeof SetupIndexRoute
+  '/tickets/': typeof TicketsIndexRoute
   '/utilisation/': typeof UtilisationIndexRoute
   '/variations/': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
@@ -196,6 +217,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/crew/$id': typeof CrewIdRoute
   '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
@@ -203,10 +225,12 @@ export interface FileRoutesByTo {
   '/reports/export': typeof ReportsExportRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance': typeof ComplianceIndexRoute
+  '/crew': typeof CrewIndexRoute
   '/procure': typeof ProcureIndexRoute
   '/reports': typeof ReportsIndexRoute
   '/safety': typeof SafetyIndexRoute
   '/setup': typeof SetupIndexRoute
+  '/tickets': typeof TicketsIndexRoute
   '/utilisation': typeof UtilisationIndexRoute
   '/variations': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
@@ -224,6 +248,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/crew/$id': typeof CrewIdRoute
   '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
@@ -231,10 +256,12 @@ export interface FileRoutesById {
   '/reports/export': typeof ReportsExportRoute
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
+  '/crew/': typeof CrewIndexRoute
   '/procure/': typeof ProcureIndexRoute
   '/reports/': typeof ReportsIndexRoute
   '/safety/': typeof SafetyIndexRoute
   '/setup/': typeof SetupIndexRoute
+  '/tickets/': typeof TicketsIndexRoute
   '/utilisation/': typeof UtilisationIndexRoute
   '/variations/': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
@@ -253,6 +280,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/auth/callback'
+    | '/crew/$id'
     | '/procure/equipment'
     | '/procure/quotes'
     | '/procure/suppliers'
@@ -260,10 +288,12 @@ export interface FileRouteTypes {
     | '/reports/export'
     | '/variations/$id'
     | '/compliance/'
+    | '/crew/'
     | '/procure/'
     | '/reports/'
     | '/safety/'
     | '/setup/'
+    | '/tickets/'
     | '/utilisation/'
     | '/variations/'
     | '/api/public/slack-webhook'
@@ -280,6 +310,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/auth/callback'
+    | '/crew/$id'
     | '/procure/equipment'
     | '/procure/quotes'
     | '/procure/suppliers'
@@ -287,10 +318,12 @@ export interface FileRouteTypes {
     | '/reports/export'
     | '/variations/$id'
     | '/compliance'
+    | '/crew'
     | '/procure'
     | '/reports'
     | '/safety'
     | '/setup'
+    | '/tickets'
     | '/utilisation'
     | '/variations'
     | '/api/public/slack-webhook'
@@ -307,6 +340,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/auth/callback'
+    | '/crew/$id'
     | '/procure/equipment'
     | '/procure/quotes'
     | '/procure/suppliers'
@@ -314,10 +348,12 @@ export interface FileRouteTypes {
     | '/reports/export'
     | '/variations/$id'
     | '/compliance/'
+    | '/crew/'
     | '/procure/'
     | '/reports/'
     | '/safety/'
     | '/setup/'
+    | '/tickets/'
     | '/utilisation/'
     | '/variations/'
     | '/api/public/slack-webhook'
@@ -335,6 +371,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  CrewIdRoute: typeof CrewIdRoute
   ProcureEquipmentRoute: typeof ProcureEquipmentRoute
   ProcureQuotesRoute: typeof ProcureQuotesRoute
   ProcureSuppliersRoute: typeof ProcureSuppliersRoute
@@ -342,10 +379,12 @@ export interface RootRouteChildren {
   ReportsExportRoute: typeof ReportsExportRoute
   VariationsIdRoute: typeof VariationsIdRoute
   ComplianceIndexRoute: typeof ComplianceIndexRoute
+  CrewIndexRoute: typeof CrewIndexRoute
   ProcureIndexRoute: typeof ProcureIndexRoute
   ReportsIndexRoute: typeof ReportsIndexRoute
   SafetyIndexRoute: typeof SafetyIndexRoute
   SetupIndexRoute: typeof SetupIndexRoute
+  TicketsIndexRoute: typeof TicketsIndexRoute
   UtilisationIndexRoute: typeof UtilisationIndexRoute
   VariationsIndexRoute: typeof VariationsIndexRoute
   ApiPublicSlackWebhookRoute: typeof ApiPublicSlackWebhookRoute
@@ -395,6 +434,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UtilisationIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tickets/': {
+      id: '/tickets/'
+      path: '/tickets'
+      fullPath: '/tickets/'
+      preLoaderRoute: typeof TicketsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/setup/': {
       id: '/setup/'
       path: '/setup'
@@ -421,6 +467,13 @@ declare module '@tanstack/react-router' {
       path: '/procure'
       fullPath: '/procure/'
       preLoaderRoute: typeof ProcureIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crew/': {
+      id: '/crew/'
+      path: '/crew'
+      fullPath: '/crew/'
+      preLoaderRoute: typeof CrewIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compliance/': {
@@ -470,6 +523,13 @@ declare module '@tanstack/react-router' {
       path: '/procure/equipment'
       fullPath: '/procure/equipment'
       preLoaderRoute: typeof ProcureEquipmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crew/$id': {
+      id: '/crew/$id'
+      path: '/crew/$id'
+      fullPath: '/crew/$id'
+      preLoaderRoute: typeof CrewIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/callback': {
@@ -543,6 +603,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  CrewIdRoute: CrewIdRoute,
   ProcureEquipmentRoute: ProcureEquipmentRoute,
   ProcureQuotesRoute: ProcureQuotesRoute,
   ProcureSuppliersRoute: ProcureSuppliersRoute,
@@ -550,10 +611,12 @@ const rootRouteChildren: RootRouteChildren = {
   ReportsExportRoute: ReportsExportRoute,
   VariationsIdRoute: VariationsIdRoute,
   ComplianceIndexRoute: ComplianceIndexRoute,
+  CrewIndexRoute: CrewIndexRoute,
   ProcureIndexRoute: ProcureIndexRoute,
   ReportsIndexRoute: ReportsIndexRoute,
   SafetyIndexRoute: SafetyIndexRoute,
   SetupIndexRoute: SetupIndexRoute,
+  TicketsIndexRoute: TicketsIndexRoute,
   UtilisationIndexRoute: UtilisationIndexRoute,
   VariationsIndexRoute: VariationsIndexRoute,
   ApiPublicSlackWebhookRoute: ApiPublicSlackWebhookRoute,
