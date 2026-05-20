@@ -233,9 +233,11 @@ async function processEvent(body: any) {
   const hasFiles = Array.isArray(event.files) && event.files.length > 0;
 
   // ===== Phase 2 dispatch =====
-  // 1. Photo + ticket caption → photo ticket handler
-  if (hasFiles && looksLikeTicketCaption(userText)) {
-    console.log("[slack-webhook] dispatch: photo ticket");
+  // 1. Any file attachment → photo ticket handler (caption optional)
+  if (hasFiles) {
+    console.log("[slack-webhook] dispatch: photo ticket", {
+      hasCaption: looksLikeTicketCaption(userText),
+    });
     try {
       await handlePhotoTicket(event, channel, slackUserId);
     } catch (e) {
