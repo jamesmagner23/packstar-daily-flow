@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VariationsIndexRouteImport } from './routes/variations.index'
 import { Route as UtilisationIndexRouteImport } from './routes/utilisation.index'
@@ -23,6 +25,7 @@ import { Route as ReportsIdRouteImport } from './routes/reports.$id'
 import { Route as ProcureSuppliersRouteImport } from './routes/procure.suppliers'
 import { Route as ProcureQuotesRouteImport } from './routes/procure.quotes'
 import { Route as ProcureEquipmentRouteImport } from './routes/procure.equipment'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as PeopleTrainingIndexRouteImport } from './routes/people.training.index'
 import { Route as PeopleTeamIndexRouteImport } from './routes/people.team.index'
 import { Route as PeopleRolesIndexRouteImport } from './routes/people.roles.index'
@@ -32,6 +35,16 @@ import { Route as ApiPublicProcurePollGmailRouteImport } from './routes/api/publ
 import { Route as ApiPublicHooksRecomputeReportRouteImport } from './routes/api/public/hooks/recompute-report'
 import { Route as ApiPublicHooksDailyPromptRouteImport } from './routes/api/public/hooks/daily-prompt'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -102,6 +115,11 @@ const ProcureEquipmentRoute = ProcureEquipmentRouteImport.update({
   path: '/procure/equipment',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PeopleTrainingIndexRoute = PeopleTrainingIndexRouteImport.update({
   id: '/people/training/',
   path: '/people/training/',
@@ -148,6 +166,9 @@ const ApiPublicHooksDailyPromptRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
@@ -172,6 +193,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
@@ -197,6 +221,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
@@ -223,6 +250,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
+    | '/signup'
+    | '/auth/callback'
     | '/procure/equipment'
     | '/procure/quotes'
     | '/procure/suppliers'
@@ -247,6 +277,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/login'
+    | '/signup'
+    | '/auth/callback'
     | '/procure/equipment'
     | '/procure/quotes'
     | '/procure/suppliers'
@@ -271,6 +304,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/login'
+    | '/signup'
+    | '/auth/callback'
     | '/procure/equipment'
     | '/procure/quotes'
     | '/procure/suppliers'
@@ -296,6 +332,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoginRoute: typeof LoginRoute
+  SignupRoute: typeof SignupRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
   ProcureEquipmentRoute: typeof ProcureEquipmentRoute
   ProcureQuotesRoute: typeof ProcureQuotesRoute
   ProcureSuppliersRoute: typeof ProcureSuppliersRoute
@@ -321,6 +360,20 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -419,6 +472,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProcureEquipmentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/people/training/': {
       id: '/people/training/'
       path: '/people/training'
@@ -480,6 +540,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoginRoute: LoginRoute,
+  SignupRoute: SignupRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
   ProcureEquipmentRoute: ProcureEquipmentRoute,
   ProcureQuotesRoute: ProcureQuotesRoute,
   ProcureSuppliersRoute: ProcureSuppliersRoute,
