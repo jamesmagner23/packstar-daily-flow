@@ -1,46 +1,71 @@
+# Procure → Gmail integration
 
-## Scope this round
+Everything flows through **one connected Gmail account** (your PACC Gmail / Workspace). POs go out from that mailbox; supplier replies come back to the same mailbox; a background poller files them under the matching supplier.
 
-1. **Time-range toggle on Finance → Dashboard**: Daily / Weekly (Mon–Sat) / Monthly / Custom date range. State lives in URL search params so the view is shareable and survives refresh.
-2. **Crew filter**: "All crews" + one entry per active supervisor (we treat each supervisor as a crew — no schema change). Filter applies to KPIs, recent wraps list, and variations.
-3. **Long-hire plant flags**: any plant_item that has appeared in `daily_reports.plant_hours` continuously (no gap ≥ 3 working days) for 4+ weeks → flag panel on Dashboard + full list on Utilisation tab.
-4. **Profitability analytics** on Utilisation tab: top/bottom BOQ refs by margin contribution over the selected range.
+---
 
-Crews stay as a relabel of supervisors. No new tables. No changes to slack-webhook, prompts, or evening-summary compute.
+## 1. Connect Gmail (one-time)
 
-## Files I'll touch
+Use the Lovable Gmail connector. You'll click "Connect Gmail" once and authorise the PACC inbox. Required scopes: `gmail.send`, `gmail.readonly`, `gmail.modify` (so we can mark parsed emails as read / label them `PACC/Processed`).
 
-```
-src/lib/
-  date-range.ts                NEW — Mon–Sat week math, range presets, parsing
-  reports-aggregate.ts         NEW — client-side aggregation helpers (KPI roll-up, by-BOQ margin, plant-on-hire detection) over fetched daily_reports rows
+---
 
-src/components/
-  RangeToggle.tsx              NEW — daily/weekly/monthly/custom segmented control + date input
-  CrewFilter.tsx               NEW — All crews + per-supervisor dropdown
-  KpiBand.tsx                  NEW — extract the 5-stat band so it can render aggregated values
+## 2. Outbound — Send PO / Request Quote
 
-src/routes/
-  index.tsx                    EDIT — add validateSearch (range, from, to, crewId), use aggregation helpers, render new controls + long-hire flag panel
-  utilisation.index.tsx        EDIT — replace "Coming soon" with profitability + on-hire panels (shares range/crew search params via retainSearchParams)
-  reports.index.tsx            EDIT (small) — accept ?crewId filter when navigated from dashboard
+On `/procure/suppliers` and on each supplier row:
 
-src/routes/__root.tsx          EDIT — add validateSearch for shared params (range, from, to, crewId) so children inherit
-```
+- **Request Quote** button → opens a dialog: pick equipment items + qty + project + notes → sends a plain-text email from your Gmail to `contact_email`, subject `RFQ — <project code> — <date>`.
+- **Send PO** button → same shape, attaches a generated PO PDF (reuses the existing `report-pdf.server.ts` engine), subject `PO #<number> — <project code>`.
+- Every send is logged to a new `procure_email_log` table (direction=`out`, supplier_id, subject, gmail_message_id, sent_at).
 
-## Technical notes
+---
 
-- **URL state**: `?range=day|week|month|custom&from=YYYY-MM-DD&to=YYYY-MM-DD&crewId=<uuid|all>`. Defaults: `range=week`, anchored on today's Mon–Sat. Uses `@tanstack/zod-adapter` with `fallback()`. Add `retainSearchParams(["range","from","to","crewId"])` at root.
-- **Week math** (`date-range.ts`): `getWeekRange(date)` returns Mon..Sat of the week containing `date`. Monthly = calendar month. Custom = arbitrary from/to. All ranges inclusive, ISO date strings.
-- **Data fetch**: one `useQuery` per route fetches `daily_reports` between `from` and `to` (filtered by `supervisor_id` if crewId set). KPI band sums revenue/cost/margin; productivity = revenue / (expected_daily_revenue × working_days_in_range). Working days = Mon–Sat count.
-- **Plant-on-hire detection**: fetch all `daily_reports` rows for the active project in the last ~60 days, flatten `plant_hours[].plant_id`, group by plant_id, compute longest continuous streak allowing ≤2 gap days. Flag if streak ≥ 28 calendar days. Joined against `plant_items` for description.
-- **Profitability**: re-use `boq_lines.rate`; for each report's `works_completed`, compute `quantity × pct_complete × rate` as line revenue, group by `boq_ref` over the selected range. Sorted desc → top 5, asc → bottom 5. Margin attribution stays revenue-only (cost isn't BOQ-linked); label clearly as "revenue contribution".
-- **Empty states**: when no reports in range, KPI band shows em-dashes, recent wraps shows "No wraps in this range — last submitted {date}".
-- **No DB migration**, no backend changes. All aggregation is client-side over the queried rows (volumes are small — single project, ~60 reports max).
+## 3. Inbound — Poll, match, parse
 
-## What I'm NOT doing this round (capture as follow-ups)
+A cron-triggered server route (`/api/public/procure/poll-gmail`, runs every 5 min via pg_cron) does:
 
-- Crew-vs-crew comparison view
-- Crews as a first-class table (will revisit when a second supervisor joins)
-- Per-line cost attribution (needs allocation rules)
-- Email/Slack notifications for long-hire flags — UI surface only for now
+1. `gmail.users.messages.list?q=is:unread -label:PACC/Processed newer_than:7d`
+2. For each message:
+   - Look up sender email in `suppliers.contact_email` (case-insensitive). No match → skip & label `PACC/Unmatched`.
+   - Match → download message + PDF attachments.
+   - Upload PDFs to a new `procure-quotes` storage bucket under `<supplier_id>/<message_id>/<filename>.pdf`.
+   - Insert a `procure_quotes` row (supplier_id, subject, received_at, gmail_message_id, body_text, attachment_paths[], status=`new`, extraction_status=`pending`).
+   - Call Lovable AI (`google/gemini-2.5-flash`) with the email body + extracted PDF text → returns structured JSON: `{ items: [{ description, qty, unit, unit_price, total }], subtotal, gst, total, valid_until, notes }`. Stored on `procure_quotes.extracted_json`.
+   - Mark Gmail message read + add label `PACC/Processed`.
+
+---
+
+## 4. Dashboard surface
+
+- **Procure landing page** (`/procure`): adds a third card "Quotes" with unread count badge; red dot on the sidebar Procure item when `procure_quotes.status='new'` exists.
+- **New page `/procure/quotes`**: table of received quotes (Supplier, Subject, Received, Items, Total, Status). Row click → detail drawer with email body, attachment download links, AI-extracted line items in an editable table, "Mark reviewed" / "Convert to PO" buttons.
+
+---
+
+## Database changes
+
+- `procure_email_log` — outbound + inbound audit trail
+- `procure_quotes` — one row per parsed supplier email
+- Storage bucket `procure-quotes` (private, RLS by anon for now to match existing pattern)
+- pg_cron job hitting the poll endpoint every 5 min
+
+---
+
+## Technical details
+
+- Gmail connector calls go through `https://connector-gateway.lovable.dev/google_mail/gmail/v1/...` from server functions (server-only — `GOOGLE_MAIL_API_KEY` + `LOVABLE_API_KEY` env vars).
+- PDF text extraction in the Worker runtime: use `pdf-parse` if Worker-compatible, otherwise fall back to passing the raw PDF bytes to Gemini (it handles PDFs natively) — I'll verify in the build.
+- Poll endpoint is idempotent: dedupe on `gmail_message_id` unique index.
+- AI extraction failures don't block the row — quote still appears, just flagged `extraction_status='failed'` with manual entry option.
+- No new auth required — Procure already runs as anon.
+
+---
+
+## Build order
+
+1. Connect Gmail connector (you click through one OAuth screen)
+2. DB migration: tables + bucket + indexes
+3. Server functions: `sendSupplierEmail`, `pollSupplierInbox`
+4. Outbound UI: Request Quote / Send PO dialogs on suppliers page
+5. Inbound UI: `/procure/quotes` page + detail drawer + sidebar badge
+6. pg_cron schedule for the poller
