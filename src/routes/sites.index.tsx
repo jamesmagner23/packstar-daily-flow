@@ -41,7 +41,7 @@ function SitesListPage() {
     queryFn: async () => {
       const { data: sites } = await supabase
         .from("sites")
-        .select("id, name, head_contractor, head_contractor_contact, induction_lead_time_days, job_id, active")
+        .select("id, name, head_contractor, head_contractor_contact, induction_lead_time_days, induction_platform, induction_url, job_id, active")
         .order("name");
       const list = (sites ?? []) as SiteRow[];
       if (list.length === 0) return [];
