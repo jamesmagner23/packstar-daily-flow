@@ -27,6 +27,7 @@ import { Route as PeopleTeamIndexRouteImport } from './routes/people.team.index'
 import { Route as PeopleRolesIndexRouteImport } from './routes/people.roles.index'
 import { Route as ApiPublicSlackWebhookRouteImport } from './routes/api/public/slack-webhook'
 import { Route as ApiPublicReportsPdfRouteImport } from './routes/api/public/reports.pdf'
+import { Route as ApiPublicProcurePollGmailRouteImport } from './routes/api/public/procure/poll-gmail'
 import { Route as ApiPublicHooksRecomputeReportRouteImport } from './routes/api/public/hooks/recompute-report'
 import { Route as ApiPublicHooksDailyPromptRouteImport } from './routes/api/public/hooks/daily-prompt'
 
@@ -120,6 +121,12 @@ const ApiPublicReportsPdfRoute = ApiPublicReportsPdfRouteImport.update({
   path: '/api/public/reports/pdf',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicProcurePollGmailRoute =
+  ApiPublicProcurePollGmailRouteImport.update({
+    id: '/api/public/procure/poll-gmail',
+    path: '/api/public/procure/poll-gmail',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksRecomputeReportRoute =
   ApiPublicHooksRecomputeReportRouteImport.update({
     id: '/api/public/hooks/recompute-report',
@@ -153,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/people/training/': typeof PeopleTrainingIndexRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
+  '/api/public/procure/poll-gmail': typeof ApiPublicProcurePollGmailRoute
   '/api/public/reports/pdf': typeof ApiPublicReportsPdfRoute
 }
 export interface FileRoutesByTo {
@@ -175,6 +183,7 @@ export interface FileRoutesByTo {
   '/people/training': typeof PeopleTrainingIndexRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
+  '/api/public/procure/poll-gmail': typeof ApiPublicProcurePollGmailRoute
   '/api/public/reports/pdf': typeof ApiPublicReportsPdfRoute
 }
 export interface FileRoutesById {
@@ -198,6 +207,7 @@ export interface FileRoutesById {
   '/people/training/': typeof PeopleTrainingIndexRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
+  '/api/public/procure/poll-gmail': typeof ApiPublicProcurePollGmailRoute
   '/api/public/reports/pdf': typeof ApiPublicReportsPdfRoute
 }
 export interface FileRouteTypes {
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/people/training/'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/recompute-report'
+    | '/api/public/procure/poll-gmail'
     | '/api/public/reports/pdf'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -244,6 +255,7 @@ export interface FileRouteTypes {
     | '/people/training'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/recompute-report'
+    | '/api/public/procure/poll-gmail'
     | '/api/public/reports/pdf'
   id:
     | '__root__'
@@ -266,6 +278,7 @@ export interface FileRouteTypes {
     | '/people/training/'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/recompute-report'
+    | '/api/public/procure/poll-gmail'
     | '/api/public/reports/pdf'
   fileRoutesById: FileRoutesById
 }
@@ -289,6 +302,7 @@ export interface RootRouteChildren {
   PeopleTrainingIndexRoute: typeof PeopleTrainingIndexRoute
   ApiPublicHooksDailyPromptRoute: typeof ApiPublicHooksDailyPromptRoute
   ApiPublicHooksRecomputeReportRoute: typeof ApiPublicHooksRecomputeReportRoute
+  ApiPublicProcurePollGmailRoute: typeof ApiPublicProcurePollGmailRoute
   ApiPublicReportsPdfRoute: typeof ApiPublicReportsPdfRoute
 }
 
@@ -420,6 +434,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicReportsPdfRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/procure/poll-gmail': {
+      id: '/api/public/procure/poll-gmail'
+      path: '/api/public/procure/poll-gmail'
+      fullPath: '/api/public/procure/poll-gmail'
+      preLoaderRoute: typeof ApiPublicProcurePollGmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/recompute-report': {
       id: '/api/public/hooks/recompute-report'
       path: '/api/public/hooks/recompute-report'
@@ -457,8 +478,19 @@ const rootRouteChildren: RootRouteChildren = {
   PeopleTrainingIndexRoute: PeopleTrainingIndexRoute,
   ApiPublicHooksDailyPromptRoute: ApiPublicHooksDailyPromptRoute,
   ApiPublicHooksRecomputeReportRoute: ApiPublicHooksRecomputeReportRoute,
+  ApiPublicProcurePollGmailRoute: ApiPublicProcurePollGmailRoute,
   ApiPublicReportsPdfRoute: ApiPublicReportsPdfRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
