@@ -33,8 +33,14 @@ function melbHHMM(d = new Date()): string {
   }).format(d);
 }
 
-function melbLongDate(d = new Date()): string {
+function melbLongDate(isoOrDate: string | Date = new Date()): string {
   // e.g. "Thursday 14 May 2026"
+  // Accepts a YYYY-MM-DD string (rendered as that calendar date in Melb tz)
+  // or a Date object.
+  const d =
+    typeof isoOrDate === "string"
+      ? new Date(`${isoOrDate}T12:00:00+10:00`)
+      : isoOrDate;
   return new Intl.DateTimeFormat("en-GB", {
     timeZone: MELB_TZ,
     weekday: "long",
@@ -42,6 +48,39 @@ function melbLongDate(d = new Date()): string {
     month: "long",
     year: "numeric",
   }).format(d);
+}
+
+function melbHour(d = new Date()): number {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: MELB_TZ,
+    hour: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+  return parseInt(parts.find((p) => p.type === "hour")!.value, 10);
+}
+
+// Walk back N business days (skip Sat/Sun) from an ISO date in Melbourne tz.
+function previousBusinessDayISO(iso: string): string {
+  // Treat the ISO as a Melbourne calendar date.
+  const d = new Date(`${iso}T12:00:00+10:00`);
+  do {
+    d.setUTCDate(d.getUTCDate() - 1);
+  } while (d.getUTCDay() === 0 || d.getUTCDay() === 6);
+  return melbDateISO(d);
+}
+
+// Which work-day a supervisor message should be attributed to.
+// The daily prompt fires at 16:00 Melb. Anything before 14:00 is almost
+// certainly catch-up for the previous business day, not "today".
+function pickReportDate(d = new Date()): string {
+  const todayIso = melbDateISO(d);
+  const hour = melbHour(d);
+  if (hour < 14) return previousBusinessDayISO(todayIso);
+  // After 14:00 — if today is Sat/Sun, still attribute to last business day.
+  const probe = new Date(`${todayIso}T12:00:00+10:00`);
+  const dow = probe.getUTCDay();
+  if (dow === 0 || dow === 6) return previousBusinessDayISO(todayIso);
+  return todayIso;
 }
 
 function addBusinessDays(start: Date, days: number): Date {
