@@ -100,6 +100,27 @@ export type Database = {
         }
         Relationships: []
       }
+      competencies: {
+        Row: {
+          code: string
+          id: string
+          name: string
+          type: string
+        }
+        Insert: {
+          code: string
+          id?: string
+          name: string
+          type: string
+        }
+        Update: {
+          code?: string
+          id?: string
+          name?: string
+          type?: string
+        }
+        Relationships: []
+      }
       crew_members: {
         Row: {
           active: boolean | null
@@ -134,6 +155,83 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_allocations: {
+        Row: {
+          actual_hours: number | null
+          allocation_date: string
+          classification_id: string | null
+          created_at: string
+          id: string
+          job_id: string
+          notes: string | null
+          person_id: string
+          planned_hours: number | null
+          plant_asset_ids: string[] | null
+          source: string
+          supervisor_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_hours?: number | null
+          allocation_date: string
+          classification_id?: string | null
+          created_at?: string
+          id?: string
+          job_id: string
+          notes?: string | null
+          person_id: string
+          planned_hours?: number | null
+          plant_asset_ids?: string[] | null
+          source: string
+          supervisor_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_hours?: number | null
+          allocation_date?: string
+          classification_id?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          notes?: string | null
+          person_id?: string
+          planned_hours?: number | null
+          plant_asset_ids?: string[] | null
+          source?: string
+          supervisor_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_allocations_classification_id_fkey"
+            columns: ["classification_id"]
+            isOneToOne: false
+            referencedRelation: "classifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_allocations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_allocations_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "crew_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_allocations_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "crew_members"
             referencedColumns: ["id"]
           },
         ]
@@ -252,6 +350,48 @@ export type Database = {
           },
         ]
       }
+      dockets: {
+        Row: {
+          allocation_date: string
+          captured_hours_by_person: Json
+          created_at: string
+          id: string
+          job_id: string
+          source_daily_report_id: string | null
+        }
+        Insert: {
+          allocation_date: string
+          captured_hours_by_person: Json
+          created_at?: string
+          id?: string
+          job_id: string
+          source_daily_report_id?: string | null
+        }
+        Update: {
+          allocation_date?: string
+          captured_hours_by_person?: Json
+          created_at?: string
+          id?: string
+          job_id?: string
+          source_daily_report_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dockets_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dockets_source_daily_report_id_fkey"
+            columns: ["source_daily_report_id"]
+            isOneToOne: false
+            referencedRelation: "daily_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipment_catalogue: {
         Row: {
           active: boolean
@@ -284,6 +424,102 @@ export type Database = {
           typical_specs?: string | null
         }
         Relationships: []
+      }
+      person_competencies: {
+        Row: {
+          competency_id: string
+          created_at: string
+          evidence_url: string | null
+          expiry_date: string | null
+          id: string
+          issued_date: string | null
+          person_id: string
+        }
+        Insert: {
+          competency_id: string
+          created_at?: string
+          evidence_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          issued_date?: string | null
+          person_id: string
+        }
+        Update: {
+          competency_id?: string
+          created_at?: string
+          evidence_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          issued_date?: string | null
+          person_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "person_competencies_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "competencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_competencies_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "crew_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      person_inductions: {
+        Row: {
+          booked_for_date: string | null
+          completed_date: string | null
+          evidence_url: string | null
+          expires_date: string | null
+          id: string
+          person_id: string
+          site_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          booked_for_date?: string | null
+          completed_date?: string | null
+          evidence_url?: string | null
+          expires_date?: string | null
+          id?: string
+          person_id: string
+          site_id: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          booked_for_date?: string | null
+          completed_date?: string | null
+          evidence_url?: string | null
+          expires_date?: string | null
+          id?: string
+          person_id?: string
+          site_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "person_inductions_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "crew_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_inductions_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       photos: {
         Row: {
@@ -772,6 +1008,80 @@ export type Database = {
           },
         ]
       }
+      site_requirements: {
+        Row: {
+          competency_id: string | null
+          id: string
+          induction_required: boolean | null
+          site_id: string
+        }
+        Insert: {
+          competency_id?: string | null
+          id?: string
+          induction_required?: boolean | null
+          site_id: string
+        }
+        Update: {
+          competency_id?: string | null
+          id?: string
+          induction_required?: boolean | null
+          site_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_requirements_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "competencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_requirements_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sites: {
+        Row: {
+          active: boolean | null
+          head_contractor: string | null
+          head_contractor_contact: string | null
+          id: string
+          induction_lead_time_days: number | null
+          job_id: string | null
+          name: string
+        }
+        Insert: {
+          active?: boolean | null
+          head_contractor?: string | null
+          head_contractor_contact?: string | null
+          id?: string
+          induction_lead_time_days?: number | null
+          job_id?: string | null
+          name: string
+        }
+        Update: {
+          active?: boolean | null
+          head_contractor?: string | null
+          head_contractor_contact?: string | null
+          id?: string
+          induction_lead_time_days?: number | null
+          job_id?: string | null
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sites_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supervisors: {
         Row: {
           active: boolean | null
@@ -851,6 +1161,106 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      task_requirements: {
+        Row: {
+          competency_id: string
+          id: string
+          task_type: string
+        }
+        Insert: {
+          competency_id: string
+          id?: string
+          task_type: string
+        }
+        Update: {
+          competency_id?: string
+          id?: string
+          task_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_requirements_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "competencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      timesheets: {
+        Row: {
+          claimed_hours: number
+          created_at: string
+          id: string
+          job_id: string | null
+          person_id: string
+          status: string | null
+          submitted_via: string | null
+          work_date: string
+        }
+        Insert: {
+          claimed_hours: number
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          person_id: string
+          status?: string | null
+          submitted_via?: string | null
+          work_date: string
+        }
+        Update: {
+          claimed_hours?: number
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          person_id?: string
+          status?: string | null
+          submitted_via?: string | null
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timesheets_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timesheets_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "crew_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          person_id: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          person_id?: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          person_id?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "crew_members"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       variation_clauses: {
         Row: {
@@ -1008,10 +1418,39 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_eligibility: {
+        Args: {
+          p_on_date: string
+          p_person_id: string
+          p_site_id: string
+          p_task_type: string
+        }
+        Returns: Json
+      }
+      current_user_person_id: { Args: never; Returns: string }
+      current_user_role: { Args: never; Returns: string }
+      insert_docket: {
+        Args: {
+          p_allocation_date: string
+          p_captured_hours_by_person: Json
+          p_job_id: string
+          p_source_daily_report_id: string
+        }
+        Returns: string
+      }
+      reconcile_timesheets: {
+        Args: { p_work_date: string }
+        Returns: {
+          claimed: number
+          dockets_say: number
+          job_id: string
+          person_id: string
+          variance: number
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin" | "supervisor" | "crew"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1138,6 +1577,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["admin", "supervisor", "crew"],
+    },
   },
 } as const
