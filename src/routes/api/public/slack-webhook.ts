@@ -4,6 +4,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { SLACK_DAILY_FLOW_PROMPT } from "@/lib/prompts/slack-daily-flow";
 import { persistComputedReport, notifyDirectorOnWrap } from "@/lib/evening-summary/persist";
+import { handlePhotoTicket, looksLikeTicketCaption } from "@/lib/slack/photo-ticket";
+import { handleProfileLookup, PROFILE_PATTERN } from "@/lib/slack/profile-lookup";
+import { handleExpiring, EXPIRING_PATTERN } from "@/lib/slack/expiring";
 
 const MODEL = "claude-sonnet-4-5";
 const MELB_TZ = "Australia/Melbourne";
