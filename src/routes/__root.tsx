@@ -4,11 +4,21 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
+  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
+
+const PUBLIC_PATH_PREFIXES = ["/login", "/signup", "/auth/callback", "/api/public/"];
+
+function isPublicPath(path: string) {
+  return PUBLIC_PATH_PREFIXES.some((p) => path === p || path.startsWith(p));
+}
 
 function NotFoundComponent() {
   return (
