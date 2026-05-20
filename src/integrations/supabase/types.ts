@@ -486,6 +486,143 @@ export type Database = {
           },
         ]
       }
+      procure_email_log: {
+        Row: {
+          created_at: string
+          direction: string
+          error_message: string | null
+          gmail_message_id: string | null
+          gmail_thread_id: string | null
+          id: string
+          kind: string
+          metadata: Json | null
+          project_id: string | null
+          recipient_email: string | null
+          sender_email: string | null
+          status: string
+          subject: string | null
+          supplier_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          error_message?: string | null
+          gmail_message_id?: string | null
+          gmail_thread_id?: string | null
+          id?: string
+          kind: string
+          metadata?: Json | null
+          project_id?: string | null
+          recipient_email?: string | null
+          sender_email?: string | null
+          status?: string
+          subject?: string | null
+          supplier_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          error_message?: string | null
+          gmail_message_id?: string | null
+          gmail_thread_id?: string | null
+          id?: string
+          kind?: string
+          metadata?: Json | null
+          project_id?: string | null
+          recipient_email?: string | null
+          sender_email?: string | null
+          status?: string
+          subject?: string | null
+          supplier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procure_email_log_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procure_email_log_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      procure_quotes: {
+        Row: {
+          attachment_filenames: string[] | null
+          attachment_paths: string[] | null
+          body_snippet: string | null
+          body_text: string | null
+          created_at: string
+          extracted_json: Json | null
+          extracted_total: number | null
+          extraction_error: string | null
+          extraction_status: string
+          gmail_message_id: string
+          gmail_thread_id: string | null
+          id: string
+          received_at: string
+          sender_email: string | null
+          status: string
+          subject: string | null
+          supplier_id: string
+          updated_at: string
+        }
+        Insert: {
+          attachment_filenames?: string[] | null
+          attachment_paths?: string[] | null
+          body_snippet?: string | null
+          body_text?: string | null
+          created_at?: string
+          extracted_json?: Json | null
+          extracted_total?: number | null
+          extraction_error?: string | null
+          extraction_status?: string
+          gmail_message_id: string
+          gmail_thread_id?: string | null
+          id?: string
+          received_at?: string
+          sender_email?: string | null
+          status?: string
+          subject?: string | null
+          supplier_id: string
+          updated_at?: string
+        }
+        Update: {
+          attachment_filenames?: string[] | null
+          attachment_paths?: string[] | null
+          body_snippet?: string | null
+          body_text?: string | null
+          created_at?: string
+          extracted_json?: Json | null
+          extracted_total?: number | null
+          extraction_error?: string | null
+          extraction_status?: string
+          gmail_message_id?: string
+          gmail_thread_id?: string | null
+          id?: string
+          received_at?: string
+          sender_email?: string | null
+          status?: string
+          subject?: string | null
+          supplier_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procure_quotes_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           active: boolean | null
