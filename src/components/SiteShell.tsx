@@ -137,9 +137,7 @@ export function SiteShell({ section, children }: { section: string; children: Re
 
           <div className="ml-auto flex items-center gap-3">
             <span className="hidden md:inline text-xs text-meta">{today}</span>
-            <div className="h-8 w-8 rounded-full bg-[color:var(--brand)] text-white text-xs font-semibold inline-flex items-center justify-center">
-              PA
-            </div>
+            <UserMenu />
           </div>
         </div>
         {/* Mobile project selector below top bar */}
