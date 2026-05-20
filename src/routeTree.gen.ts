@@ -39,6 +39,7 @@ import { Route as ApiPublicReportsPdfRouteImport } from './routes/api/public/rep
 import { Route as ApiPublicProcurePollGmailRouteImport } from './routes/api/public/procure/poll-gmail'
 import { Route as ApiPublicHooksRecomputeReportRouteImport } from './routes/api/public/hooks/recompute-report'
 import { Route as ApiPublicHooksDailyPromptRouteImport } from './routes/api/public/hooks/daily-prompt'
+import { Route as ApiPublicHooksAllocationEligibilityRouteImport } from './routes/api/public/hooks/allocation-eligibility'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -193,6 +194,12 @@ const ApiPublicHooksDailyPromptRoute =
     path: '/api/public/hooks/daily-prompt',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksAllocationEligibilityRoute =
+  ApiPublicHooksAllocationEligibilityRouteImport.update({
+    id: '/api/public/hooks/allocation-eligibility',
+    path: '/api/public/hooks/allocation-eligibility',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -221,6 +228,7 @@ export interface FileRoutesByFullPath {
   '/people/roles/': typeof PeopleRolesIndexRoute
   '/people/team/': typeof PeopleTeamIndexRoute
   '/people/training/': typeof PeopleTrainingIndexRoute
+  '/api/public/hooks/allocation-eligibility': typeof ApiPublicHooksAllocationEligibilityRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
   '/api/public/procure/poll-gmail': typeof ApiPublicProcurePollGmailRoute
@@ -253,6 +261,7 @@ export interface FileRoutesByTo {
   '/people/roles': typeof PeopleRolesIndexRoute
   '/people/team': typeof PeopleTeamIndexRoute
   '/people/training': typeof PeopleTrainingIndexRoute
+  '/api/public/hooks/allocation-eligibility': typeof ApiPublicHooksAllocationEligibilityRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
   '/api/public/procure/poll-gmail': typeof ApiPublicProcurePollGmailRoute
@@ -286,6 +295,7 @@ export interface FileRoutesById {
   '/people/roles/': typeof PeopleRolesIndexRoute
   '/people/team/': typeof PeopleTeamIndexRoute
   '/people/training/': typeof PeopleTrainingIndexRoute
+  '/api/public/hooks/allocation-eligibility': typeof ApiPublicHooksAllocationEligibilityRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
   '/api/public/procure/poll-gmail': typeof ApiPublicProcurePollGmailRoute
@@ -320,6 +330,7 @@ export interface FileRouteTypes {
     | '/people/roles/'
     | '/people/team/'
     | '/people/training/'
+    | '/api/public/hooks/allocation-eligibility'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/recompute-report'
     | '/api/public/procure/poll-gmail'
@@ -352,6 +363,7 @@ export interface FileRouteTypes {
     | '/people/roles'
     | '/people/team'
     | '/people/training'
+    | '/api/public/hooks/allocation-eligibility'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/recompute-report'
     | '/api/public/procure/poll-gmail'
@@ -384,6 +396,7 @@ export interface FileRouteTypes {
     | '/people/roles/'
     | '/people/team/'
     | '/people/training/'
+    | '/api/public/hooks/allocation-eligibility'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/recompute-report'
     | '/api/public/procure/poll-gmail'
@@ -417,6 +430,7 @@ export interface RootRouteChildren {
   PeopleRolesIndexRoute: typeof PeopleRolesIndexRoute
   PeopleTeamIndexRoute: typeof PeopleTeamIndexRoute
   PeopleTrainingIndexRoute: typeof PeopleTrainingIndexRoute
+  ApiPublicHooksAllocationEligibilityRoute: typeof ApiPublicHooksAllocationEligibilityRoute
   ApiPublicHooksDailyPromptRoute: typeof ApiPublicHooksDailyPromptRoute
   ApiPublicHooksRecomputeReportRoute: typeof ApiPublicHooksRecomputeReportRoute
   ApiPublicProcurePollGmailRoute: typeof ApiPublicProcurePollGmailRoute
@@ -635,6 +649,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksDailyPromptRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/allocation-eligibility': {
+      id: '/api/public/hooks/allocation-eligibility'
+      path: '/api/public/hooks/allocation-eligibility'
+      fullPath: '/api/public/hooks/allocation-eligibility'
+      preLoaderRoute: typeof ApiPublicHooksAllocationEligibilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -665,6 +686,8 @@ const rootRouteChildren: RootRouteChildren = {
   PeopleRolesIndexRoute: PeopleRolesIndexRoute,
   PeopleTeamIndexRoute: PeopleTeamIndexRoute,
   PeopleTrainingIndexRoute: PeopleTrainingIndexRoute,
+  ApiPublicHooksAllocationEligibilityRoute:
+    ApiPublicHooksAllocationEligibilityRoute,
   ApiPublicHooksDailyPromptRoute: ApiPublicHooksDailyPromptRoute,
   ApiPublicHooksRecomputeReportRoute: ApiPublicHooksRecomputeReportRoute,
   ApiPublicProcurePollGmailRoute: ApiPublicProcurePollGmailRoute,
