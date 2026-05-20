@@ -106,7 +106,7 @@ export function CrewFormDialog({
     mutationFn: async (values: FormState) => {
       const payload = {
         name: values.name.trim(),
-        role: values.role || null,
+        role: (values.role || "").trim(),
         employment_type: values.employment_type || null,
         phone: values.phone || null,
         email: values.email || null,
