@@ -346,7 +346,7 @@ async function processEvent(body: any) {
 
   const systemPrompt = SLACK_DAILY_FLOW_PROMPT
     .replaceAll("{{SUPERVISOR_FIRST_NAME}}", supFirst)
-    .replaceAll("{{TODAY_DATE}}", melbLongDate())
+    .replaceAll("{{TODAY_DATE}}", melbLongDate(today))
     .replaceAll("{{PROJECT_NAME}}", project.name)
     .replaceAll("{{HEAD_CONTRACTOR}}", project.head_contractor)
     .replaceAll("{{HC_REP_NAME}}", hcRep)
