@@ -16,6 +16,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useRole } from "@/hooks/use-role";
 import { CrewFormDialog, type CrewRow } from "@/components/crew/CrewFormDialog";
 import { TicketFormDialog, type TicketRow } from "@/components/crew/TicketFormDialog";
+import { InductionFormDialog, inductionTone, toneClass, type InductionRow } from "@/components/sites/InductionFormDialog";
 import { expiryLabel, expiryTone, daysUntil } from "@/lib/expiry";
 import { toast } from "sonner";
 
@@ -30,6 +31,7 @@ function CrewProfilePage() {
   const { isAdmin, isCrew, isSupervisor, loading: roleLoading } = useRole();
   const [editCrewOpen, setEditCrewOpen] = useState(false);
   const [ticketDialog, setTicketDialog] = useState<{ open: boolean; ticket: TicketRow | null }>({ open: false, ticket: null });
+  const [inductionDialog, setInductionDialog] = useState<{ open: boolean; induction: InductionRow | null }>({ open: false, induction: null });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   if (!roleLoading && isCrew) {
@@ -160,7 +162,13 @@ function CrewProfilePage() {
         </TabsContent>
 
         <TabsContent value="inductions" className="mt-4">
-          <p className="text-sm text-meta">Induction tracking arrives in Phase 3.</p>
+          <InductionsTab
+            personId={id}
+            canEdit={isAdmin}
+            onAdd={() => setInductionDialog({ open: true, induction: null })}
+            onEdit={(i: InductionRow) => setInductionDialog({ open: true, induction: i })}
+            onPreview={setPreviewUrl}
+          />
         </TabsContent>
 
         <TabsContent value="allocations" className="mt-4">
@@ -178,6 +186,13 @@ function CrewProfilePage() {
         onOpenChange={(o) => setTicketDialog({ open: o, ticket: o ? ticketDialog.ticket : null })}
         personId={id}
         ticket={ticketDialog.ticket}
+      />
+      <InductionFormDialog
+        open={inductionDialog.open}
+        onOpenChange={(o) => setInductionDialog({ open: o, induction: o ? inductionDialog.induction : null })}
+        personId={id}
+        siteId={inductionDialog.induction?.site_id ?? null}
+        induction={inductionDialog.induction}
       />
       <Dialog open={!!previewUrl} onOpenChange={(o) => !o && setPreviewUrl(null)}>
         <DialogContent className="max-w-3xl">
@@ -379,3 +394,117 @@ function NotesTab({ personId, initial, canEdit, readOnly }: { personId: string; 
 
 // silence unused warning if needed
 void daysUntil;
+
+function InductionsTab({
+  personId, canEdit, onAdd, onEdit, onPreview,
+}: {
+  personId: string;
+  canEdit: boolean;
+  onAdd: () => void;
+  onEdit: (i: InductionRow) => void;
+  onPreview: (url: string) => void;
+}) {
+  const { data: rows = [], isLoading } = useQuery({
+    queryKey: ["crew-inductions", personId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("person_inductions")
+        .select("id, person_id, site_id, status, booked_for_date, completed_date, expires_date, evidence_url, sites(name, induction_platform, induction_url)")
+        .eq("person_id", personId)
+        .order("updated_at", { ascending: false });
+      return (data ?? []) as any[];
+    },
+  });
+
+  return (
+    <div>
+      {canEdit && (
+        <div className="mb-3 flex justify-end">
+          <Button size="sm" onClick={onAdd}><Plus className="h-3 w-3 mr-1" /> Add induction</Button>
+        </div>
+      )}
+      {isLoading ? (
+        <p className="text-xs text-meta">Loading…</p>
+      ) : rows.length === 0 ? (
+        <p className="text-xs text-meta">No inductions recorded.</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {rows.map((r) => (
+            <InductionCard key={r.id} r={r} canEdit={canEdit} onEdit={onEdit} onPreview={onPreview} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InductionCard({
+  r, canEdit, onEdit, onPreview,
+}: {
+  r: any;
+  canEdit: boolean;
+  onEdit: (i: InductionRow) => void;
+  onPreview: (url: string) => void;
+}) {
+  const { tone, label } = inductionTone(r);
+  const [thumbUrl, setThumbUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!r.evidence_url) return;
+    let active = true;
+    supabase.storage.from("induction-evidence").createSignedUrl(r.evidence_url, 600).then(({ data }) => {
+      if (active && data) setThumbUrl(data.signedUrl);
+    });
+    return () => { active = false; };
+  }, [r.evidence_url]);
+
+  return (
+    <div className="border border-rule rounded-md p-4 bg-white flex flex-col gap-2">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="text-sm font-semibold leading-tight">{r.sites?.name ?? "—"}</p>
+          {r.sites?.induction_platform && (
+            <p className="text-[10px] uppercase tracking-wider text-meta mt-0.5">{r.sites.induction_platform}</p>
+          )}
+        </div>
+        <Badge className={`${toneClass(tone)} text-[10px]`}>{label}</Badge>
+      </div>
+      <div className="text-xs text-meta">
+        {r.booked_for_date && <>Booked: {r.booked_for_date}<br /></>}
+        {r.completed_date && <>Completed: {r.completed_date}<br /></>}
+        Expires: {r.expires_date ?? "No expiry"}
+      </div>
+      {r.sites?.induction_url && (
+        <a
+          href={r.sites.induction_url}
+          target="_blank"
+          rel="noreferrer"
+          className="text-xs text-ink underline-offset-2 hover:underline"
+        >
+          Open {r.sites.induction_platform ?? "platform"}
+        </a>
+      )}
+      {r.evidence_url && thumbUrl && (
+        <button
+          type="button"
+          onClick={async () => {
+            const { data } = await supabase.storage.from("induction-evidence").createSignedUrl(r.evidence_url, 600);
+            if (data) onPreview(data.signedUrl);
+          }}
+          className="mt-1 block w-full h-24 bg-neutral-50 border border-rule rounded overflow-hidden hover:opacity-90"
+        >
+          {/\.pdf(\?|$)/i.test(r.evidence_url) ? (
+            <span className="flex items-center justify-center h-full text-xs text-meta">View PDF evidence</span>
+          ) : (
+            <img src={thumbUrl} alt="Evidence" className="w-full h-full object-cover" />
+          )}
+        </button>
+      )}
+      {canEdit && (
+        <Button variant="outline" size="sm" className="mt-1 self-start" onClick={() => onEdit(r as InductionRow)}>
+          <Pencil className="h-3 w-3 mr-1" /> Edit
+        </Button>
+      )}
+    </div>
+  );
+}
