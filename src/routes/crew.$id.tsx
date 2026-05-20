@@ -166,7 +166,7 @@ function CrewProfilePage() {
             personId={id}
             canEdit={isAdmin}
             onAdd={() => setInductionDialog({ open: true, induction: null })}
-            onEdit={(i) => setInductionDialog({ open: true, induction: i })}
+            onEdit={(i: InductionRow) => setInductionDialog({ open: true, induction: i })}
             onPreview={setPreviewUrl}
           />
         </TabsContent>
