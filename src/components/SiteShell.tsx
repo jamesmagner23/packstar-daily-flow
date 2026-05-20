@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   TrendingUp,
   Users,
@@ -305,6 +305,75 @@ function ProjectSelector() {
         ))}
       </select>
       <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-meta pointer-events-none" />
+    </div>
+  );
+}
+
+function UserMenu() {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setEmail(session?.user?.email ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    navigate({ to: "/login" });
+  }
+
+  const initials = email ? email.slice(0, 2).toUpperCase() : "??";
+
+  if (!email) {
+    return (
+      <Link
+        to="/login"
+        className="text-xs font-semibold uppercase tracking-wide text-[color:var(--brand)] hover:underline"
+      >
+        Sign in
+      </Link>
+    );
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="h-8 w-8 rounded-full bg-[color:var(--brand)] text-white text-xs font-semibold inline-flex items-center justify-center hover:opacity-90"
+        aria-label="User menu"
+      >
+        {initials}
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-2 w-56 bg-white border border-rule rounded-md shadow-lg z-50">
+          <div className="px-3 py-2 border-b border-rule">
+            <p className="text-xs text-meta">Signed in as</p>
+            <p className="text-sm text-ink truncate">{email}</p>
+          </div>
+          <button
+            type="button"
+            onClick={signOut}
+            className="w-full text-left px-3 py-2 text-sm text-ink hover:bg-neutral-50"
+          >
+            Sign out
+          </button>
+        </div>
+      )}
     </div>
   );
 }
