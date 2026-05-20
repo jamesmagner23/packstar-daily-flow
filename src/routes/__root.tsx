@@ -155,28 +155,17 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  if (!mounted || status === "loading") {
-    return <div suppressHydrationWarning className="min-h-screen bg-background" />;
-  }
-      sub.subscription.unsubscribe();
-    };
-  }, []);
-
   const publicPath = isPublicPath(path);
 
   useEffect(() => {
-    if (status === "anon" && !publicPath) {
+    if (mounted && status === "anon" && !publicPath) {
       navigate({ to: "/login" });
     }
-  }, [status, publicPath, navigate]);
+  }, [mounted, status, publicPath, navigate]);
 
   if (publicPath) return <>{children}</>;
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-sm text-meta">Loading…</div>
-      </div>
-    );
+  if (!mounted || status === "loading") {
+    return <div suppressHydrationWarning className="min-h-screen bg-background" />;
   }
   if (status === "anon") return null;
   return <>{children}</>;
