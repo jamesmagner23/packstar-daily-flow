@@ -16,6 +16,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useRole } from "@/hooks/use-role";
 import { CrewFormDialog, type CrewRow } from "@/components/crew/CrewFormDialog";
 import { TicketFormDialog, type TicketRow } from "@/components/crew/TicketFormDialog";
+import { InductionFormDialog, inductionTone, toneClass, type InductionRow } from "@/components/sites/InductionFormDialog";
 import { expiryLabel, expiryTone, daysUntil } from "@/lib/expiry";
 import { toast } from "sonner";
 
