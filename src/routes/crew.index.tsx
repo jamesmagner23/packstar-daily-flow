@@ -69,7 +69,7 @@ function CrewListPage() {
       const ids = list.map((c) => c.id);
       const supIds = Array.from(new Set(list.map((c) => c.default_supervisor_id).filter(Boolean))) as string[];
 
-      const [{ data: pcAll }, { data: pcExp }, { data: sups }] = await Promise.all([
+      const [{ data: pcAll }, { data: pcExp }, { data: inductions }, { data: sups }] = await Promise.all([
         supabase
           .from("person_competencies")
           .select("person_id, expiry_date")
@@ -81,6 +81,10 @@ function CrewListPage() {
           .not("expiry_date", "is", null)
           .gte("expiry_date", today)
           .lte("expiry_date", in30),
+        supabase
+          .from("person_inductions")
+          .select("person_id, status, expires_date")
+          .in("person_id", ids),
         supIds.length
           ? supabase.from("supervisors").select("id, name").in("id", supIds)
           : Promise.resolve({ data: [] as { id: string; name: string }[] }),
@@ -98,11 +102,40 @@ function CrewListPage() {
       }
       const supName = new Map<string, string>((sups ?? []).map((s: any) => [s.id, s.name]));
 
+      // Roll up induction status per person: worst of all their inductions.
+      // grey = none on file, red = any not_booked/expired/expiring within 7d,
+      // amber = any booked or expiring within 30d, green = all current.
+      const indByPerson = new Map<string, IndTone>();
+      const indLabel = new Map<string, string>();
+      const in7 = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+      for (const r of (inductions ?? []) as any[]) {
+        const prev = indByPerson.get(r.person_id);
+        let next: IndTone = "grey";
+        let label = r.status as string;
+        if (r.status === "not_booked" || r.status === "expired") {
+          next = "red"; label = r.status === "expired" ? "Expired" : "Not booked";
+        } else if (r.status === "booked") {
+          next = "amber"; label = "Booked";
+        } else if (r.status === "completed") {
+          if (r.expires_date && r.expires_date < today) { next = "red"; label = "Expired"; }
+          else if (r.expires_date && r.expires_date <= in7) { next = "red"; label = "Expiring <7d"; }
+          else if (r.expires_date && r.expires_date <= in30) { next = "amber"; label = "Expiring 30d"; }
+          else { next = "green"; label = "Current"; }
+        }
+        const rank: Record<IndTone, number> = { red: 3, amber: 2, green: 1, grey: 0 };
+        if (!prev || rank[next] > rank[prev]) {
+          indByPerson.set(r.person_id, next);
+          indLabel.set(r.person_id, label);
+        }
+      }
+
       return list.map<Row>((c) => ({
         ...c,
         supervisor_name: c.default_supervisor_id ? (supName.get(c.default_supervisor_id) ?? null) : null,
         active_tickets: activeByPerson.get(c.id) ?? 0,
         expiring_30d: expByPerson.get(c.id) ?? 0,
+        induction_tone: indByPerson.get(c.id) ?? "grey",
+        induction_label: indLabel.get(c.id) ?? "—",
       }));
     },
   });
