@@ -414,6 +414,27 @@ export type Database = {
           },
         ]
       }
+      eligibility_alert_log: {
+        Row: {
+          allocation_date: string
+          person_id: string
+          sent_at: string
+          site_id: string
+        }
+        Insert: {
+          allocation_date: string
+          person_id: string
+          sent_at?: string
+          site_id: string
+        }
+        Update: {
+          allocation_date?: string
+          person_id?: string
+          sent_at?: string
+          site_id?: string
+        }
+        Relationships: []
+      }
       equipment_catalogue: {
         Row: {
           active: boolean
@@ -444,6 +465,30 @@ export type Database = {
           notes?: string | null
           rate_basis?: string
           typical_specs?: string | null
+        }
+        Relationships: []
+      }
+      induction_expiry_notice_log: {
+        Row: {
+          band: string
+          created_at: string
+          expires_date: string
+          person_induction_id: string
+          sent_on: string
+        }
+        Insert: {
+          band: string
+          created_at?: string
+          expires_date: string
+          person_induction_id: string
+          sent_on?: string
+        }
+        Update: {
+          band?: string
+          created_at?: string
+          expires_date?: string
+          person_induction_id?: string
+          sent_on?: string
         }
         Relationships: []
       }
@@ -1461,6 +1506,10 @@ export type Database = {
           role: string
           similarity: number
         }[]
+      }
+      get_supervisor_slack_id: {
+        Args: { p_supervisor_person_id: string }
+        Returns: string
       }
       insert_docket: {
         Args: {
