@@ -21,6 +21,7 @@ import { Route as VariationsIdRouteImport } from './routes/variations.$id'
 import { Route as ReportsExportRouteImport } from './routes/reports.export'
 import { Route as ReportsIdRouteImport } from './routes/reports.$id'
 import { Route as ProcureSuppliersRouteImport } from './routes/procure.suppliers'
+import { Route as ProcureQuotesRouteImport } from './routes/procure.quotes'
 import { Route as ProcureEquipmentRouteImport } from './routes/procure.equipment'
 import { Route as PeopleTrainingIndexRouteImport } from './routes/people.training.index'
 import { Route as PeopleTeamIndexRouteImport } from './routes/people.team.index'
@@ -91,6 +92,11 @@ const ProcureSuppliersRoute = ProcureSuppliersRouteImport.update({
   path: '/procure/suppliers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProcureQuotesRoute = ProcureQuotesRouteImport.update({
+  id: '/procure/quotes',
+  path: '/procure/quotes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProcureEquipmentRoute = ProcureEquipmentRouteImport.update({
   id: '/procure/equipment',
   path: '/procure/equipment',
@@ -143,6 +149,7 @@ const ApiPublicHooksDailyPromptRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/procure/equipment': typeof ProcureEquipmentRoute
+  '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
   '/reports/$id': typeof ReportsIdRoute
   '/reports/export': typeof ReportsExportRoute
@@ -166,6 +173,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/procure/equipment': typeof ProcureEquipmentRoute
+  '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
   '/reports/$id': typeof ReportsIdRoute
   '/reports/export': typeof ReportsExportRoute
@@ -190,6 +198,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/procure/equipment': typeof ProcureEquipmentRoute
+  '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
   '/reports/$id': typeof ReportsIdRoute
   '/reports/export': typeof ReportsExportRoute
@@ -215,6 +224,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/procure/equipment'
+    | '/procure/quotes'
     | '/procure/suppliers'
     | '/reports/$id'
     | '/reports/export'
@@ -238,6 +248,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/procure/equipment'
+    | '/procure/quotes'
     | '/procure/suppliers'
     | '/reports/$id'
     | '/reports/export'
@@ -261,6 +272,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/procure/equipment'
+    | '/procure/quotes'
     | '/procure/suppliers'
     | '/reports/$id'
     | '/reports/export'
@@ -285,6 +297,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProcureEquipmentRoute: typeof ProcureEquipmentRoute
+  ProcureQuotesRoute: typeof ProcureQuotesRoute
   ProcureSuppliersRoute: typeof ProcureSuppliersRoute
   ReportsIdRoute: typeof ReportsIdRoute
   ReportsExportRoute: typeof ReportsExportRoute
@@ -392,6 +405,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProcureSuppliersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/procure/quotes': {
+      id: '/procure/quotes'
+      path: '/procure/quotes'
+      fullPath: '/procure/quotes'
+      preLoaderRoute: typeof ProcureQuotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/procure/equipment': {
       id: '/procure/equipment'
       path: '/procure/equipment'
@@ -461,6 +481,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProcureEquipmentRoute: ProcureEquipmentRoute,
+  ProcureQuotesRoute: ProcureQuotesRoute,
   ProcureSuppliersRoute: ProcureSuppliersRoute,
   ReportsIdRoute: ReportsIdRoute,
   ReportsExportRoute: ReportsExportRoute,
@@ -484,3 +505,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
