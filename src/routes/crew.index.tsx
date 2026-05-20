@@ -215,6 +215,7 @@ function CrewListPage() {
                 <th className="py-2 font-semibold">Default supervisor</th>
                 <th className="py-2 font-semibold text-right">Active tickets</th>
                 <th className="py-2 font-semibold">Expiring 30d</th>
+                <th className="py-2 font-semibold">Induction</th>
                 <th className="py-2 font-semibold">Active</th>
               </tr>
             </thead>
