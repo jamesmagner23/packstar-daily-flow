@@ -259,7 +259,8 @@ async function processEvent(body: any) {
   }
 
   const supFirst = firstName(supervisor.name);
-  const today = melbDateISO();
+  const today = pickReportDate();
+  const calendarToday = melbDateISO();
 
   // Load or create today's daily_report
   const tsPrefix = `[${melbHHMM()}] ${supFirst}: ${userText}\n`;
@@ -271,6 +272,7 @@ async function processEvent(body: any) {
     .maybeSingle();
   if (repErr) console.error("[slack-webhook] report lookup error:", repErr.message);
 
+  let isNewReport = false;
   if (!report) {
     const { data: created, error: insErr } = await supabaseAdmin
       .from("daily_reports")
@@ -289,6 +291,7 @@ async function processEvent(body: any) {
       return;
     }
     report = created;
+    isNewReport = true;
   } else {
     const newTranscript = (report.raw_transcript ?? "") + tsPrefix;
     await supabaseAdmin
