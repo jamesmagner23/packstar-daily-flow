@@ -60,7 +60,7 @@ export async function handleExpiring(text: string, slackUserId: string) {
 
   const { data, error } = await supabaseAdmin
     .from("person_competencies")
-    .select("expiry_date, crew_members!inner(name, active), competencies!inner(name)")
+    .select("person_id, competency_id, expiry_date")
     .not("expiry_date", "is", null)
     .gte("expiry_date", today)
     .lte("expiry_date", horizon)
@@ -71,20 +71,33 @@ export async function handleExpiring(text: string, slackUserId: string) {
     return;
   }
 
-  const rows: Row[] = (data ?? [])
-    .filter((r: any) => r.crew_members?.active)
-    .map((r: any) => {
-      const exp = r.expiry_date as string;
-      return {
-        name: r.crew_members.name as string,
-        competency: r.competencies.name as string,
-        expiry_date: exp,
-        days_remaining: Math.round(
-          (new Date(`${exp}T00:00:00Z`).getTime() - new Date(`${today}T00:00:00Z`).getTime()) /
-            (1000 * 60 * 60 * 24),
-        ),
-      };
-    });
+  const raw = (data ?? []) as Array<{ person_id: string; competency_id: string; expiry_date: string }>;
+  if (raw.length === 0) {
+    await dmUser(slackUserId, `Nothing expiring in the next ${days} days. Nice.`);
+    return;
+  }
+
+  // Batch-fetch crew + competency names.
+  const personIds = Array.from(new Set(raw.map((r) => r.person_id)));
+  const compIds = Array.from(new Set(raw.map((r) => r.competency_id)));
+  const [{ data: crew }, { data: comps }] = await Promise.all([
+    supabaseAdmin.from("crew_members").select("id, name, active").in("id", personIds),
+    supabaseAdmin.from("competencies").select("id, name").in("id", compIds),
+  ]);
+  const crewById = new Map((crew ?? []).map((c: any) => [c.id, c]));
+  const compById = new Map((comps ?? []).map((c: any) => [c.id, c.name as string]));
+
+  const rows: Row[] = raw
+    .filter((r) => crewById.get(r.person_id)?.active)
+    .map((r) => ({
+      name: (crewById.get(r.person_id) as any).name as string,
+      competency: compById.get(r.competency_id) ?? "Ticket",
+      expiry_date: r.expiry_date,
+      days_remaining: Math.round(
+        (new Date(`${r.expiry_date}T00:00:00Z`).getTime() - new Date(`${today}T00:00:00Z`).getTime()) /
+          (1000 * 60 * 60 * 24),
+      ),
+    }));
 
   if (rows.length === 0) {
     await dmUser(slackUserId, `Nothing expiring in the next ${days} days. Nice.`);
