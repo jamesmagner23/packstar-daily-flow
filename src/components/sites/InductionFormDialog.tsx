@@ -78,6 +78,8 @@ export function InductionFormDialog({
     },
   });
 
+  const notifyBooked = useServerFn(notifyInductionBooked);
+
   const mutation = useMutation({
     mutationFn: async () => {
       if (!siteIdState) throw new Error("Pick a site");
@@ -105,12 +107,29 @@ export function InductionFormDialog({
         evidence_url,
       };
 
+      const prevStatus = induction?.status ?? "not_booked";
+      const transitionedToBooked = status === "booked" && prevStatus !== "booked";
+
       if (induction) {
         const { error } = await supabase.from("person_inductions").update(payload).eq("id", induction.id);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("person_inductions").insert(payload);
         if (error) throw error;
+      }
+
+      if (transitionedToBooked && bookedFor) {
+        try {
+          await notifyBooked({
+            data: {
+              person_id: personId,
+              site_id: siteIdState,
+              booked_for_date: bookedFor,
+            },
+          });
+        } catch (e) {
+          console.error("[induction] booking DM failed", e);
+        }
       }
     },
     onSuccess: () => {
