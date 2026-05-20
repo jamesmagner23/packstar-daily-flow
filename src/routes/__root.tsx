@@ -137,18 +137,20 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const [status, setStatus] = useState<"loading" | "authed" | "anon">("loading");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
+    setMounted(true);
+    let active = true;
     supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
+      if (!active) return;
       setStatus(data.session ? "authed" : "anon");
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       setStatus(session ? "authed" : "anon");
     });
     return () => {
-      mounted = false;
+      active = false;
       sub.subscription.unsubscribe();
     };
   }, []);
@@ -156,18 +158,14 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const publicPath = isPublicPath(path);
 
   useEffect(() => {
-    if (status === "anon" && !publicPath) {
+    if (mounted && status === "anon" && !publicPath) {
       navigate({ to: "/login" });
     }
-  }, [status, publicPath, navigate]);
+  }, [mounted, status, publicPath, navigate]);
 
   if (publicPath) return <>{children}</>;
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-sm text-meta">Loading…</div>
-      </div>
-    );
+  if (!mounted || status === "loading") {
+    return <div suppressHydrationWarning className="min-h-screen bg-background" />;
   }
   if (status === "anon") return null;
   return <>{children}</>;
