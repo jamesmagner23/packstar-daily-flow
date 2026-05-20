@@ -125,31 +125,50 @@ export type Database = {
         Row: {
           active: boolean | null
           capabilities: string[]
+          default_supervisor_id: string | null
+          email: string | null
           employment_type: string | null
           id: string
           name: string
+          notes: string | null
+          phone: string | null
           project_id: string | null
           role: string
         }
         Insert: {
           active?: boolean | null
           capabilities?: string[]
+          default_supervisor_id?: string | null
+          email?: string | null
           employment_type?: string | null
           id?: string
           name: string
+          notes?: string | null
+          phone?: string | null
           project_id?: string | null
           role: string
         }
         Update: {
           active?: boolean | null
           capabilities?: string[]
+          default_supervisor_id?: string | null
+          email?: string | null
           employment_type?: string | null
           id?: string
           name?: string
+          notes?: string | null
+          phone?: string | null
           project_id?: string | null
           role?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "crew_members_default_supervisor_id_fkey"
+            columns: ["default_supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "supervisors"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "crew_members_project_id_fkey"
             columns: ["project_id"]
