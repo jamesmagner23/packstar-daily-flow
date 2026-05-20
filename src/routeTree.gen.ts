@@ -38,6 +38,7 @@ import { Route as ApiPublicSlackWebhookRouteImport } from './routes/api/public/s
 import { Route as ApiPublicReportsPdfRouteImport } from './routes/api/public/reports.pdf'
 import { Route as ApiPublicProcurePollGmailRouteImport } from './routes/api/public/procure/poll-gmail'
 import { Route as ApiPublicHooksRecomputeReportRouteImport } from './routes/api/public/hooks/recompute-report'
+import { Route as ApiPublicHooksInductionExpirySweepRouteImport } from './routes/api/public/hooks/induction-expiry-sweep'
 import { Route as ApiPublicHooksDailyPromptRouteImport } from './routes/api/public/hooks/daily-prompt'
 import { Route as ApiPublicHooksAllocationEligibilityRouteImport } from './routes/api/public/hooks/allocation-eligibility'
 
@@ -188,6 +189,12 @@ const ApiPublicHooksRecomputeReportRoute =
     path: '/api/public/hooks/recompute-report',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksInductionExpirySweepRoute =
+  ApiPublicHooksInductionExpirySweepRouteImport.update({
+    id: '/api/public/hooks/induction-expiry-sweep',
+    path: '/api/public/hooks/induction-expiry-sweep',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksDailyPromptRoute =
   ApiPublicHooksDailyPromptRouteImport.update({
     id: '/api/public/hooks/daily-prompt',
@@ -230,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/people/training/': typeof PeopleTrainingIndexRoute
   '/api/public/hooks/allocation-eligibility': typeof ApiPublicHooksAllocationEligibilityRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
+  '/api/public/hooks/induction-expiry-sweep': typeof ApiPublicHooksInductionExpirySweepRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
   '/api/public/procure/poll-gmail': typeof ApiPublicProcurePollGmailRoute
   '/api/public/reports/pdf': typeof ApiPublicReportsPdfRoute
@@ -263,6 +271,7 @@ export interface FileRoutesByTo {
   '/people/training': typeof PeopleTrainingIndexRoute
   '/api/public/hooks/allocation-eligibility': typeof ApiPublicHooksAllocationEligibilityRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
+  '/api/public/hooks/induction-expiry-sweep': typeof ApiPublicHooksInductionExpirySweepRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
   '/api/public/procure/poll-gmail': typeof ApiPublicProcurePollGmailRoute
   '/api/public/reports/pdf': typeof ApiPublicReportsPdfRoute
@@ -297,6 +306,7 @@ export interface FileRoutesById {
   '/people/training/': typeof PeopleTrainingIndexRoute
   '/api/public/hooks/allocation-eligibility': typeof ApiPublicHooksAllocationEligibilityRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
+  '/api/public/hooks/induction-expiry-sweep': typeof ApiPublicHooksInductionExpirySweepRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
   '/api/public/procure/poll-gmail': typeof ApiPublicProcurePollGmailRoute
   '/api/public/reports/pdf': typeof ApiPublicReportsPdfRoute
@@ -332,6 +342,7 @@ export interface FileRouteTypes {
     | '/people/training/'
     | '/api/public/hooks/allocation-eligibility'
     | '/api/public/hooks/daily-prompt'
+    | '/api/public/hooks/induction-expiry-sweep'
     | '/api/public/hooks/recompute-report'
     | '/api/public/procure/poll-gmail'
     | '/api/public/reports/pdf'
@@ -365,6 +376,7 @@ export interface FileRouteTypes {
     | '/people/training'
     | '/api/public/hooks/allocation-eligibility'
     | '/api/public/hooks/daily-prompt'
+    | '/api/public/hooks/induction-expiry-sweep'
     | '/api/public/hooks/recompute-report'
     | '/api/public/procure/poll-gmail'
     | '/api/public/reports/pdf'
@@ -398,6 +410,7 @@ export interface FileRouteTypes {
     | '/people/training/'
     | '/api/public/hooks/allocation-eligibility'
     | '/api/public/hooks/daily-prompt'
+    | '/api/public/hooks/induction-expiry-sweep'
     | '/api/public/hooks/recompute-report'
     | '/api/public/procure/poll-gmail'
     | '/api/public/reports/pdf'
@@ -432,6 +445,7 @@ export interface RootRouteChildren {
   PeopleTrainingIndexRoute: typeof PeopleTrainingIndexRoute
   ApiPublicHooksAllocationEligibilityRoute: typeof ApiPublicHooksAllocationEligibilityRoute
   ApiPublicHooksDailyPromptRoute: typeof ApiPublicHooksDailyPromptRoute
+  ApiPublicHooksInductionExpirySweepRoute: typeof ApiPublicHooksInductionExpirySweepRoute
   ApiPublicHooksRecomputeReportRoute: typeof ApiPublicHooksRecomputeReportRoute
   ApiPublicProcurePollGmailRoute: typeof ApiPublicProcurePollGmailRoute
   ApiPublicReportsPdfRoute: typeof ApiPublicReportsPdfRoute
@@ -642,6 +656,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksRecomputeReportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/induction-expiry-sweep': {
+      id: '/api/public/hooks/induction-expiry-sweep'
+      path: '/api/public/hooks/induction-expiry-sweep'
+      fullPath: '/api/public/hooks/induction-expiry-sweep'
+      preLoaderRoute: typeof ApiPublicHooksInductionExpirySweepRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/daily-prompt': {
       id: '/api/public/hooks/daily-prompt'
       path: '/api/public/hooks/daily-prompt'
@@ -689,6 +710,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksAllocationEligibilityRoute:
     ApiPublicHooksAllocationEligibilityRoute,
   ApiPublicHooksDailyPromptRoute: ApiPublicHooksDailyPromptRoute,
+  ApiPublicHooksInductionExpirySweepRoute:
+    ApiPublicHooksInductionExpirySweepRoute,
   ApiPublicHooksRecomputeReportRoute: ApiPublicHooksRecomputeReportRoute,
   ApiPublicProcurePollGmailRoute: ApiPublicProcurePollGmailRoute,
   ApiPublicReportsPdfRoute: ApiPublicReportsPdfRoute,
