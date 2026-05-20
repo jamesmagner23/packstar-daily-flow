@@ -162,7 +162,13 @@ function CrewProfilePage() {
         </TabsContent>
 
         <TabsContent value="inductions" className="mt-4">
-          <p className="text-sm text-meta">Induction tracking arrives in Phase 3.</p>
+          <InductionsTab
+            personId={id}
+            canEdit={isAdmin}
+            onAdd={() => setInductionDialog({ open: true, induction: null })}
+            onEdit={(i) => setInductionDialog({ open: true, induction: i })}
+            onPreview={setPreviewUrl}
+          />
         </TabsContent>
 
         <TabsContent value="allocations" className="mt-4">
