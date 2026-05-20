@@ -74,6 +74,7 @@ export function CrewFormDialog({
         employment_type: crew.employment_type ?? "",
         phone: crew.phone ?? "",
         email: crew.email ?? "",
+        slack_user_id: crew.slack_user_id ?? "",
         project_id: crew.project_id ?? defaultProjectId ?? "",
         default_supervisor_id: crew.default_supervisor_id ?? null,
         active: crew.active ?? true,
