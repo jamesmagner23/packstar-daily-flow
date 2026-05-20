@@ -16,10 +16,14 @@ export const Route = createFileRoute("/crew/")({
   component: CrewListPage,
 });
 
+type IndTone = "green" | "amber" | "red" | "grey";
+
 type Row = CrewRow & {
   supervisor_name: string | null;
   active_tickets: number;
   expiring_30d: number;
+  induction_tone: IndTone;
+  induction_label: string;
 };
 
 function CrewListPage() {
