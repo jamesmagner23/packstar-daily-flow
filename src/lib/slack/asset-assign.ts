@@ -67,24 +67,47 @@ export async function getPendingAssignment(slackUserId: string): Promise<Pending
   return { person: person as any, allocation: { id: pending.id, job_id: pending.job_id } };
 }
 
-async function resolveAssetByText(text: string): Promise<any | null> {
-  const cleaned = text.trim();
-  if (!cleaned) return null;
-  const tokens = cleaned.split(/\s+/).filter(Boolean);
-  for (const tok of tokens) {
-    const { data } = await supabaseAdmin
-      .from("plant_items")
-      .select("id, plant_id_code, description")
-      .ilike("plant_id_code", tok)
-      .maybeSingle();
-    if (data) return data;
-  }
-  const { data: fuzzy } = await supabaseAdmin
+type TextMatch =
+  | { kind: "none" }
+  | { kind: "one"; asset: any }
+  | { kind: "many"; assets: any[] };
+
+function normCode(s: string): string {
+  return (s ?? "").toUpperCase().replace(/[-_\s]+/g, "");
+}
+
+async function resolveAssetByText(text: string): Promise<TextMatch> {
+  const cleaned = (text ?? "").trim();
+  if (!cleaned) return { kind: "none" };
+
+  const { data: items } = await supabaseAdmin
     .from("plant_items")
     .select("id, plant_id_code, description")
-    .or(`plant_id_code.ilike.%${cleaned}%,description.ilike.%${cleaned}%`)
-    .limit(1);
-  return fuzzy?.[0] ?? null;
+    .eq("active", true);
+  const all = (items ?? []) as any[];
+  if (all.length === 0) return { kind: "none" };
+
+  const tokens = cleaned.split(/\s+/).map(normCode).filter(Boolean);
+  // Exact normalized code match on any token
+  for (const tok of tokens) {
+    const exact = all.filter((a) => normCode(a.plant_id_code) === tok);
+    if (exact.length === 1) return { kind: "one", asset: exact[0] };
+    if (exact.length > 1) return { kind: "many", assets: exact };
+  }
+  // Contains match against code (normalized) or description (lowercased)
+  const normFull = normCode(cleaned);
+  const lower = cleaned.toLowerCase();
+  const contains = all.filter((a) => {
+    const codeN = normCode(a.plant_id_code);
+    const desc = (a.description ?? "").toLowerCase();
+    return (
+      (normFull.length >= 2 && codeN.includes(normFull)) ||
+      (lower.length >= 3 && desc.includes(lower))
+    );
+  });
+  if (contains.length === 1) return { kind: "one", asset: contains[0] };
+  if (contains.length > 1) return { kind: "many", assets: contains.slice(0, 5) };
+  return { kind: "none" };
 }
 
 async function downloadSlackFile(file: any): Promise<{ bytes: Uint8Array; mime: string } | null> {
@@ -100,6 +123,7 @@ async function downloadSlackFile(file: any): Promise<{ bytes: Uint8Array; mime: 
     return null;
   }
 }
+
 
 async function resolveAssetFromPhoto(file: any): Promise<any | null> {
   const dl = await downloadSlackFile(file);
@@ -151,13 +175,22 @@ export async function handleAssetAssignment(
   const text = (event.text ?? "").trim();
   const files = Array.isArray(event.files) ? event.files : [];
 
-  let asset = await resolveAssetByText(text);
+  const textMatch = await resolveAssetByText(text);
+  let asset: any = null;
+  if (textMatch.kind === "one") {
+    asset = textMatch.asset;
+  } else if (textMatch.kind === "many" && files.length === 0) {
+    const list = textMatch.assets.map((a: any) => a.plant_id_code).join(", ");
+    await dmUser(slackUserId, `A few assets match that — which one: ${list}?`);
+    return;
+  }
+
   if (!asset && files.length > 0) {
     asset = await resolveAssetFromPhoto(files[0]);
   }
 
   if (!asset) {
-    await dmUser(slackUserId, "Can't find that one. Check the asset plate or try again — send the code (e.g. EX02) or a clear photo of the plate.");
+    await dmUser(slackUserId, "Can't find that one. Check the asset plate or try again with the code (e.g. EX02) or a clear photo of the plate.");
     return;
   }
 
@@ -201,8 +234,17 @@ export async function handleAssetAssignment(
     return;
   }
 
-  // Confirm + run pre-start in the same flow. handlePrestartPhoto will now
-  // resolve the asset via today's allocation and log the checklist.
-  await dmUser(slackUserId, `Got it — you're on ${asset.plant_id_code}${asset.description ? ` (${asset.description})` : ""}.`);
-  await handlePrestartPhoto(event, channel, slackUserId);
+  // If the operator already sent a photo with this message, treat it as the
+  // pre-start submission and run the checklist flow. Otherwise just confirm
+  // the asset and wait for the next reply.
+  if (files.length > 0) {
+    await dmUser(slackUserId, `Got it — you're on ${asset.plant_id_code}${asset.description ? ` (${asset.description})` : ""}.`);
+    await handlePrestartPhoto(event, channel, slackUserId);
+  } else {
+    await dmUser(
+      slackUserId,
+      `Got it — ${asset.plant_id_code}${asset.description ? ` (${asset.description})` : ""}. Now pre-start when ready, reply with a photo and any issues, or just "all good".`,
+    );
+  }
 }
+
