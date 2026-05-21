@@ -121,7 +121,7 @@ function LoginPage() {
             </form>
           ) : (
             <form onSubmit={onMagicSubmit} noValidate className="space-y-4">
-
+              <Field label="Email">
                 <input
                   type="email"
                   value={email}
@@ -129,9 +129,8 @@ function LoginPage() {
                   className="w-full rounded-md border border-rule px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[color:var(--brand)]"
                   autoComplete="email"
                 />
-
-                />
               </Field>
+
               {error && <p className="text-sm text-red-600">{error}</p>}
               {info && <p className="text-sm text-emerald-700">{info}</p>}
               <button
