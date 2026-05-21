@@ -11,6 +11,13 @@ const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
 const NON_EXPIRING_CODES = new Set(["WHITE_CARD"]);
 
+function melbToday(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Australia/Melbourne",
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(new Date());
+}
+
 const TICKET_KEYWORDS = [
   "ticket", "renewed", "renewal", "new ticket", "licence", "license",
   "white card", "ewp", "hr licence", "mr licence", "first aid", "cpr",
