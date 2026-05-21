@@ -114,7 +114,7 @@ export function CrewFormDialog({
         employment_type: values.employment_type || null,
         phone: values.phone || null,
         email: values.email || null,
-        slack_user_id: values.slack_user_id ? values.slack_user_id.trim().toUpperCase() : null,
+        slack_user_id: values.slack_user_id ? normalizeSlackId(values.slack_user_id) : null,
         project_id: values.project_id,
         default_supervisor_id: values.default_supervisor_id || null,
         active: values.active,
