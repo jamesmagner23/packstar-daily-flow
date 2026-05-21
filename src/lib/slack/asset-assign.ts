@@ -73,24 +73,49 @@ async function resolveAssetByText(text: string): Promise<any | null> {
   const tokens = cleaned.split(/\s+/).filter(Boolean);
   for (const tok of tokens) {
     const { data } = await supabaseAdmin
-      .from("plant_items")
-      .select("id, plant_id_code, description")
-      .ilike("plant_id_code", tok)
-      .maybeSingle();
-    if (data) return data;
-  }
-  const { data: fuzzy } = await supabaseAdmin
-    .from("plant_items")
-    .select("id, plant_id_code, description")
-    .or(`plant_id_code.ilike.%${cleaned}%,description.ilike.%${cleaned}%`)
-    .limit(1);
-  return fuzzy?.[0] ?? null;
+type TextMatch =
+  | { kind: "none" }
+  | { kind: "one"; asset: any }
+  | { kind: "many"; assets: any[] };
+
+function normCode(s: string): string {
+  return (s ?? "").toUpperCase().replace(/[-_\s]+/g, "");
 }
 
-async function downloadSlackFile(file: any): Promise<{ bytes: Uint8Array; mime: string } | null> {
-  if (!file?.url_private) return null;
-  try {
-    const res = await fetch(file.url_private, {
+async function resolveAssetByText(text: string): Promise<TextMatch> {
+  const cleaned = (text ?? "").trim();
+  if (!cleaned) return { kind: "none" };
+
+  const { data: items } = await supabaseAdmin
+    .from("plant_items")
+    .select("id, plant_id_code, description")
+    .eq("active", true);
+  const all = (items ?? []) as any[];
+  if (all.length === 0) return { kind: "none" };
+
+  const tokens = cleaned.split(/\s+/).map(normCode).filter(Boolean);
+  // Exact normalized code match on any token
+  for (const tok of tokens) {
+    const exact = all.filter((a) => normCode(a.plant_id_code) === tok);
+    if (exact.length === 1) return { kind: "one", asset: exact[0] };
+    if (exact.length > 1) return { kind: "many", assets: exact };
+  }
+  // Contains match against code (normalized) or description (lowercased)
+  const normFull = normCode(cleaned);
+  const lower = cleaned.toLowerCase();
+  const contains = all.filter((a) => {
+    const codeN = normCode(a.plant_id_code);
+    const desc = (a.description ?? "").toLowerCase();
+    return (
+      (normFull.length >= 2 && codeN.includes(normFull)) ||
+      (lower.length >= 3 && desc.includes(lower))
+    );
+  });
+  if (contains.length === 1) return { kind: "one", asset: contains[0] };
+  if (contains.length > 1) return { kind: "many", assets: contains.slice(0, 5) };
+  return { kind: "none" };
+}
+
       headers: { Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}` },
     });
     if (!res.ok) return null;
