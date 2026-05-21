@@ -122,14 +122,14 @@ function LoginPage() {
           ) : (
             <form onSubmit={onMagicSubmit} noValidate className="space-y-4">
 
-              <Field label="Email">
                 <input
                   type="email"
-                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full rounded-md border border-rule px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[color:var(--brand)]"
                   autoComplete="email"
+                />
+
                 />
               </Field>
               {error && <p className="text-sm text-red-600">{error}</p>}
