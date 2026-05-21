@@ -38,6 +38,19 @@ const schema = z.object({
 
 type FormState = z.infer<typeof schema> & { project_id: string };
 
+// Accept "U01ABCDEF", "@U01ABCDEF", "<@U01ABCDEF>", or full Slack profile URLs
+// and reduce them to the bare ID. Returns null if no plausible ID found.
+function normalizeSlackId(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  // Try Slack mention <@UXXXX> or @UXXXX first
+  const mention = trimmed.match(/[<@]?@?([UW][A-Z0-9]{6,})>?/i);
+  if (mention) return mention[1].toUpperCase();
+  // Fallback: strip non-alphanumerics
+  const cleaned = trimmed.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  return cleaned || null;
+}
+
 const empty = (projectId: string | null): FormState => ({
   name: "",
   role: "",
