@@ -45,7 +45,19 @@ Schema:
 }
 
 Date format strictly YYYY-MM-DD. Convert DD/MM/YYYY → YYYY-MM-DD.
-If no explicit expiry, set expires_date null and expires_date_confidence 1.0.`;
+If no explicit expiry, set expires_date null and expires_date_confidence 1.0.
+
+If the image does NOT show a readable completion date but the caption supplies
+a natural-language date ("today", "yesterday", "this morning", "last friday"),
+resolve it against the supplied "Today (Melbourne)" date and use that as
+completed_date with confidence 0.85. Never invent dates with no source.`;
+
+function melbToday(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Australia/Melbourne",
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(new Date());
+}
 
 type Extracted = {
   site_name: string;
