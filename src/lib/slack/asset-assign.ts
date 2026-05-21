@@ -116,6 +116,10 @@ async function resolveAssetByText(text: string): Promise<TextMatch> {
   return { kind: "none" };
 }
 
+async function downloadSlackFile(file: any): Promise<{ bytes: Uint8Array; mime: string } | null> {
+  if (!file?.url_private) return null;
+  try {
+    const res = await fetch(file.url_private, {
       headers: { Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}` },
     });
     if (!res.ok) return null;
@@ -125,6 +129,7 @@ async function resolveAssetByText(text: string): Promise<TextMatch> {
     return null;
   }
 }
+
 
 async function resolveAssetFromPhoto(file: any): Promise<any | null> {
   const dl = await downloadSlackFile(file);
