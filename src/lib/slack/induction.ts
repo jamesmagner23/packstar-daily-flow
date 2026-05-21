@@ -128,7 +128,13 @@ async function callClaude(bytes: Uint8Array, mime: string, caption: string): Pro
       messages: [
         {
           role: "user",
-          content: [contentBlock, { type: "text", text: `Caption from the crew member: "${caption}"` }],
+          content: [
+            contentBlock,
+            {
+              type: "text",
+              text: `Today (Melbourne): ${melbToday()}\nCaption from the crew member: "${caption}"`,
+            },
+          ],
         },
       ],
     });
