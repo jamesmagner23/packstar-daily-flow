@@ -314,8 +314,7 @@ async function processEvent(body: any) {
     return;
   }
   // 7. Else → existing wrap conversation handler (unchanged below)
-  }
-  // 4. Else → existing wrap conversation handler (unchanged below)
+
 
   // Voice notes / file-only messages have no text. Claude rejects empty
   // user content, so nudge instead of calling the model.
