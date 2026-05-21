@@ -120,7 +120,8 @@ function LoginPage() {
               </p>
             </form>
           ) : (
-            <form onSubmit={onMagicSubmit} className="space-y-4">
+            <form onSubmit={onMagicSubmit} noValidate className="space-y-4">
+
               <Field label="Email">
                 <input
                   type="email"
