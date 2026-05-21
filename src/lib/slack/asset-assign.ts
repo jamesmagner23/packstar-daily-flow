@@ -67,12 +67,6 @@ export async function getPendingAssignment(slackUserId: string): Promise<Pending
   return { person: person as any, allocation: { id: pending.id, job_id: pending.job_id } };
 }
 
-async function resolveAssetByText(text: string): Promise<any | null> {
-  const cleaned = text.trim();
-  if (!cleaned) return null;
-  const tokens = cleaned.split(/\s+/).filter(Boolean);
-  for (const tok of tokens) {
-    const { data } = await supabaseAdmin
 type TextMatch =
   | { kind: "none" }
   | { kind: "one"; asset: any }
