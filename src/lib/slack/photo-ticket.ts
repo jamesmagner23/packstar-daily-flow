@@ -208,7 +208,10 @@ async function callClaudeExtraction(
           role: "user",
           content: [
             contentBlock,
-            { type: "text", text: `Caption from the crew member: "${caption}"` },
+            {
+              type: "text",
+              text: `Today (Melbourne): ${melbToday()}\nCaption from the crew member: "${caption}"`,
+            },
           ],
         },
       ],
