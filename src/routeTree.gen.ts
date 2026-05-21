@@ -20,6 +20,7 @@ import { Route as SetupIndexRouteImport } from './routes/setup.index'
 import { Route as SafetyIndexRouteImport } from './routes/safety.index'
 import { Route as ReportsIndexRouteImport } from './routes/reports.index'
 import { Route as ProcureIndexRouteImport } from './routes/procure.index'
+import { Route as PlantIndexRouteImport } from './routes/plant.index'
 import { Route as CrewIndexRouteImport } from './routes/crew.index'
 import { Route as ComplianceIndexRouteImport } from './routes/compliance.index'
 import { Route as VariationsIdRouteImport } from './routes/variations.$id'
@@ -29,6 +30,7 @@ import { Route as ReportsIdRouteImport } from './routes/reports.$id'
 import { Route as ProcureSuppliersRouteImport } from './routes/procure.suppliers'
 import { Route as ProcureQuotesRouteImport } from './routes/procure.quotes'
 import { Route as ProcureEquipmentRouteImport } from './routes/procure.equipment'
+import { Route as PlantIdRouteImport } from './routes/plant.$id'
 import { Route as CrewIdRouteImport } from './routes/crew.$id'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as PeopleTrainingIndexRouteImport } from './routes/people.training.index'
@@ -97,6 +99,11 @@ const ProcureIndexRoute = ProcureIndexRouteImport.update({
   path: '/procure/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlantIndexRoute = PlantIndexRouteImport.update({
+  id: '/plant/',
+  path: '/plant/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CrewIndexRoute = CrewIndexRouteImport.update({
   id: '/crew/',
   path: '/crew/',
@@ -140,6 +147,11 @@ const ProcureQuotesRoute = ProcureQuotesRouteImport.update({
 const ProcureEquipmentRoute = ProcureEquipmentRouteImport.update({
   id: '/procure/equipment',
   path: '/procure/equipment',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlantIdRoute = PlantIdRouteImport.update({
+  id: '/plant/$id',
+  path: '/plant/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CrewIdRoute = CrewIdRouteImport.update({
@@ -214,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/crew/$id': typeof CrewIdRoute
+  '/plant/$id': typeof PlantIdRoute
   '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
@@ -223,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
   '/crew/': typeof CrewIndexRoute
+  '/plant/': typeof PlantIndexRoute
   '/procure/': typeof ProcureIndexRoute
   '/reports/': typeof ReportsIndexRoute
   '/safety/': typeof SafetyIndexRoute
@@ -248,6 +262,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/crew/$id': typeof CrewIdRoute
+  '/plant/$id': typeof PlantIdRoute
   '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
@@ -257,6 +272,7 @@ export interface FileRoutesByTo {
   '/variations/$id': typeof VariationsIdRoute
   '/compliance': typeof ComplianceIndexRoute
   '/crew': typeof CrewIndexRoute
+  '/plant': typeof PlantIndexRoute
   '/procure': typeof ProcureIndexRoute
   '/reports': typeof ReportsIndexRoute
   '/safety': typeof SafetyIndexRoute
@@ -283,6 +299,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/crew/$id': typeof CrewIdRoute
+  '/plant/$id': typeof PlantIdRoute
   '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
@@ -292,6 +309,7 @@ export interface FileRoutesById {
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
   '/crew/': typeof CrewIndexRoute
+  '/plant/': typeof PlantIndexRoute
   '/procure/': typeof ProcureIndexRoute
   '/reports/': typeof ReportsIndexRoute
   '/safety/': typeof SafetyIndexRoute
@@ -319,6 +337,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/auth/callback'
     | '/crew/$id'
+    | '/plant/$id'
     | '/procure/equipment'
     | '/procure/quotes'
     | '/procure/suppliers'
@@ -328,6 +347,7 @@ export interface FileRouteTypes {
     | '/variations/$id'
     | '/compliance/'
     | '/crew/'
+    | '/plant/'
     | '/procure/'
     | '/reports/'
     | '/safety/'
@@ -353,6 +373,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/auth/callback'
     | '/crew/$id'
+    | '/plant/$id'
     | '/procure/equipment'
     | '/procure/quotes'
     | '/procure/suppliers'
@@ -362,6 +383,7 @@ export interface FileRouteTypes {
     | '/variations/$id'
     | '/compliance'
     | '/crew'
+    | '/plant'
     | '/procure'
     | '/reports'
     | '/safety'
@@ -387,6 +409,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/auth/callback'
     | '/crew/$id'
+    | '/plant/$id'
     | '/procure/equipment'
     | '/procure/quotes'
     | '/procure/suppliers'
@@ -396,6 +419,7 @@ export interface FileRouteTypes {
     | '/variations/$id'
     | '/compliance/'
     | '/crew/'
+    | '/plant/'
     | '/procure/'
     | '/reports/'
     | '/safety/'
@@ -422,6 +446,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   CrewIdRoute: typeof CrewIdRoute
+  PlantIdRoute: typeof PlantIdRoute
   ProcureEquipmentRoute: typeof ProcureEquipmentRoute
   ProcureQuotesRoute: typeof ProcureQuotesRoute
   ProcureSuppliersRoute: typeof ProcureSuppliersRoute
@@ -431,6 +456,7 @@ export interface RootRouteChildren {
   VariationsIdRoute: typeof VariationsIdRoute
   ComplianceIndexRoute: typeof ComplianceIndexRoute
   CrewIndexRoute: typeof CrewIndexRoute
+  PlantIndexRoute: typeof PlantIndexRoute
   ProcureIndexRoute: typeof ProcureIndexRoute
   ReportsIndexRoute: typeof ReportsIndexRoute
   SafetyIndexRoute: typeof SafetyIndexRoute
@@ -530,6 +556,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProcureIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plant/': {
+      id: '/plant/'
+      path: '/plant'
+      fullPath: '/plant/'
+      preLoaderRoute: typeof PlantIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crew/': {
       id: '/crew/'
       path: '/crew'
@@ -591,6 +624,13 @@ declare module '@tanstack/react-router' {
       path: '/procure/equipment'
       fullPath: '/procure/equipment'
       preLoaderRoute: typeof ProcureEquipmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plant/$id': {
+      id: '/plant/$id'
+      path: '/plant/$id'
+      fullPath: '/plant/$id'
+      preLoaderRoute: typeof PlantIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/crew/$id': {
@@ -686,6 +726,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   CrewIdRoute: CrewIdRoute,
+  PlantIdRoute: PlantIdRoute,
   ProcureEquipmentRoute: ProcureEquipmentRoute,
   ProcureQuotesRoute: ProcureQuotesRoute,
   ProcureSuppliersRoute: ProcureSuppliersRoute,
@@ -695,6 +736,7 @@ const rootRouteChildren: RootRouteChildren = {
   VariationsIdRoute: VariationsIdRoute,
   ComplianceIndexRoute: ComplianceIndexRoute,
   CrewIndexRoute: CrewIndexRoute,
+  PlantIndexRoute: PlantIndexRoute,
   ProcureIndexRoute: ProcureIndexRoute,
   ReportsIndexRoute: ReportsIndexRoute,
   SafetyIndexRoute: SafetyIndexRoute,
