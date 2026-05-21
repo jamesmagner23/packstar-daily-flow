@@ -11,6 +11,13 @@ const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
 const NON_EXPIRING_CODES = new Set(["WHITE_CARD"]);
 
+function melbToday(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Australia/Melbourne",
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(new Date());
+}
+
 const TICKET_KEYWORDS = [
   "ticket", "renewed", "renewal", "new ticket", "licence", "license",
   "white card", "ewp", "hr licence", "mr licence", "first aid", "cpr",
@@ -71,7 +78,14 @@ Confidence calibration:
 - 1.0: the value is clearly printed and unambiguous
 - 0.85: confident but minor uncertainty (one blurred digit, slight glare)
 - 0.6: partial reading, plausible inference
-- 0.3 or below: guessing`;
+- 0.3 or below: guessing
+
+If the credential image does NOT show a readable date but the caption supplies
+a natural-language date ("today", "yesterday", "last friday", "this morning"),
+resolve it against the supplied "Today (Melbourne)" date in the user message
+and use that as issued_date with confidence 0.85. Same for expiry if the
+caption gives one (e.g. "expires next march"). Never invent dates that have
+no source in either the image or the caption.`;
 
 type Extracted = {
   ticket_type_code: string | null;
@@ -201,7 +215,10 @@ async function callClaudeExtraction(
           role: "user",
           content: [
             contentBlock,
-            { type: "text", text: `Caption from the crew member: "${caption}"` },
+            {
+              type: "text",
+              text: `Today (Melbourne): ${melbToday()}\nCaption from the crew member: "${caption}"`,
+            },
           ],
         },
       ],

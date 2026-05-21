@@ -45,7 +45,19 @@ Schema:
 }
 
 Date format strictly YYYY-MM-DD. Convert DD/MM/YYYY → YYYY-MM-DD.
-If no explicit expiry, set expires_date null and expires_date_confidence 1.0.`;
+If no explicit expiry, set expires_date null and expires_date_confidence 1.0.
+
+If the image does NOT show a readable completion date but the caption supplies
+a natural-language date ("today", "yesterday", "this morning", "last friday"),
+resolve it against the supplied "Today (Melbourne)" date and use that as
+completed_date with confidence 0.85. Never invent dates with no source.`;
+
+function melbToday(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Australia/Melbourne",
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(new Date());
+}
 
 type Extracted = {
   site_name: string;
@@ -116,7 +128,13 @@ async function callClaude(bytes: Uint8Array, mime: string, caption: string): Pro
       messages: [
         {
           role: "user",
-          content: [contentBlock, { type: "text", text: `Caption from the crew member: "${caption}"` }],
+          content: [
+            contentBlock,
+            {
+              type: "text",
+              text: `Today (Melbourne): ${melbToday()}\nCaption from the crew member: "${caption}"`,
+            },
+          ],
         },
       ],
     });
@@ -143,7 +161,7 @@ function minConfidence(x: Extracted): number {
 
 async function matchSite(name: string): Promise<{ id: string; name: string } | null> {
   if (!name) return null;
-  // Try exact ilike first, then trigram fuzzy.
+  // Try exact name match first.
   const { data: exact } = await supabaseAdmin
     .from("sites")
     .select("id, name")
@@ -151,10 +169,12 @@ async function matchSite(name: string): Promise<{ id: string; name: string } | n
     .eq("active", true)
     .maybeSingle();
   if (exact) return exact;
+  // Fuzzy on name OR head_contractor.
+  const first = name.split(/\s+/)[0];
   const { data: fuzzy } = await supabaseAdmin
     .from("sites")
     .select("id, name")
-    .ilike("name", `%${name.split(/\s+/)[0]}%`)
+    .or(`name.ilike.%${first}%,head_contractor.ilike.%${first}%`)
     .eq("active", true)
     .limit(1);
   return fuzzy?.[0] ?? null;

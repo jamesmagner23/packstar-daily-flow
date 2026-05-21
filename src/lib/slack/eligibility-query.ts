@@ -106,17 +106,21 @@ export async function handleEligibilityQuery(text: string, slackUserId: string) 
   }
   const person = candidates[0];
 
-  // Resolve site via ilike.
-  const { data: site } = await supabaseAdmin
+  // Resolve site: match on sites.name OR sites.head_contractor (fuzzy).
+  const { data: siteCandidates } = await supabaseAdmin
     .from("sites")
-    .select("id, name")
-    .ilike("name", `%${siteName}%`)
+    .select("id, name, head_contractor")
+    .or(`name.ilike.%${siteName}%,head_contractor.ilike.%${siteName}%`)
     .eq("active", true)
-    .limit(1)
-    .maybeSingle();
+    .limit(5);
+  const site = (siteCandidates ?? [])[0] ?? null;
   if (!site) {
-    await dmUser(slackUserId, `Don't recognise site "${siteName}".`);
+    await dmUser(slackUserId, `Don't recognise site or head contractor "${siteName}".`);
     return;
+  }
+  if ((siteCandidates ?? []).length > 1) {
+    const names = (siteCandidates ?? []).map((s: any) => s.name).join(", ");
+    await dmUser(slackUserId, `"${siteName}" matched multiple sites (${names}). Using ${site.name}.`);
   }
 
   const { data: raw, error } = await supabaseAdmin.rpc("check_eligibility", {
