@@ -161,7 +161,7 @@ function minConfidence(x: Extracted): number {
 
 async function matchSite(name: string): Promise<{ id: string; name: string } | null> {
   if (!name) return null;
-  // Try exact ilike first, then trigram fuzzy.
+  // Try exact name match first.
   const { data: exact } = await supabaseAdmin
     .from("sites")
     .select("id, name")
@@ -169,10 +169,12 @@ async function matchSite(name: string): Promise<{ id: string; name: string } | n
     .eq("active", true)
     .maybeSingle();
   if (exact) return exact;
+  // Fuzzy on name OR head_contractor.
+  const first = name.split(/\s+/)[0];
   const { data: fuzzy } = await supabaseAdmin
     .from("sites")
     .select("id, name")
-    .ilike("name", `%${name.split(/\s+/)[0]}%`)
+    .or(`name.ilike.%${first}%,head_contractor.ilike.%${first}%`)
     .eq("active", true)
     .limit(1);
   return fuzzy?.[0] ?? null;
