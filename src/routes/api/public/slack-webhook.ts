@@ -9,6 +9,7 @@ import { handleProfileLookup, PROFILE_PATTERN } from "@/lib/slack/profile-lookup
 import { handleExpiring, EXPIRING_PATTERN } from "@/lib/slack/expiring";
 import { handleInductionPhoto, looksLikeInductionCaption } from "@/lib/slack/induction";
 import { handleEligibilityQuery, ELIGIBILITY_PATTERN } from "@/lib/slack/eligibility-query";
+import { handlePrestartPhoto, handlePrestartQuery, looksLikePrestartCaption, PRESTART_QUERY_PATTERN } from "@/lib/slack/prestart";
 
 const MODEL = "claude-sonnet-4-5";
 const MELB_TZ = "Australia/Melbourne";
@@ -236,22 +237,24 @@ async function processEvent(body: any) {
 
   // ===== Phase 2/3 dispatch =====
   // 1. Any file attachment → induction handler if caption looks like one,
-  //    otherwise photo-ticket handler (caption optional).
   if (hasFiles) {
-    // Pull known active site names for caption matching.
     const { data: siteRows } = await supabaseAdmin
       .from("sites")
       .select("name")
       .eq("active", true);
     const siteNames = (siteRows ?? []).map((s: any) => s.name as string);
     const isInduction = looksLikeInductionCaption(userText, siteNames);
+    const isPrestart = looksLikePrestartCaption(userText);
     console.log("[slack-webhook] dispatch: photo", {
       hasCaption: looksLikeTicketCaption(userText),
       isInduction,
+      isPrestart,
     });
     try {
       if (isInduction) {
         await handleInductionPhoto(event, channel, slackUserId);
+      } else if (isPrestart) {
+        await handlePrestartPhoto(event, channel, slackUserId);
       } else {
         await handlePhotoTicket(event, channel, slackUserId);
       }
@@ -290,7 +293,28 @@ async function processEvent(body: any) {
     }
     return;
   }
-  // 4. Else → existing wrap conversation handler (unchanged below)
+  // 5. pre-start / status / where's <asset>
+  if (PRESTART_QUERY_PATTERN.test(userText)) {
+    console.log("[slack-webhook] dispatch: prestart query");
+    try {
+      await handlePrestartQuery(userText, slackUserId);
+    } catch (e) {
+      console.error("[slack-webhook] prestart query handler threw:", (e as Error).message);
+    }
+    return;
+  }
+  // 6. text-only "all good" with no asset context — try operator's allocated asset
+  if (looksLikePrestartCaption(userText) && /^\s*(all good|pre[-\s]?start done)/i.test(userText)) {
+    console.log("[slack-webhook] dispatch: prestart text-only");
+    try {
+      await handlePrestartPhoto(event, channel, slackUserId);
+    } catch (e) {
+      console.error("[slack-webhook] prestart text-only threw:", (e as Error).message);
+    }
+    return;
+  }
+  // 7. Else → existing wrap conversation handler (unchanged below)
+
 
   // Voice notes / file-only messages have no text. Claude rejects empty
   // user content, so nudge instead of calling the model.

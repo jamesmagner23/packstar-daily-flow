@@ -20,6 +20,7 @@ import { Route as SetupIndexRouteImport } from './routes/setup.index'
 import { Route as SafetyIndexRouteImport } from './routes/safety.index'
 import { Route as ReportsIndexRouteImport } from './routes/reports.index'
 import { Route as ProcureIndexRouteImport } from './routes/procure.index'
+import { Route as PlantIndexRouteImport } from './routes/plant.index'
 import { Route as CrewIndexRouteImport } from './routes/crew.index'
 import { Route as ComplianceIndexRouteImport } from './routes/compliance.index'
 import { Route as VariationsIdRouteImport } from './routes/variations.$id'
@@ -29,6 +30,7 @@ import { Route as ReportsIdRouteImport } from './routes/reports.$id'
 import { Route as ProcureSuppliersRouteImport } from './routes/procure.suppliers'
 import { Route as ProcureQuotesRouteImport } from './routes/procure.quotes'
 import { Route as ProcureEquipmentRouteImport } from './routes/procure.equipment'
+import { Route as PlantIdRouteImport } from './routes/plant.$id'
 import { Route as CrewIdRouteImport } from './routes/crew.$id'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as PeopleTrainingIndexRouteImport } from './routes/people.training.index'
@@ -38,6 +40,8 @@ import { Route as ApiPublicSlackWebhookRouteImport } from './routes/api/public/s
 import { Route as ApiPublicReportsPdfRouteImport } from './routes/api/public/reports.pdf'
 import { Route as ApiPublicProcurePollGmailRouteImport } from './routes/api/public/procure/poll-gmail'
 import { Route as ApiPublicHooksRecomputeReportRouteImport } from './routes/api/public/hooks/recompute-report'
+import { Route as ApiPublicHooksPrestartMorningDmRouteImport } from './routes/api/public/hooks/prestart-morning-dm'
+import { Route as ApiPublicHooksPrestartMissingRouteImport } from './routes/api/public/hooks/prestart-missing'
 import { Route as ApiPublicHooksInductionExpirySweepRouteImport } from './routes/api/public/hooks/induction-expiry-sweep'
 import { Route as ApiPublicHooksDailyPromptRouteImport } from './routes/api/public/hooks/daily-prompt'
 import { Route as ApiPublicHooksAllocationEligibilityRouteImport } from './routes/api/public/hooks/allocation-eligibility'
@@ -97,6 +101,11 @@ const ProcureIndexRoute = ProcureIndexRouteImport.update({
   path: '/procure/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlantIndexRoute = PlantIndexRouteImport.update({
+  id: '/plant/',
+  path: '/plant/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CrewIndexRoute = CrewIndexRouteImport.update({
   id: '/crew/',
   path: '/crew/',
@@ -140,6 +149,11 @@ const ProcureQuotesRoute = ProcureQuotesRouteImport.update({
 const ProcureEquipmentRoute = ProcureEquipmentRouteImport.update({
   id: '/procure/equipment',
   path: '/procure/equipment',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlantIdRoute = PlantIdRouteImport.update({
+  id: '/plant/$id',
+  path: '/plant/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CrewIdRoute = CrewIdRouteImport.update({
@@ -189,6 +203,18 @@ const ApiPublicHooksRecomputeReportRoute =
     path: '/api/public/hooks/recompute-report',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksPrestartMorningDmRoute =
+  ApiPublicHooksPrestartMorningDmRouteImport.update({
+    id: '/api/public/hooks/prestart-morning-dm',
+    path: '/api/public/hooks/prestart-morning-dm',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksPrestartMissingRoute =
+  ApiPublicHooksPrestartMissingRouteImport.update({
+    id: '/api/public/hooks/prestart-missing',
+    path: '/api/public/hooks/prestart-missing',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksInductionExpirySweepRoute =
   ApiPublicHooksInductionExpirySweepRouteImport.update({
     id: '/api/public/hooks/induction-expiry-sweep',
@@ -214,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/crew/$id': typeof CrewIdRoute
+  '/plant/$id': typeof PlantIdRoute
   '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
@@ -223,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
   '/crew/': typeof CrewIndexRoute
+  '/plant/': typeof PlantIndexRoute
   '/procure/': typeof ProcureIndexRoute
   '/reports/': typeof ReportsIndexRoute
   '/safety/': typeof SafetyIndexRoute
@@ -238,6 +266,8 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/allocation-eligibility': typeof ApiPublicHooksAllocationEligibilityRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/induction-expiry-sweep': typeof ApiPublicHooksInductionExpirySweepRoute
+  '/api/public/hooks/prestart-missing': typeof ApiPublicHooksPrestartMissingRoute
+  '/api/public/hooks/prestart-morning-dm': typeof ApiPublicHooksPrestartMorningDmRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
   '/api/public/procure/poll-gmail': typeof ApiPublicProcurePollGmailRoute
   '/api/public/reports/pdf': typeof ApiPublicReportsPdfRoute
@@ -248,6 +278,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/crew/$id': typeof CrewIdRoute
+  '/plant/$id': typeof PlantIdRoute
   '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
@@ -257,6 +288,7 @@ export interface FileRoutesByTo {
   '/variations/$id': typeof VariationsIdRoute
   '/compliance': typeof ComplianceIndexRoute
   '/crew': typeof CrewIndexRoute
+  '/plant': typeof PlantIndexRoute
   '/procure': typeof ProcureIndexRoute
   '/reports': typeof ReportsIndexRoute
   '/safety': typeof SafetyIndexRoute
@@ -272,6 +304,8 @@ export interface FileRoutesByTo {
   '/api/public/hooks/allocation-eligibility': typeof ApiPublicHooksAllocationEligibilityRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/induction-expiry-sweep': typeof ApiPublicHooksInductionExpirySweepRoute
+  '/api/public/hooks/prestart-missing': typeof ApiPublicHooksPrestartMissingRoute
+  '/api/public/hooks/prestart-morning-dm': typeof ApiPublicHooksPrestartMorningDmRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
   '/api/public/procure/poll-gmail': typeof ApiPublicProcurePollGmailRoute
   '/api/public/reports/pdf': typeof ApiPublicReportsPdfRoute
@@ -283,6 +317,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/crew/$id': typeof CrewIdRoute
+  '/plant/$id': typeof PlantIdRoute
   '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
@@ -292,6 +327,7 @@ export interface FileRoutesById {
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
   '/crew/': typeof CrewIndexRoute
+  '/plant/': typeof PlantIndexRoute
   '/procure/': typeof ProcureIndexRoute
   '/reports/': typeof ReportsIndexRoute
   '/safety/': typeof SafetyIndexRoute
@@ -307,6 +343,8 @@ export interface FileRoutesById {
   '/api/public/hooks/allocation-eligibility': typeof ApiPublicHooksAllocationEligibilityRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/induction-expiry-sweep': typeof ApiPublicHooksInductionExpirySweepRoute
+  '/api/public/hooks/prestart-missing': typeof ApiPublicHooksPrestartMissingRoute
+  '/api/public/hooks/prestart-morning-dm': typeof ApiPublicHooksPrestartMorningDmRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
   '/api/public/procure/poll-gmail': typeof ApiPublicProcurePollGmailRoute
   '/api/public/reports/pdf': typeof ApiPublicReportsPdfRoute
@@ -319,6 +357,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/auth/callback'
     | '/crew/$id'
+    | '/plant/$id'
     | '/procure/equipment'
     | '/procure/quotes'
     | '/procure/suppliers'
@@ -328,6 +367,7 @@ export interface FileRouteTypes {
     | '/variations/$id'
     | '/compliance/'
     | '/crew/'
+    | '/plant/'
     | '/procure/'
     | '/reports/'
     | '/safety/'
@@ -343,6 +383,8 @@ export interface FileRouteTypes {
     | '/api/public/hooks/allocation-eligibility'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/induction-expiry-sweep'
+    | '/api/public/hooks/prestart-missing'
+    | '/api/public/hooks/prestart-morning-dm'
     | '/api/public/hooks/recompute-report'
     | '/api/public/procure/poll-gmail'
     | '/api/public/reports/pdf'
@@ -353,6 +395,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/auth/callback'
     | '/crew/$id'
+    | '/plant/$id'
     | '/procure/equipment'
     | '/procure/quotes'
     | '/procure/suppliers'
@@ -362,6 +405,7 @@ export interface FileRouteTypes {
     | '/variations/$id'
     | '/compliance'
     | '/crew'
+    | '/plant'
     | '/procure'
     | '/reports'
     | '/safety'
@@ -377,6 +421,8 @@ export interface FileRouteTypes {
     | '/api/public/hooks/allocation-eligibility'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/induction-expiry-sweep'
+    | '/api/public/hooks/prestart-missing'
+    | '/api/public/hooks/prestart-morning-dm'
     | '/api/public/hooks/recompute-report'
     | '/api/public/procure/poll-gmail'
     | '/api/public/reports/pdf'
@@ -387,6 +433,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/auth/callback'
     | '/crew/$id'
+    | '/plant/$id'
     | '/procure/equipment'
     | '/procure/quotes'
     | '/procure/suppliers'
@@ -396,6 +443,7 @@ export interface FileRouteTypes {
     | '/variations/$id'
     | '/compliance/'
     | '/crew/'
+    | '/plant/'
     | '/procure/'
     | '/reports/'
     | '/safety/'
@@ -411,6 +459,8 @@ export interface FileRouteTypes {
     | '/api/public/hooks/allocation-eligibility'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/induction-expiry-sweep'
+    | '/api/public/hooks/prestart-missing'
+    | '/api/public/hooks/prestart-morning-dm'
     | '/api/public/hooks/recompute-report'
     | '/api/public/procure/poll-gmail'
     | '/api/public/reports/pdf'
@@ -422,6 +472,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   CrewIdRoute: typeof CrewIdRoute
+  PlantIdRoute: typeof PlantIdRoute
   ProcureEquipmentRoute: typeof ProcureEquipmentRoute
   ProcureQuotesRoute: typeof ProcureQuotesRoute
   ProcureSuppliersRoute: typeof ProcureSuppliersRoute
@@ -431,6 +482,7 @@ export interface RootRouteChildren {
   VariationsIdRoute: typeof VariationsIdRoute
   ComplianceIndexRoute: typeof ComplianceIndexRoute
   CrewIndexRoute: typeof CrewIndexRoute
+  PlantIndexRoute: typeof PlantIndexRoute
   ProcureIndexRoute: typeof ProcureIndexRoute
   ReportsIndexRoute: typeof ReportsIndexRoute
   SafetyIndexRoute: typeof SafetyIndexRoute
@@ -446,6 +498,8 @@ export interface RootRouteChildren {
   ApiPublicHooksAllocationEligibilityRoute: typeof ApiPublicHooksAllocationEligibilityRoute
   ApiPublicHooksDailyPromptRoute: typeof ApiPublicHooksDailyPromptRoute
   ApiPublicHooksInductionExpirySweepRoute: typeof ApiPublicHooksInductionExpirySweepRoute
+  ApiPublicHooksPrestartMissingRoute: typeof ApiPublicHooksPrestartMissingRoute
+  ApiPublicHooksPrestartMorningDmRoute: typeof ApiPublicHooksPrestartMorningDmRoute
   ApiPublicHooksRecomputeReportRoute: typeof ApiPublicHooksRecomputeReportRoute
   ApiPublicProcurePollGmailRoute: typeof ApiPublicProcurePollGmailRoute
   ApiPublicReportsPdfRoute: typeof ApiPublicReportsPdfRoute
@@ -530,6 +584,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProcureIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plant/': {
+      id: '/plant/'
+      path: '/plant'
+      fullPath: '/plant/'
+      preLoaderRoute: typeof PlantIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crew/': {
       id: '/crew/'
       path: '/crew'
@@ -591,6 +652,13 @@ declare module '@tanstack/react-router' {
       path: '/procure/equipment'
       fullPath: '/procure/equipment'
       preLoaderRoute: typeof ProcureEquipmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plant/$id': {
+      id: '/plant/$id'
+      path: '/plant/$id'
+      fullPath: '/plant/$id'
+      preLoaderRoute: typeof PlantIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/crew/$id': {
@@ -656,6 +724,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksRecomputeReportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/prestart-morning-dm': {
+      id: '/api/public/hooks/prestart-morning-dm'
+      path: '/api/public/hooks/prestart-morning-dm'
+      fullPath: '/api/public/hooks/prestart-morning-dm'
+      preLoaderRoute: typeof ApiPublicHooksPrestartMorningDmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/prestart-missing': {
+      id: '/api/public/hooks/prestart-missing'
+      path: '/api/public/hooks/prestart-missing'
+      fullPath: '/api/public/hooks/prestart-missing'
+      preLoaderRoute: typeof ApiPublicHooksPrestartMissingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/induction-expiry-sweep': {
       id: '/api/public/hooks/induction-expiry-sweep'
       path: '/api/public/hooks/induction-expiry-sweep'
@@ -686,6 +768,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   CrewIdRoute: CrewIdRoute,
+  PlantIdRoute: PlantIdRoute,
   ProcureEquipmentRoute: ProcureEquipmentRoute,
   ProcureQuotesRoute: ProcureQuotesRoute,
   ProcureSuppliersRoute: ProcureSuppliersRoute,
@@ -695,6 +778,7 @@ const rootRouteChildren: RootRouteChildren = {
   VariationsIdRoute: VariationsIdRoute,
   ComplianceIndexRoute: ComplianceIndexRoute,
   CrewIndexRoute: CrewIndexRoute,
+  PlantIndexRoute: PlantIndexRoute,
   ProcureIndexRoute: ProcureIndexRoute,
   ReportsIndexRoute: ReportsIndexRoute,
   SafetyIndexRoute: SafetyIndexRoute,
@@ -712,6 +796,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksDailyPromptRoute: ApiPublicHooksDailyPromptRoute,
   ApiPublicHooksInductionExpirySweepRoute:
     ApiPublicHooksInductionExpirySweepRoute,
+  ApiPublicHooksPrestartMissingRoute: ApiPublicHooksPrestartMissingRoute,
+  ApiPublicHooksPrestartMorningDmRoute: ApiPublicHooksPrestartMorningDmRoute,
   ApiPublicHooksRecomputeReportRoute: ApiPublicHooksRecomputeReportRoute,
   ApiPublicProcurePollGmailRoute: ApiPublicProcurePollGmailRoute,
   ApiPublicReportsPdfRoute: ApiPublicReportsPdfRoute,

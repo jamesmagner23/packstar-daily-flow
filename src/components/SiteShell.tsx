@@ -59,6 +59,7 @@ const TABS: Tab[] = [
   },
   { key: "compliance", label: "Compliance", to: "/compliance", icon: ClipboardCheck, paths: ["/compliance"] },
   { key: "safety", label: "Safety", to: "/safety", icon: HardHat, paths: ["/safety"] },
+  { key: "plant", label: "Plant", to: "/plant", icon: Truck, paths: ["/plant"] },
   { key: "utilisation", label: "Utilisation", to: "/utilisation", icon: BarChart3, paths: ["/utilisation"] },
   {
     key: "procure",

@@ -789,6 +789,124 @@ export type Database = {
           },
         ]
       }
+      plant_prestart_logs: {
+        Row: {
+          asset_id: string
+          checklist_responses: Json
+          completed_at: string
+          id: string
+          issues_raised: string | null
+          operator_person_id: string
+          photo_url: string | null
+          prestart_date: string
+        }
+        Insert: {
+          asset_id: string
+          checklist_responses: Json
+          completed_at?: string
+          id?: string
+          issues_raised?: string | null
+          operator_person_id: string
+          photo_url?: string | null
+          prestart_date: string
+        }
+        Update: {
+          asset_id?: string
+          checklist_responses?: Json
+          completed_at?: string
+          id?: string
+          issues_raised?: string | null
+          operator_person_id?: string
+          photo_url?: string | null
+          prestart_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plant_prestart_logs_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "plant_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plant_prestart_logs_operator_person_id_fkey"
+            columns: ["operator_person_id"]
+            isOneToOne: false
+            referencedRelation: "crew_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plant_prestart_templates: {
+        Row: {
+          asset_id: string
+          checklist_items: Json
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          asset_id: string
+          checklist_items: Json
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string
+          checklist_items?: Json
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plant_prestart_templates_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: true
+            referencedRelation: "plant_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plant_service_logs: {
+        Row: {
+          asset_id: string
+          created_at: string
+          hours_at_service: number | null
+          id: string
+          invoice_url: string | null
+          notes: string | null
+          service_date: string
+          service_type: string | null
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          hours_at_service?: number | null
+          id?: string
+          invoice_url?: string | null
+          notes?: string | null
+          service_date: string
+          service_type?: string | null
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          hours_at_service?: number | null
+          id?: string
+          invoice_url?: string | null
+          notes?: string | null
+          service_date?: string
+          service_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plant_service_logs_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "plant_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       procure_email_log: {
         Row: {
           created_at: string
