@@ -33,22 +33,31 @@ function LoginPage() {
     e.preventDefault();
     setError(null);
     setInfo(null);
+    const trimmed = email.trim();
+    if (!trimmed) {
+      setError("Enter your email address.");
+      return;
+    }
     setLoading(true);
     const emailRedirectTo = `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(
       redirect || "/today",
     )}`;
     const { error } = await supabase.auth.signInWithOtp({
-      email,
+      email: trimmed,
       options: { emailRedirectTo, shouldCreateUser: false },
     });
     setLoading(false);
-    if (error) return setError(error.message);
+    if (error) {
+      console.error("[magic-link] signInWithOtp failed", error);
+      return setError(error.message);
+    }
     setInfo("Check your email for a sign-in link.");
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
+
         <div className="text-center mb-8">
           <div className="flex items-baseline justify-center gap-1.5">
             <span className="brand-wordmark text-2xl leading-none text-[color:var(--brand)]">PACC</span>
@@ -111,17 +120,17 @@ function LoginPage() {
               </p>
             </form>
           ) : (
-            <form onSubmit={onMagicSubmit} className="space-y-4">
+            <form onSubmit={onMagicSubmit} noValidate className="space-y-4">
               <Field label="Email">
                 <input
                   type="email"
-                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full rounded-md border border-rule px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[color:var(--brand)]"
                   autoComplete="email"
                 />
               </Field>
+
               {error && <p className="text-sm text-red-600">{error}</p>}
               {info && <p className="text-sm text-emerald-700">{info}</p>}
               <button
