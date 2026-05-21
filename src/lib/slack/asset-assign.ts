@@ -181,13 +181,22 @@ export async function handleAssetAssignment(
   const text = (event.text ?? "").trim();
   const files = Array.isArray(event.files) ? event.files : [];
 
-  let asset = await resolveAssetByText(text);
+  const textMatch = await resolveAssetByText(text);
+  let asset: any = null;
+  if (textMatch.kind === "one") {
+    asset = textMatch.asset;
+  } else if (textMatch.kind === "many" && files.length === 0) {
+    const list = textMatch.assets.map((a: any) => a.plant_id_code).join(", ");
+    await dmUser(slackUserId, `A few assets match that — which one: ${list}?`);
+    return;
+  }
+
   if (!asset && files.length > 0) {
     asset = await resolveAssetFromPhoto(files[0]);
   }
 
   if (!asset) {
-    await dmUser(slackUserId, "Can't find that one. Check the asset plate or try again — send the code (e.g. EX02) or a clear photo of the plate.");
+    await dmUser(slackUserId, "Can't find that one. Check the asset plate or try again with the code (e.g. EX02) or a clear photo of the plate.");
     return;
   }
 
@@ -231,8 +240,17 @@ export async function handleAssetAssignment(
     return;
   }
 
-  // Confirm + run pre-start in the same flow. handlePrestartPhoto will now
-  // resolve the asset via today's allocation and log the checklist.
-  await dmUser(slackUserId, `Got it — you're on ${asset.plant_id_code}${asset.description ? ` (${asset.description})` : ""}.`);
-  await handlePrestartPhoto(event, channel, slackUserId);
+  // If the operator already sent a photo with this message, treat it as the
+  // pre-start submission and run the checklist flow. Otherwise just confirm
+  // the asset and wait for the next reply.
+  if (files.length > 0) {
+    await dmUser(slackUserId, `Got it — you're on ${asset.plant_id_code}${asset.description ? ` (${asset.description})` : ""}.`);
+    await handlePrestartPhoto(event, channel, slackUserId);
+  } else {
+    await dmUser(
+      slackUserId,
+      `Got it — ${asset.plant_id_code}${asset.description ? ` (${asset.description})` : ""}. Now pre-start when ready, reply with a photo and any issues, or just "all good".`,
+    );
+  }
 }
+
