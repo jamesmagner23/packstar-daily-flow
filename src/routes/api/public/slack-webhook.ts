@@ -237,19 +237,7 @@ async function processEvent(body: any) {
   const hasFiles = Array.isArray(event.files) && event.files.length > 0;
 
   // ===== Phase 2/3/4 dispatch =====
-  // 0. If sender is a PCW operator with a pending allocation today (no asset
-  //    set yet), treat any message — text code or photo of the asset plate —
-  //    as an asset assignment. Falls through to handlePrestartPhoto afterwards.
-  try {
-    const pending = await getPendingAssignment(slackUserId);
-    if (pending) {
-      console.log("[slack-webhook] dispatch: asset assignment", { person: pending.person.name });
-      await handleAssetAssignment(event, channel, slackUserId, pending);
-      return;
-    }
-  } catch (e) {
-    console.error("[slack-webhook] asset-assign dispatch threw:", (e as Error).message);
-  }
+
 
   // 1. Any file attachment → induction handler if caption looks like one,
   if (hasFiles) {
