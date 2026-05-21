@@ -71,7 +71,14 @@ Confidence calibration:
 - 1.0: the value is clearly printed and unambiguous
 - 0.85: confident but minor uncertainty (one blurred digit, slight glare)
 - 0.6: partial reading, plausible inference
-- 0.3 or below: guessing`;
+- 0.3 or below: guessing
+
+If the credential image does NOT show a readable date but the caption supplies
+a natural-language date ("today", "yesterday", "last friday", "this morning"),
+resolve it against the supplied "Today (Melbourne)" date in the user message
+and use that as issued_date with confidence 0.85. Same for expiry if the
+caption gives one (e.g. "expires next march"). Never invent dates that have
+no source in either the image or the caption.`;
 
 type Extracted = {
   ticket_type_code: string | null;
