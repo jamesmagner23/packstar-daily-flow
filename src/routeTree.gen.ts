@@ -40,6 +40,8 @@ import { Route as ApiPublicSlackWebhookRouteImport } from './routes/api/public/s
 import { Route as ApiPublicReportsPdfRouteImport } from './routes/api/public/reports.pdf'
 import { Route as ApiPublicProcurePollGmailRouteImport } from './routes/api/public/procure/poll-gmail'
 import { Route as ApiPublicHooksRecomputeReportRouteImport } from './routes/api/public/hooks/recompute-report'
+import { Route as ApiPublicHooksPrestartMorningDmRouteImport } from './routes/api/public/hooks/prestart-morning-dm'
+import { Route as ApiPublicHooksPrestartMissingRouteImport } from './routes/api/public/hooks/prestart-missing'
 import { Route as ApiPublicHooksInductionExpirySweepRouteImport } from './routes/api/public/hooks/induction-expiry-sweep'
 import { Route as ApiPublicHooksDailyPromptRouteImport } from './routes/api/public/hooks/daily-prompt'
 import { Route as ApiPublicHooksAllocationEligibilityRouteImport } from './routes/api/public/hooks/allocation-eligibility'
@@ -201,6 +203,18 @@ const ApiPublicHooksRecomputeReportRoute =
     path: '/api/public/hooks/recompute-report',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksPrestartMorningDmRoute =
+  ApiPublicHooksPrestartMorningDmRouteImport.update({
+    id: '/api/public/hooks/prestart-morning-dm',
+    path: '/api/public/hooks/prestart-morning-dm',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksPrestartMissingRoute =
+  ApiPublicHooksPrestartMissingRouteImport.update({
+    id: '/api/public/hooks/prestart-missing',
+    path: '/api/public/hooks/prestart-missing',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksInductionExpirySweepRoute =
   ApiPublicHooksInductionExpirySweepRouteImport.update({
     id: '/api/public/hooks/induction-expiry-sweep',
@@ -252,6 +266,8 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/allocation-eligibility': typeof ApiPublicHooksAllocationEligibilityRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/induction-expiry-sweep': typeof ApiPublicHooksInductionExpirySweepRoute
+  '/api/public/hooks/prestart-missing': typeof ApiPublicHooksPrestartMissingRoute
+  '/api/public/hooks/prestart-morning-dm': typeof ApiPublicHooksPrestartMorningDmRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
   '/api/public/procure/poll-gmail': typeof ApiPublicProcurePollGmailRoute
   '/api/public/reports/pdf': typeof ApiPublicReportsPdfRoute
@@ -288,6 +304,8 @@ export interface FileRoutesByTo {
   '/api/public/hooks/allocation-eligibility': typeof ApiPublicHooksAllocationEligibilityRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/induction-expiry-sweep': typeof ApiPublicHooksInductionExpirySweepRoute
+  '/api/public/hooks/prestart-missing': typeof ApiPublicHooksPrestartMissingRoute
+  '/api/public/hooks/prestart-morning-dm': typeof ApiPublicHooksPrestartMorningDmRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
   '/api/public/procure/poll-gmail': typeof ApiPublicProcurePollGmailRoute
   '/api/public/reports/pdf': typeof ApiPublicReportsPdfRoute
@@ -325,6 +343,8 @@ export interface FileRoutesById {
   '/api/public/hooks/allocation-eligibility': typeof ApiPublicHooksAllocationEligibilityRoute
   '/api/public/hooks/daily-prompt': typeof ApiPublicHooksDailyPromptRoute
   '/api/public/hooks/induction-expiry-sweep': typeof ApiPublicHooksInductionExpirySweepRoute
+  '/api/public/hooks/prestart-missing': typeof ApiPublicHooksPrestartMissingRoute
+  '/api/public/hooks/prestart-morning-dm': typeof ApiPublicHooksPrestartMorningDmRoute
   '/api/public/hooks/recompute-report': typeof ApiPublicHooksRecomputeReportRoute
   '/api/public/procure/poll-gmail': typeof ApiPublicProcurePollGmailRoute
   '/api/public/reports/pdf': typeof ApiPublicReportsPdfRoute
@@ -363,6 +383,8 @@ export interface FileRouteTypes {
     | '/api/public/hooks/allocation-eligibility'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/induction-expiry-sweep'
+    | '/api/public/hooks/prestart-missing'
+    | '/api/public/hooks/prestart-morning-dm'
     | '/api/public/hooks/recompute-report'
     | '/api/public/procure/poll-gmail'
     | '/api/public/reports/pdf'
@@ -399,6 +421,8 @@ export interface FileRouteTypes {
     | '/api/public/hooks/allocation-eligibility'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/induction-expiry-sweep'
+    | '/api/public/hooks/prestart-missing'
+    | '/api/public/hooks/prestart-morning-dm'
     | '/api/public/hooks/recompute-report'
     | '/api/public/procure/poll-gmail'
     | '/api/public/reports/pdf'
@@ -435,6 +459,8 @@ export interface FileRouteTypes {
     | '/api/public/hooks/allocation-eligibility'
     | '/api/public/hooks/daily-prompt'
     | '/api/public/hooks/induction-expiry-sweep'
+    | '/api/public/hooks/prestart-missing'
+    | '/api/public/hooks/prestart-morning-dm'
     | '/api/public/hooks/recompute-report'
     | '/api/public/procure/poll-gmail'
     | '/api/public/reports/pdf'
@@ -472,6 +498,8 @@ export interface RootRouteChildren {
   ApiPublicHooksAllocationEligibilityRoute: typeof ApiPublicHooksAllocationEligibilityRoute
   ApiPublicHooksDailyPromptRoute: typeof ApiPublicHooksDailyPromptRoute
   ApiPublicHooksInductionExpirySweepRoute: typeof ApiPublicHooksInductionExpirySweepRoute
+  ApiPublicHooksPrestartMissingRoute: typeof ApiPublicHooksPrestartMissingRoute
+  ApiPublicHooksPrestartMorningDmRoute: typeof ApiPublicHooksPrestartMorningDmRoute
   ApiPublicHooksRecomputeReportRoute: typeof ApiPublicHooksRecomputeReportRoute
   ApiPublicProcurePollGmailRoute: typeof ApiPublicProcurePollGmailRoute
   ApiPublicReportsPdfRoute: typeof ApiPublicReportsPdfRoute
@@ -696,6 +724,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksRecomputeReportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/prestart-morning-dm': {
+      id: '/api/public/hooks/prestart-morning-dm'
+      path: '/api/public/hooks/prestart-morning-dm'
+      fullPath: '/api/public/hooks/prestart-morning-dm'
+      preLoaderRoute: typeof ApiPublicHooksPrestartMorningDmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/prestart-missing': {
+      id: '/api/public/hooks/prestart-missing'
+      path: '/api/public/hooks/prestart-missing'
+      fullPath: '/api/public/hooks/prestart-missing'
+      preLoaderRoute: typeof ApiPublicHooksPrestartMissingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/induction-expiry-sweep': {
       id: '/api/public/hooks/induction-expiry-sweep'
       path: '/api/public/hooks/induction-expiry-sweep'
@@ -754,6 +796,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksDailyPromptRoute: ApiPublicHooksDailyPromptRoute,
   ApiPublicHooksInductionExpirySweepRoute:
     ApiPublicHooksInductionExpirySweepRoute,
+  ApiPublicHooksPrestartMissingRoute: ApiPublicHooksPrestartMissingRoute,
+  ApiPublicHooksPrestartMorningDmRoute: ApiPublicHooksPrestartMorningDmRoute,
   ApiPublicHooksRecomputeReportRoute: ApiPublicHooksRecomputeReportRoute,
   ApiPublicProcurePollGmailRoute: ApiPublicProcurePollGmailRoute,
   ApiPublicReportsPdfRoute: ApiPublicReportsPdfRoute,
