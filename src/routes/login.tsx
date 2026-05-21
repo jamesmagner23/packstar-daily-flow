@@ -32,22 +32,31 @@ function LoginPage() {
   async function onMagicSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+  async function onMagicSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
     setInfo(null);
+    const trimmed = email.trim();
+    if (!trimmed) {
+      setError("Enter your email address.");
+      return;
+    }
     setLoading(true);
     const emailRedirectTo = `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(
       redirect || "/today",
     )}`;
     const { error } = await supabase.auth.signInWithOtp({
-      email,
+      email: trimmed,
       options: { emailRedirectTo, shouldCreateUser: false },
     });
     setLoading(false);
-    if (error) return setError(error.message);
+    if (error) {
+      console.error("[magic-link] signInWithOtp failed", error);
+      return setError(error.message);
+    }
     setInfo("Check your email for a sign-in link.");
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="flex items-baseline justify-center gap-1.5">
