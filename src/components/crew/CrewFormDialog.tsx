@@ -30,7 +30,7 @@ const schema = z.object({
   employment_type: z.string().trim().max(100).optional().or(z.literal("")),
   phone: z.string().trim().max(50).optional().or(z.literal("")),
   email: z.string().trim().max(255).email("Invalid email").optional().or(z.literal("")),
-  slack_user_id: z.string().trim().max(50).regex(/^[A-Z0-9]*$/i, "Letters/digits only").optional().or(z.literal("")),
+  slack_user_id: z.string().trim().max(50).optional().or(z.literal("")),
   project_id: z.string().uuid("Project required"),
   default_supervisor_id: z.string().uuid().nullable(),
   active: z.boolean(),
