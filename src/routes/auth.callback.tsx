@@ -3,40 +3,38 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth/callback")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    redirect: typeof s.redirect === "string" ? s.redirect : undefined,
+  }),
   component: AuthCallback,
 });
 
 function AuthCallback() {
   const navigate = useNavigate();
+  const { redirect } = Route.useSearch();
   const [message, setMessage] = useState("Finishing sign-in…");
 
   useEffect(() => {
-    // Supabase sets the session from URL hash automatically when detectSessionInUrl is on.
-    // We just wait for it and then redirect.
     let cancelled = false;
+    const target = redirect || "/today";
     (async () => {
       const { data, error } = await supabase.auth.getSession();
       if (cancelled) return;
-      if (error) {
-        setMessage(error.message);
-        return;
-      }
+      if (error) { setMessage(error.message); return; }
       if (data.session) {
-        navigate({ to: "/" });
+        navigate({ to: target });
       } else {
-        // Give the client a beat to parse the hash, then re-check.
         setTimeout(async () => {
           const { data: again } = await supabase.auth.getSession();
           if (cancelled) return;
-          if (again.session) navigate({ to: "/" });
+          if (again.session) navigate({ to: target });
           else navigate({ to: "/login" });
         }, 500);
       }
     })();
-    return () => {
-      cancelled = true;
-    };
-  }, [navigate]);
+    return () => { cancelled = true; };
+  }, [navigate, redirect]);
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">

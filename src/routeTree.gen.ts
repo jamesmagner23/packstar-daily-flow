@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TodayRouteImport } from './routes/today'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
@@ -36,6 +37,7 @@ import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as PeopleTrainingIndexRouteImport } from './routes/people.training.index'
 import { Route as PeopleTeamIndexRouteImport } from './routes/people.team.index'
 import { Route as PeopleRolesIndexRouteImport } from './routes/people.roles.index'
+import { Route as PlantIdPrestartRouteImport } from './routes/plant.$id.prestart'
 import { Route as ApiPublicSlackWebhookRouteImport } from './routes/api/public/slack-webhook'
 import { Route as ApiPublicReportsPdfRouteImport } from './routes/api/public/reports.pdf'
 import { Route as ApiPublicProcurePollGmailRouteImport } from './routes/api/public/procure/poll-gmail'
@@ -46,6 +48,11 @@ import { Route as ApiPublicHooksInductionExpirySweepRouteImport } from './routes
 import { Route as ApiPublicHooksDailyPromptRouteImport } from './routes/api/public/hooks/daily-prompt'
 import { Route as ApiPublicHooksAllocationEligibilityRouteImport } from './routes/api/public/hooks/allocation-eligibility'
 
+const TodayRoute = TodayRouteImport.update({
+  id: '/today',
+  path: '/today',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -181,6 +188,11 @@ const PeopleRolesIndexRoute = PeopleRolesIndexRouteImport.update({
   path: '/people/roles/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlantIdPrestartRoute = PlantIdPrestartRouteImport.update({
+  id: '/prestart',
+  path: '/prestart',
+  getParentRoute: () => PlantIdRoute,
+} as any)
 const ApiPublicSlackWebhookRoute = ApiPublicSlackWebhookRouteImport.update({
   id: '/api/public/slack-webhook',
   path: '/api/public/slack-webhook',
@@ -238,9 +250,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/today': typeof TodayRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/crew/$id': typeof CrewIdRoute
-  '/plant/$id': typeof PlantIdRoute
+  '/plant/$id': typeof PlantIdRouteWithChildren
   '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
@@ -260,6 +273,7 @@ export interface FileRoutesByFullPath {
   '/utilisation/': typeof UtilisationIndexRoute
   '/variations/': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
+  '/plant/$id/prestart': typeof PlantIdPrestartRoute
   '/people/roles/': typeof PeopleRolesIndexRoute
   '/people/team/': typeof PeopleTeamIndexRoute
   '/people/training/': typeof PeopleTrainingIndexRoute
@@ -276,9 +290,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/today': typeof TodayRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/crew/$id': typeof CrewIdRoute
-  '/plant/$id': typeof PlantIdRoute
+  '/plant/$id': typeof PlantIdRouteWithChildren
   '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
@@ -298,6 +313,7 @@ export interface FileRoutesByTo {
   '/utilisation': typeof UtilisationIndexRoute
   '/variations': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
+  '/plant/$id/prestart': typeof PlantIdPrestartRoute
   '/people/roles': typeof PeopleRolesIndexRoute
   '/people/team': typeof PeopleTeamIndexRoute
   '/people/training': typeof PeopleTrainingIndexRoute
@@ -315,9 +331,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/today': typeof TodayRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/crew/$id': typeof CrewIdRoute
-  '/plant/$id': typeof PlantIdRoute
+  '/plant/$id': typeof PlantIdRouteWithChildren
   '/procure/equipment': typeof ProcureEquipmentRoute
   '/procure/quotes': typeof ProcureQuotesRoute
   '/procure/suppliers': typeof ProcureSuppliersRoute
@@ -337,6 +354,7 @@ export interface FileRoutesById {
   '/utilisation/': typeof UtilisationIndexRoute
   '/variations/': typeof VariationsIndexRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
+  '/plant/$id/prestart': typeof PlantIdPrestartRoute
   '/people/roles/': typeof PeopleRolesIndexRoute
   '/people/team/': typeof PeopleTeamIndexRoute
   '/people/training/': typeof PeopleTrainingIndexRoute
@@ -355,6 +373,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/today'
     | '/auth/callback'
     | '/crew/$id'
     | '/plant/$id'
@@ -377,6 +396,7 @@ export interface FileRouteTypes {
     | '/utilisation/'
     | '/variations/'
     | '/api/public/slack-webhook'
+    | '/plant/$id/prestart'
     | '/people/roles/'
     | '/people/team/'
     | '/people/training/'
@@ -393,6 +413,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/today'
     | '/auth/callback'
     | '/crew/$id'
     | '/plant/$id'
@@ -415,6 +436,7 @@ export interface FileRouteTypes {
     | '/utilisation'
     | '/variations'
     | '/api/public/slack-webhook'
+    | '/plant/$id/prestart'
     | '/people/roles'
     | '/people/team'
     | '/people/training'
@@ -431,6 +453,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/today'
     | '/auth/callback'
     | '/crew/$id'
     | '/plant/$id'
@@ -453,6 +476,7 @@ export interface FileRouteTypes {
     | '/utilisation/'
     | '/variations/'
     | '/api/public/slack-webhook'
+    | '/plant/$id/prestart'
     | '/people/roles/'
     | '/people/team/'
     | '/people/training/'
@@ -470,9 +494,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  TodayRoute: typeof TodayRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   CrewIdRoute: typeof CrewIdRoute
-  PlantIdRoute: typeof PlantIdRoute
+  PlantIdRoute: typeof PlantIdRouteWithChildren
   ProcureEquipmentRoute: typeof ProcureEquipmentRoute
   ProcureQuotesRoute: typeof ProcureQuotesRoute
   ProcureSuppliersRoute: typeof ProcureSuppliersRoute
@@ -507,6 +532,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/today': {
+      id: '/today'
+      path: '/today'
+      fullPath: '/today'
+      preLoaderRoute: typeof TodayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -696,6 +728,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PeopleRolesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plant/$id/prestart': {
+      id: '/plant/$id/prestart'
+      path: '/prestart'
+      fullPath: '/plant/$id/prestart'
+      preLoaderRoute: typeof PlantIdPrestartRouteImport
+      parentRoute: typeof PlantIdRoute
+    }
     '/api/public/slack-webhook': {
       id: '/api/public/slack-webhook'
       path: '/api/public/slack-webhook'
@@ -762,13 +801,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface PlantIdRouteChildren {
+  PlantIdPrestartRoute: typeof PlantIdPrestartRoute
+}
+
+const PlantIdRouteChildren: PlantIdRouteChildren = {
+  PlantIdPrestartRoute: PlantIdPrestartRoute,
+}
+
+const PlantIdRouteWithChildren =
+  PlantIdRoute._addFileChildren(PlantIdRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  TodayRoute: TodayRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   CrewIdRoute: CrewIdRoute,
-  PlantIdRoute: PlantIdRoute,
+  PlantIdRoute: PlantIdRouteWithChildren,
   ProcureEquipmentRoute: ProcureEquipmentRoute,
   ProcureQuotesRoute: ProcureQuotesRoute,
   ProcureSuppliersRoute: ProcureSuppliersRoute,

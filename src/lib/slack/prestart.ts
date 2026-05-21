@@ -178,10 +178,10 @@ export async function handlePrestartPhoto(event: any, channel: string, slackUser
     if (dl) {
       const path = `${asset.id}/${melbToday()}-${person.id}.${mimeExt(dl.mime)}`;
       const { error: upErr } = await supabaseAdmin.storage
-        .from("prestart-evidence")
+        .from("plant-prestart-evidence")
         .upload(path, dl.bytes, { contentType: dl.mime, upsert: true });
       if (!upErr) {
-        const { data: pub } = supabaseAdmin.storage.from("prestart-evidence").getPublicUrl(path);
+        const { data: pub } = supabaseAdmin.storage.from("plant-prestart-evidence").getPublicUrl(path);
         photoUrl = pub.publicUrl;
       } else {
         console.error("[prestart] upload failed:", upErr.message);
