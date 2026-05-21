@@ -30,13 +30,26 @@ const schema = z.object({
   employment_type: z.string().trim().max(100).optional().or(z.literal("")),
   phone: z.string().trim().max(50).optional().or(z.literal("")),
   email: z.string().trim().max(255).email("Invalid email").optional().or(z.literal("")),
-  slack_user_id: z.string().trim().max(50).regex(/^[A-Z0-9]*$/i, "Letters/digits only").optional().or(z.literal("")),
+  slack_user_id: z.string().trim().max(50).optional().or(z.literal("")),
   project_id: z.string().uuid("Project required"),
   default_supervisor_id: z.string().uuid().nullable(),
   active: z.boolean(),
 });
 
 type FormState = z.infer<typeof schema> & { project_id: string };
+
+// Accept "U01ABCDEF", "@U01ABCDEF", "<@U01ABCDEF>", or full Slack profile URLs
+// and reduce them to the bare ID. Returns null if no plausible ID found.
+function normalizeSlackId(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  // Try Slack mention <@UXXXX> or @UXXXX first
+  const mention = trimmed.match(/[<@]?@?([UW][A-Z0-9]{6,})>?/i);
+  if (mention) return mention[1].toUpperCase();
+  // Fallback: strip non-alphanumerics
+  const cleaned = trimmed.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  return cleaned || null;
+}
 
 const empty = (projectId: string | null): FormState => ({
   name: "",
@@ -114,7 +127,7 @@ export function CrewFormDialog({
         employment_type: values.employment_type || null,
         phone: values.phone || null,
         email: values.email || null,
-        slack_user_id: values.slack_user_id ? values.slack_user_id.trim().toUpperCase() : null,
+        slack_user_id: values.slack_user_id ? normalizeSlackId(values.slack_user_id) : null,
         project_id: values.project_id,
         default_supervisor_id: values.default_supervisor_id || null,
         active: values.active,
