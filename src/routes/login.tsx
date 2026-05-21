@@ -32,9 +32,6 @@ function LoginPage() {
   async function onMagicSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-  async function onMagicSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
     setInfo(null);
     const trimmed = email.trim();
     if (!trimmed) {
@@ -57,7 +54,10 @@ function LoginPage() {
     setInfo("Check your email for a sign-in link.");
   }
 
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
+
         <div className="text-center mb-8">
           <div className="flex items-baseline justify-center gap-1.5">
             <span className="brand-wordmark text-2xl leading-none text-[color:var(--brand)]">PACC</span>
