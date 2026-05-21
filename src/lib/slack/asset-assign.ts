@@ -129,7 +129,7 @@ async function resolveAssetFromPhoto(file: any): Promise<any | null> {
         role: "user",
         content: [{
           type: "image",
-          source: { type: "base64", media_type: dl.mime, data: Buffer.from(dl.bytes).toString("base64") },
+          source: { type: "base64", media_type: dl.mime as "image/jpeg" | "image/png" | "image/webp" | "image/gif", data: Buffer.from(dl.bytes).toString("base64") },
         }],
       }],
     });

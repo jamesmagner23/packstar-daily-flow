@@ -10,6 +10,7 @@ import { handleExpiring, EXPIRING_PATTERN } from "@/lib/slack/expiring";
 import { handleInductionPhoto, looksLikeInductionCaption } from "@/lib/slack/induction";
 import { handleEligibilityQuery, ELIGIBILITY_PATTERN } from "@/lib/slack/eligibility-query";
 import { handlePrestartPhoto, handlePrestartQuery, looksLikePrestartCaption, PRESTART_QUERY_PATTERN } from "@/lib/slack/prestart";
+import { getPendingAssignment, handleAssetAssignment } from "@/lib/slack/asset-assign";
 
 const MODEL = "claude-sonnet-4-5";
 const MELB_TZ = "Australia/Melbourne";
@@ -235,7 +236,21 @@ async function processEvent(body: any) {
   const channel: string = event.channel;
   const hasFiles = Array.isArray(event.files) && event.files.length > 0;
 
-  // ===== Phase 2/3 dispatch =====
+  // ===== Phase 2/3/4 dispatch =====
+  // 0. If sender is a PCW operator with a pending allocation today (no asset
+  //    set yet), treat any message — text code or photo of the asset plate —
+  //    as an asset assignment. Falls through to handlePrestartPhoto afterwards.
+  try {
+    const pending = await getPendingAssignment(slackUserId);
+    if (pending) {
+      console.log("[slack-webhook] dispatch: asset assignment", { person: pending.person.name });
+      await handleAssetAssignment(event, channel, slackUserId, pending);
+      return;
+    }
+  } catch (e) {
+    console.error("[slack-webhook] asset-assign dispatch threw:", (e as Error).message);
+  }
+
   // 1. Any file attachment → induction handler if caption looks like one,
   if (hasFiles) {
     const { data: siteRows } = await supabaseAdmin
