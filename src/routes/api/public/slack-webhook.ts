@@ -10,7 +10,7 @@ import { handleExpiring, EXPIRING_PATTERN } from "@/lib/slack/expiring";
 import { handleInductionPhoto, looksLikeInductionCaption } from "@/lib/slack/induction";
 import { handleEligibilityQuery, ELIGIBILITY_PATTERN } from "@/lib/slack/eligibility-query";
 import { handlePrestartPhoto, handlePrestartQuery, looksLikePrestartCaption, PRESTART_QUERY_PATTERN } from "@/lib/slack/prestart";
-import { getPendingAssignment, handleAssetAssignment } from "@/lib/slack/asset-assign";
+
 
 const MODEL = "claude-sonnet-4-5";
 const MELB_TZ = "Australia/Melbourne";
