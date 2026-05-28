@@ -1,9 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronRight, Truck, FileText, Shield } from "lucide-react";
+import { format } from "date-fns";
+import { Check, ChevronRight, Truck, FileText, Shield, CalendarIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRole } from "@/hooks/use-role";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/today")({
   head: () => ({ meta: [{ title: "Today — PACC HQ" }] }),
@@ -25,10 +30,12 @@ function TodayPage() {
     }
   }, [userId, roleLoading, navigate]);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const today = format(selectedDate, "yyyy-MM-dd");
+  const isToday = today === format(new Date(), "yyyy-MM-dd");
   const dateLabel = new Intl.DateTimeFormat("en-AU", {
     weekday: "long", day: "numeric", month: "long",
-  }).format(new Date());
+  }).format(selectedDate);
 
   const { data: me } = useQuery({
     queryKey: ["today-me", personId],
@@ -146,9 +153,30 @@ function TodayPage() {
   return (
     <div className="min-h-screen bg-neutral-50 pb-12">
       <header className="bg-white border-b border-rule px-4 py-5">
-        <div className="max-w-md mx-auto">
-          <p className="text-xs text-meta uppercase tracking-wide">{dateLabel}</p>
-          <h1 className="text-2xl font-semibold mt-1">Morning, {firstName}.</h1>
+        <div className="max-w-md mx-auto flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs text-meta uppercase tracking-wide">{dateLabel}</p>
+            <h1 className="text-2xl font-semibold mt-1">
+              {isToday ? `Morning, ${firstName}.` : `${firstName} — ${format(selectedDate, "EEE d MMM")}`}
+            </h1>
+          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="shrink-0">
+                <CalendarIcon className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(d) => d && setSelectedDate(d)}
+                disabled={(d) => d > new Date()}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </header>
 
