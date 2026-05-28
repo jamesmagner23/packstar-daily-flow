@@ -21,9 +21,18 @@ function Stat({
   tone: keyof typeof TONES;
   hint?: string;
 }) {
+  // Use a non-breaking minus + non-breaking space so the sign never wraps
+  // onto its own line for negative currency values like "-$10,761".
+  const display = value.replace(/^-\s*/, "\u2212\u00A0");
   return (
-    <div className="flex flex-col gap-2">
-      <div className="t-stat" style={{ color: TONES[tone] }}>{value}</div>
+    <div className="flex min-w-0 flex-col gap-2">
+      <div
+        className="t-stat whitespace-nowrap overflow-hidden text-ellipsis"
+        style={{ color: TONES[tone], fontSize: "clamp(1.1rem, 2.2vw, 2rem)" }}
+        title={value}
+      >
+        {display}
+      </div>
       <div className="t-stat-label">{label}</div>
       {hint ? <div className="text-[10px] uppercase tracking-wider text-meta">{hint}</div> : null}
     </div>
