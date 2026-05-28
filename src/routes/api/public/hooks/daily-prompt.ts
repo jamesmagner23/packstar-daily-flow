@@ -113,6 +113,17 @@ async function runDailyPrompt(opts: { force?: boolean } = {}) {
     (s: any) => s.slack_user_id && s.project_id && s.projects?.active,
   );
 
+  // Pull the active project list once — it gets rendered into every opener
+  // so floater supervisors can pick which job their wrap belongs to.
+  const { data: activeProjects } = await supabaseAdmin
+    .from("projects")
+    .select("code, name")
+    .eq("active", true)
+    .order("code");
+  const projectsBlock = (activeProjects ?? [])
+    .map((p: any) => `• *${p.name}* (${p.code})`)
+    .join("\n");
+
   const results: any[] = [];
   for (const sup of eligible) {
     // Skip if today's report already complete.
@@ -143,7 +154,10 @@ async function runDailyPrompt(opts: { force?: boolean } = {}) {
 
     const opener = OPENERS[Math.floor(Math.random() * OPENERS.length)];
     const firstName = (sup.name ?? "").split(" ")[0] || "mate";
-    const text = opener.replace("{first_name}", firstName);
+    const text = opener
+      .replace("{first_name}", firstName)
+      .replace("{projects}", projectsBlock);
+
 
     try {
       const { channel, ts } = await postSlackDM(sup.slack_user_id, text);
