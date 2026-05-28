@@ -37,10 +37,11 @@ const VIC_PUBLIC_HOLIDAYS = new Set<string>([
 ]);
 
 const OPENERS = [
-  "G'day {first_name}, how'd today go?",
-  "Hey mate, ready for the wrap? What got done?",
-  "Afternoon {first_name}. Tell me how the day went.",
+  "G'day {first_name}, how'd today go? Which job were you on?\n{projects}",
+  "Hey mate, ready for the wrap? Which job today?\n{projects}",
+  "Afternoon {first_name}. Which job were you on?\n{projects}",
 ];
+
 
 function melbourneNow(): { iso: string; weekday: number; hour: number } {
   const fmt = new Intl.DateTimeFormat("en-CA", {
