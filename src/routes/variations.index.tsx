@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell } from "@/components/SiteShell";
 import { shortDate, businessDaysRemaining } from "@/lib/format";
+import { useActiveProjectId } from "@/hooks/use-active-project";
 
 export const Route = createFileRoute("/variations/")({
   head: () => ({
@@ -15,12 +16,30 @@ export const Route = createFileRoute("/variations/")({
 });
 
 function VariationsPage() {
+  const activeProjectId = useActiveProjectId();
+
+  const { data: project } = useQuery({
+    queryKey: ["variations-project", activeProjectId],
+    queryFn: async () => {
+      if (activeProjectId) {
+        const { data } = await supabase.from("projects").select("id, code, name").eq("id", activeProjectId).maybeSingle();
+        if (data) return data;
+      }
+      const { data } = await supabase.from("projects").select("id, code, name").eq("active", true).order("code").limit(1).maybeSingle();
+      return data;
+    },
+  });
+
+  const projectId = project?.id as string | undefined;
+
   const { data = [] } = useQuery({
-    queryKey: ["variations-all"],
+    queryKey: ["variations-all", projectId],
+    enabled: !!projectId,
     queryFn: async () => {
       const { data } = await supabase
         .from("variation_flags")
         .select("*")
+        .eq("project_id", projectId!)
         .order("created_at", { ascending: false });
       return data ?? [];
     },
@@ -29,10 +48,10 @@ function VariationsPage() {
   return (
     <SiteShell section="Variations">
       <header className="mb-10">
-        <div className="t-eyebrow">Register</div>
+        <div className="t-eyebrow">{project?.code ?? "Register"}</div>
         <h1 className="t-display mt-2">Variation flags</h1>
         <p className="t-lead mt-3 max-w-2xl">
-          Every flag raised by the daily wrap. Clause references, notice deadlines, and current status.
+          {project?.name ? `${project.name}. ` : ""}Every flag raised by the daily wrap. Clause references, notice deadlines, and current status.
         </p>
       </header>
 
