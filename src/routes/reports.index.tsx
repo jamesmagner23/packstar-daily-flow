@@ -45,9 +45,9 @@ function ReportsList() {
     <SiteShell section="Reports">
       <header className="mb-10 flex items-start justify-between gap-6">
         <div>
-          <div className="t-eyebrow">End of day</div>
+          <div className="t-eyebrow">{project?.code ?? "End of day"}</div>
           <h1 className="t-display mt-2">Daily wraps</h1>
-          <p className="t-lead mt-3">Captured by Blake via Slack. Productivity and margin computed against the BOQ.</p>
+          <p className="t-lead mt-3">{project?.name ? `${project.name}. ` : ""}Captured via Slack. Productivity and margin computed against the BOQ.</p>
         </div>
         <Link to="/reports/export" className="t-eyebrow text-[color:var(--brand)] whitespace-nowrap">Export PDF →</Link>
       </header>
