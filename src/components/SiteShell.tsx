@@ -34,8 +34,9 @@ const TABS: Tab[] = [
     label: "Finance",
     to: "/",
     icon: TrendingUp,
-    paths: ["/", "/variations", "/reports", "/setup"],
+    paths: ["/", "/overview", "/variations", "/reports", "/setup"],
     subNav: [
+      { to: "/overview", label: "Overview" },
       { to: "/", label: "Dashboard" },
       { to: "/variations", label: "Variations" },
       { to: "/reports", label: "Reports" },
