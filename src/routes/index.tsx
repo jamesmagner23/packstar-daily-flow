@@ -31,10 +31,16 @@ function Dashboard() {
   const [range, setRange] = useState<DateRange>(() => getWeekRange());
   const [crewId, setCrewId] = useState<string>("all");
 
+  const activeProjectId = useActiveProjectId();
+
   const { data: project } = useQuery({
-    queryKey: ["project-active"],
+    queryKey: ["project-active", activeProjectId],
     queryFn: async () => {
-      const { data } = await supabase.from("projects").select("*").eq("active", true).limit(1).maybeSingle();
+      if (activeProjectId) {
+        const { data } = await supabase.from("projects").select("*").eq("id", activeProjectId).maybeSingle();
+        if (data) return data;
+      }
+      const { data } = await supabase.from("projects").select("*").eq("active", true).order("code").limit(1).maybeSingle();
       return data;
     },
   });
