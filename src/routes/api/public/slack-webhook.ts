@@ -161,6 +161,39 @@ function firstName(full: string): string {
   return (full ?? "").trim().split(/\s+/)[0] ?? "mate";
 }
 
+// Hand-rolled aliases for floater supervisors. Add new active projects here as
+// they're stood up. Matched case-insensitively against the supervisor's first
+// reply each evening to choose which project the wrap belongs to.
+const PROJECT_ALIASES: Record<string, string[]> = {
+  T100: ["thompsons", "thompson", "tr"],
+  "CC0439-30-MAW": ["moonee", "valley", "mv", "racecourse"],
+};
+
+function matchProjectFromText(
+  text: string,
+  projects: { id: string; code: string; name: string }[],
+): string | null {
+  const t = (text ?? "").toLowerCase();
+  for (const p of projects) {
+    const code = (p.code ?? "").toLowerCase();
+    if (code && t.includes(code)) return p.id;
+    const aliases = PROJECT_ALIASES[p.code] ?? [];
+    for (const a of aliases) {
+      const re = new RegExp(`\\b${a.toLowerCase()}\\b`, "i");
+      if (re.test(t)) return p.id;
+    }
+    // Fall back to substantive name tokens (>= 5 chars, skip generic words)
+    const skip = new Set(["civil", "works", "drainage", "road", "racecourse"]);
+    const tokens = (p.name ?? "").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+    for (const tok of tokens) {
+      if (tok.length >= 5 && !skip.has(tok) && t.includes(tok)) return p.id;
+    }
+  }
+  return null;
+}
+
+
+
 function extractSaveBlock(text: string): { reply: string; save: any | null } {
   const m = text.match(/<save>([\s\S]*?)<\/save>/i);
   if (!m) return { reply: text.trim(), save: null };
@@ -347,10 +380,6 @@ async function processEvent(body: any) {
     console.log("[slack-webhook] unknown slack user, ignoring:", slackUserId);
     return;
   }
-  if (!supervisor.project_id) {
-    console.log("[slack-webhook] supervisor has no project assigned:", supervisor.name);
-    return;
-  }
 
   const supFirst = firstName(supervisor.name);
   const today = pickReportDate();
@@ -368,11 +397,30 @@ async function processEvent(body: any) {
 
   let isNewReport = false;
   if (!report) {
+    // First message of the day → supervisor must tell us which project.
+    // Match userText against active projects (code, name tokens, aliases).
+    const { data: activeProjects } = await supabaseAdmin
+      .from("projects")
+      .select("id, code, name")
+      .eq("active", true);
+    const matchedProjectId = matchProjectFromText(userText, activeProjects ?? []);
+
+    if (!matchedProjectId) {
+      const list = (activeProjects ?? [])
+        .map((p: any) => `• *${p.name}* (${p.code})`)
+        .join("\n");
+      await postToSlack(
+        channel,
+        `Which job were you on today, ${supFirst}?\n${list}\nJust type the name or code.`,
+      );
+      return;
+    }
+
     const { data: created, error: insErr } = await supabaseAdmin
       .from("daily_reports")
       .insert({
         supervisor_id: supervisor.id,
-        project_id: supervisor.project_id,
+        project_id: matchedProjectId,
         report_date: today,
         raw_transcript: tsPrefix,
         message_history: [],
@@ -396,7 +444,7 @@ async function processEvent(body: any) {
   }
 
   // Load project context
-  const projectId = supervisor.project_id;
+  const projectId = report.project_id as string;
   const [
     { data: project },
     { data: pits },
