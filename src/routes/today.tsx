@@ -153,9 +153,30 @@ function TodayPage() {
   return (
     <div className="min-h-screen bg-neutral-50 pb-12">
       <header className="bg-white border-b border-rule px-4 py-5">
-        <div className="max-w-md mx-auto">
-          <p className="text-xs text-meta uppercase tracking-wide">{dateLabel}</p>
-          <h1 className="text-2xl font-semibold mt-1">Morning, {firstName}.</h1>
+        <div className="max-w-md mx-auto flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs text-meta uppercase tracking-wide">{dateLabel}</p>
+            <h1 className="text-2xl font-semibold mt-1">
+              {isToday ? `Morning, ${firstName}.` : `${firstName} — ${format(selectedDate, "EEE d MMM")}`}
+            </h1>
+          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="shrink-0">
+                <CalendarIcon className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(d) => d && setSelectedDate(d)}
+                disabled={(d) => d > new Date()}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </header>
 
