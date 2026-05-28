@@ -161,6 +161,39 @@ function firstName(full: string): string {
   return (full ?? "").trim().split(/\s+/)[0] ?? "mate";
 }
 
+// Hand-rolled aliases for floater supervisors. Add new active projects here as
+// they're stood up. Matched case-insensitively against the supervisor's first
+// reply each evening to choose which project the wrap belongs to.
+const PROJECT_ALIASES: Record<string, string[]> = {
+  T100: ["thompsons", "thompson", "tr"],
+  "CC0439-30-MAW": ["moonee", "valley", "mv", "racecourse"],
+};
+
+function matchProjectFromText(
+  text: string,
+  projects: { id: string; code: string; name: string }[],
+): string | null {
+  const t = (text ?? "").toLowerCase();
+  for (const p of projects) {
+    const code = (p.code ?? "").toLowerCase();
+    if (code && t.includes(code)) return p.id;
+    const aliases = PROJECT_ALIASES[p.code] ?? [];
+    for (const a of aliases) {
+      const re = new RegExp(`\\b${a.toLowerCase()}\\b`, "i");
+      if (re.test(t)) return p.id;
+    }
+    // Fall back to substantive name tokens (>= 5 chars, skip generic words)
+    const skip = new Set(["civil", "works", "drainage", "road", "racecourse"]);
+    const tokens = (p.name ?? "").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+    for (const tok of tokens) {
+      if (tok.length >= 5 && !skip.has(tok) && t.includes(tok)) return p.id;
+    }
+  }
+  return null;
+}
+
+
+
 function extractSaveBlock(text: string): { reply: string; save: any | null } {
   const m = text.match(/<save>([\s\S]*?)<\/save>/i);
   if (!m) return { reply: text.trim(), save: null };
