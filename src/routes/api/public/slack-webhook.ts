@@ -438,8 +438,15 @@ async function processEvent(body: any) {
   }
 
   const supFirst = firstName(supervisor.name);
-  const today = pickReportDate();
+  const defaultReportDate = pickReportDate();
   const calendarToday = melbDateISO();
+
+  // Allow supervisors to backdate a wrap by prefixing the message with a date
+  // (e.g. "Tue 26 May — mobilised excavator..."). Strip the prefix from the
+  // user text so the parser/AI sees just the wrap content.
+  const datePrefix = parseDatePrefix(userText, calendarToday);
+  const today = datePrefix?.dateIso ?? defaultReportDate;
+  if (datePrefix) userText = datePrefix.remaining;
 
   // Load or create today's daily_report
   const tsPrefix = `[${melbHHMM()}] ${supFirst}: ${userText}\n`;
