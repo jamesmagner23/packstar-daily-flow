@@ -42,23 +42,11 @@ function Stat({
 export function KpiBand({ kpis }: { kpis: KpiTotals }) {
   const has = kpis.reportCount > 0;
   return (
-    <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-6 gap-x-6 gap-y-8 md:gap-8">
+    <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-8 md:gap-8">
       <Stat label="Revenue" value={has ? aud(kpis.revenue) : "—"} tone="revenue" />
       <Stat label="Cost" value={has ? aud(kpis.cost) : "—"} tone="cost" />
-      <Stat label="Margin (GP)" value={has ? aud(kpis.margin) : "—"} tone="margin" />
-      <Stat label="GP %" value={kpis.gpPct == null ? "—" : pct(kpis.gpPct)} tone="gp" />
-      <Stat
-        label="Revenue vs target"
-        value={kpis.productivityPct == null ? "—" : pct(kpis.productivityPct)}
-        tone="brand"
-        hint="Productivity"
-      />
-      <Stat
-        label="Margin vs target"
-        value={kpis.marginVsTargetPct == null ? "—" : pct(kpis.marginVsTargetPct)}
-        tone="marginTarget"
-        hint="Profitability"
-      />
+      <Stat label="Profit" value={has ? aud(kpis.margin) : "—"} tone="margin" />
+      <Stat label="Profit %" value={kpis.gpPct == null ? "—" : pct(kpis.gpPct)} tone="gp" />
     </div>
   );
 }
