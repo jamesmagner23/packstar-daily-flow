@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell } from "@/components/SiteShell";
 import { aud, pct, shortDate } from "@/lib/format";
+import { useActiveProjectId } from "@/hooks/use-active-project";
 
 export const Route = createFileRoute("/reports/")({
   head: () => ({ meta: [{ title: "Daily reports — PACC HQ" }] }),
@@ -10,12 +11,30 @@ export const Route = createFileRoute("/reports/")({
 });
 
 function ReportsList() {
+  const activeProjectId = useActiveProjectId();
+
+  const { data: project } = useQuery({
+    queryKey: ["reports-project", activeProjectId],
+    queryFn: async () => {
+      if (activeProjectId) {
+        const { data } = await supabase.from("projects").select("id, code, name").eq("id", activeProjectId).maybeSingle();
+        if (data) return data;
+      }
+      const { data } = await supabase.from("projects").select("id, code, name").eq("active", true).order("code").limit(1).maybeSingle();
+      return data;
+    },
+  });
+
+  const projectId = project?.id as string | undefined;
+
   const { data = [] } = useQuery({
-    queryKey: ["reports-all"],
+    queryKey: ["reports-all", projectId],
+    enabled: !!projectId,
     queryFn: async () => {
       const { data } = await supabase
         .from("daily_reports")
         .select("id, report_date, productivity_pct, revenue_aud, cost_aud, margin_aud, complete, supervisors(name)")
+        .eq("project_id", projectId!)
         .order("report_date", { ascending: false })
         .limit(60);
       return data ?? [];
