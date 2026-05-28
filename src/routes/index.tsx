@@ -6,6 +6,7 @@ import { SiteShell } from "@/components/SiteShell";
 import { RangeToggle } from "@/components/RangeToggle";
 import { CrewFilter } from "@/components/CrewFilter";
 import { KpiBand } from "@/components/KpiBand";
+import { useActiveProjectId } from "@/hooks/use-active-project";
 import { aud, pct, shortDate, businessDaysRemaining } from "@/lib/format";
 import {
   type DateRange,
