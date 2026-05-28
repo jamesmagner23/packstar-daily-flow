@@ -131,7 +131,7 @@ export function SiteShell({ section, children }: { section: string; children: Re
             <Menu className="h-5 w-5" />
           </button>
 
-          <Link to="/" className="flex items-baseline gap-1.5 shrink-0">
+          <Link to="/overview" className="flex items-baseline gap-1.5 shrink-0">
             <span className="brand-wordmark text-xl md:text-2xl leading-none text-[color:var(--brand)]">PACC</span>
             <span className="brand-wordmark text-base md:text-lg leading-none tracking-[0.18em] font-sans text-neutral-700">HQ</span>
           </Link>
