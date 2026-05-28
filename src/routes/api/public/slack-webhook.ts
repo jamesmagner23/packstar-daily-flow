@@ -90,6 +90,62 @@ function pickReportDate(d = new Date()): string {
   return todayIso;
 }
 
+// Backdated-wrap parser. Lets a supervisor prefix a message with a date so
+// the wrap lands on the right report_date instead of "today". Returns null
+// if no recognisable prefix is found. Supported shapes (case-insensitive):
+//   "Tue 26 May", "Tuesday 26 May", "26 May", "26/5", "26/05", "26-05",
+//   "26 May 2026" — optionally followed by " — ", " - ", ":" or whitespace.
+const MONTHS: Record<string, number> = {
+  jan: 1, january: 1, feb: 2, february: 2, mar: 3, march: 3,
+  apr: 4, april: 4, may: 5, jun: 6, june: 6, jul: 7, july: 7,
+  aug: 8, august: 8, sep: 9, sept: 9, september: 9, oct: 10, october: 10,
+  nov: 11, november: 11, dec: 12, december: 12,
+};
+function parseDatePrefix(
+  text: string,
+  todayIso: string,
+): { dateIso: string; remaining: string } | null {
+  const trimmed = text.trimStart();
+  // Optional weekday word, then either "DD Mon [YYYY]" or "DD/MM" or "DD-MM".
+  const re = /^(?:(?:mon|tue|tues|wed|weds|thu|thur|thurs|fri|sat|sun|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+)?(\d{1,2})[\s\/\-]+([A-Za-z]{3,9}|\d{1,2})(?:[\s\/\-]+(\d{2,4}))?\s*(?:[—\-:]\s*|\s+)/i;
+  const m = trimmed.match(re);
+  if (!m) return null;
+  const day = parseInt(m[1], 10);
+  let month: number;
+  const monTok = m[2].toLowerCase();
+  if (/^\d+$/.test(monTok)) {
+    month = parseInt(monTok, 10);
+  } else {
+    const mm = MONTHS[monTok];
+    if (!mm) return null;
+    month = mm;
+  }
+  if (day < 1 || day > 31 || month < 1 || month > 12) return null;
+  const todayYear = parseInt(todayIso.slice(0, 4), 10);
+  let year = m[3] ? parseInt(m[3], 10) : todayYear;
+  if (year < 100) year += 2000;
+  // If parsed date lands more than 7 days in the future, assume previous year
+  // (e.g. user types "30 Dec" in early Jan).
+  const candidate = `${year.toString().padStart(4, "0")}-${month
+    .toString()
+    .padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+  const today = new Date(`${todayIso}T12:00:00+10:00`);
+  const cand = new Date(`${candidate}T12:00:00+10:00`);
+  if (cand.getTime() - today.getTime() > 7 * 86400_000) {
+    year -= 1;
+  }
+  const dateIso = `${year.toString().padStart(4, "0")}-${month
+    .toString()
+    .padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+  // Sanity: don't accept dates more than 14 days in the past either — guards
+  // against misreading a measurement like "300 mm dia" as "30 0".
+  const finalCand = new Date(`${dateIso}T12:00:00+10:00`);
+  const daysDiff = (today.getTime() - finalCand.getTime()) / 86400_000;
+  if (daysDiff > 14 || daysDiff < -7) return null;
+  const remaining = trimmed.slice(m[0].length);
+  return { dateIso, remaining };
+}
+
 function addBusinessDays(start: Date, days: number): Date {
   const d = new Date(start);
   let added = 0;
