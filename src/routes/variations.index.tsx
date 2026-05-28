@@ -48,10 +48,10 @@ function VariationsPage() {
   return (
     <SiteShell section="Variations">
       <header className="mb-10">
-        <div className="t-eyebrow">Register</div>
+        <div className="t-eyebrow">{project?.code ?? "Register"}</div>
         <h1 className="t-display mt-2">Variation flags</h1>
         <p className="t-lead mt-3 max-w-2xl">
-          Every flag raised by the daily wrap. Clause references, notice deadlines, and current status.
+          {project?.name ? `${project.name}. ` : ""}Every flag raised by the daily wrap. Clause references, notice deadlines, and current status.
         </p>
       </header>
 
