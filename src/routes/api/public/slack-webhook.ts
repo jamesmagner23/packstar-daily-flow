@@ -321,7 +321,7 @@ async function processEvent(body: any) {
     return;
   }
   const slackUserId: string = event.user;
-  const userText: string = (event.text ?? "").trim();
+  let userText: string = (event.text ?? "").trim();
   const channel: string = event.channel;
   const hasFiles = Array.isArray(event.files) && event.files.length > 0;
 
