@@ -347,10 +347,6 @@ async function processEvent(body: any) {
     console.log("[slack-webhook] unknown slack user, ignoring:", slackUserId);
     return;
   }
-  if (!supervisor.project_id) {
-    console.log("[slack-webhook] supervisor has no project assigned:", supervisor.name);
-    return;
-  }
 
   const supFirst = firstName(supervisor.name);
   const today = pickReportDate();
@@ -368,11 +364,30 @@ async function processEvent(body: any) {
 
   let isNewReport = false;
   if (!report) {
+    // First message of the day → supervisor must tell us which project.
+    // Match userText against active projects (code, name tokens, aliases).
+    const { data: activeProjects } = await supabaseAdmin
+      .from("projects")
+      .select("id, code, name")
+      .eq("active", true);
+    const matchedProjectId = matchProjectFromText(userText, activeProjects ?? []);
+
+    if (!matchedProjectId) {
+      const list = (activeProjects ?? [])
+        .map((p: any) => `• *${p.name}* (${p.code})`)
+        .join("\n");
+      await postToSlack(
+        channel,
+        `Which job were you on today, ${supFirst}?\n${list}\nJust type the name or code.`,
+      );
+      return;
+    }
+
     const { data: created, error: insErr } = await supabaseAdmin
       .from("daily_reports")
       .insert({
         supervisor_id: supervisor.id,
-        project_id: supervisor.project_id,
+        project_id: matchedProjectId,
         report_date: today,
         raw_transcript: tsPrefix,
         message_history: [],
@@ -396,7 +411,7 @@ async function processEvent(body: any) {
   }
 
   // Load project context
-  const projectId = supervisor.project_id;
+  const projectId = report.project_id as string;
   const [
     { data: project },
     { data: pits },
