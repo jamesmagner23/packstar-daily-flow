@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TodayRouteImport } from './routes/today'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as OverviewRouteImport } from './routes/overview'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VariationsIndexRouteImport } from './routes/variations.index'
@@ -56,6 +57,11 @@ const TodayRoute = TodayRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OverviewRoute = OverviewRouteImport.update({
+  id: '/overview',
+  path: '/overview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -249,6 +255,7 @@ const ApiPublicHooksAllocationEligibilityRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/overview': typeof OverviewRoute
   '/signup': typeof SignupRoute
   '/today': typeof TodayRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -289,6 +296,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/overview': typeof OverviewRoute
   '/signup': typeof SignupRoute
   '/today': typeof TodayRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -330,6 +338,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/overview': typeof OverviewRoute
   '/signup': typeof SignupRoute
   '/today': typeof TodayRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -372,6 +381,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/overview'
     | '/signup'
     | '/today'
     | '/auth/callback'
@@ -412,6 +422,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/overview'
     | '/signup'
     | '/today'
     | '/auth/callback'
@@ -452,6 +463,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/login'
+    | '/overview'
     | '/signup'
     | '/today'
     | '/auth/callback'
@@ -493,6 +505,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  OverviewRoute: typeof OverviewRoute
   SignupRoute: typeof SignupRoute
   TodayRoute: typeof TodayRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -544,6 +557,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/overview': {
+      id: '/overview'
+      path: '/overview'
+      fullPath: '/overview'
+      preLoaderRoute: typeof OverviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -815,6 +835,7 @@ const PlantIdRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  OverviewRoute: OverviewRoute,
   SignupRoute: SignupRoute,
   TodayRoute: TodayRoute,
   AuthCallbackRoute: AuthCallbackRoute,
