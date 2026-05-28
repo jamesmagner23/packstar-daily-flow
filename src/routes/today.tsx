@@ -30,10 +30,12 @@ function TodayPage() {
     }
   }, [userId, roleLoading, navigate]);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const today = format(selectedDate, "yyyy-MM-dd");
+  const isToday = today === format(new Date(), "yyyy-MM-dd");
   const dateLabel = new Intl.DateTimeFormat("en-AU", {
     weekday: "long", day: "numeric", month: "long",
-  }).format(new Date());
+  }).format(selectedDate);
 
   const { data: me } = useQuery({
     queryKey: ["today-me", personId],
