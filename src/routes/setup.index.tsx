@@ -173,19 +173,24 @@ function SetupPage() {
       </nav>
 
       {tab === "Contract" && project && (
-        <KeyValue rows={[
-          ["Code", project.code],
-          ["Head contractor", project.head_contractor],
-          ["Principal", project.principal],
-          ["Package", project.package],
-          ["Contract date", shortDate(project.contract_date)],
-          ["Contract type", project.contract_type],
-          ["Site address", project.site_address],
-          ["Working hours", `${project.working_hours_start ?? "?"} – ${project.working_hours_end ?? "?"}`],
-          ["Defects liability", project.defects_liability_period_months ? `${project.defects_liability_period_months} months` : "—"],
-          ["LD cap", project.liquidated_damages_cap_pct_of_contract ? `${project.liquidated_damages_cap_pct_of_contract}%` : "—"],
-        ]} />
+        <>
+          <ProjectTypeToggle project={project} onChange={() => qc.invalidateQueries()} />
+          <KeyValue rows={[
+            ["Code", project.code],
+            ["Project type", project.project_type === "piling_labour" ? "Piling — labour hire" : "Drainage"],
+            ["Head contractor", project.head_contractor],
+            ["Principal", project.principal],
+            ["Package", project.package],
+            ["Contract date", shortDate(project.contract_date)],
+            ["Contract type", project.contract_type],
+            ["Site address", project.site_address],
+            ["Working hours", `${project.working_hours_start ?? "?"} – ${project.working_hours_end ?? "?"}`],
+            ["Defects liability", project.defects_liability_period_months ? `${project.defects_liability_period_months} months` : "—"],
+            ["LD cap", project.liquidated_damages_cap_pct_of_contract ? `${project.liquidated_damages_cap_pct_of_contract}%` : "—"],
+          ]} />
+        </>
       )}
+
       {tab === "Portions" && <SimpleTable rows={portions} cols={[["code","Code"],["name","Name"],["commencement","Start",shortDate],["completion","Finish",shortDate],["ld_per_day_aud","LD/day"]]} />}
       {tab === "BOQ" && <SimpleTable rows={boq} cols={[["ref","Ref"],["category","Category"],["description","Description"],["unit","Unit"],["rate","Rate"]]} />}
       {tab === "Pits" && <SimpleTable rows={pits} cols={[["pit_id","Pit"],["separable_portion_code","SP"],["status","Status"]]} />}
