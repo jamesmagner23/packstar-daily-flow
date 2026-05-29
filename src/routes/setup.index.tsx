@@ -232,6 +232,11 @@ function SimpleTable({ rows, cols }: { rows: any[]; cols: Col[] }) {
             <tr key={i} className="border-t border-rule">
               {cols.map(([k, , fmt]) => <td key={k} className="py-3 text-xs">{fmt ? fmt(r[k]) : (r[k] ?? "—")}</td>)}
             </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 function ProjectTypeToggle({ project, onChange }: { project: any; onChange: () => void }) {
@@ -263,8 +268,3 @@ function ProjectTypeToggle({ project, onChange }: { project: any; onChange: () =
   );
 }
 
-        </tbody>
-      </table>
-    </div>
-  );
-}
