@@ -276,10 +276,13 @@ function SidebarNav({
   activeKey: string | null;
   onItemClick?: () => void;
 }) {
+  const projectType = useActiveProjectType();
+  const tabs = getTabs(projectType);
   return (
     <nav className="flex-1 overflow-y-auto py-3">
       <ul className="flex flex-col gap-0.5 px-2">
-        {TABS.map((t) => {
+        {tabs.map((t) => {
+
           const active = t.key === activeKey;
           const Icon = t.icon;
           return (
