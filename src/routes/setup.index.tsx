@@ -232,7 +232,37 @@ function SimpleTable({ rows, cols }: { rows: any[]; cols: Col[] }) {
             <tr key={i} className="border-t border-rule">
               {cols.map(([k, , fmt]) => <td key={k} className="py-3 text-xs">{fmt ? fmt(r[k]) : (r[k] ?? "—")}</td>)}
             </tr>
-          ))}
+}
+
+function ProjectTypeToggle({ project, onChange }: { project: any; onChange: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const current = project.project_type ?? "drainage";
+  async function setType(t: "drainage" | "piling_labour") {
+    if (t === current) return;
+    setBusy(true);
+    await supabase.from("projects").update({ project_type: t }).eq("id", project.id);
+    setBusy(false);
+    onChange();
+  }
+  return (
+    <div className="hairline pt-4 mb-6 flex items-center gap-3">
+      <span className="t-stat-label">Project type</span>
+      <div className="inline-flex border border-rule rounded overflow-hidden">
+        {([["drainage", "Drainage"], ["piling_labour", "Piling — labour hire"]] as const).map(([k, l]) => (
+          <button
+            key={k}
+            disabled={busy}
+            onClick={() => setType(k)}
+            className={`text-xs uppercase tracking-[0.14em] font-semibold px-3 py-1.5 ${current === k ? "bg-[color:var(--brand)] text-white" : "text-meta hover:text-ink"}`}
+          >
+            {l}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
         </tbody>
       </table>
     </div>
