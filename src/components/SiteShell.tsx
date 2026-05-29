@@ -119,6 +119,43 @@ function matchPath(path: string, prefix: string) {
 const SIDEBAR_COLLAPSED_KEY = "pacchq.sidebar.collapsed";
 const PROJECT_KEY = "pacchq.project.id";
 
+function useActiveProjectId(): string | null {
+  const [id, setId] = useState<string | null>(null);
+  useEffect(() => {
+    try { setId(localStorage.getItem(PROJECT_KEY)); } catch {}
+    function onStorage(e: StorageEvent) {
+      if (e.key === PROJECT_KEY) setId(e.newValue);
+    }
+    window.addEventListener("storage", onStorage);
+    const t = setInterval(() => {
+      try {
+        const v = localStorage.getItem(PROJECT_KEY);
+        setId((cur) => (cur === v ? cur : v));
+      } catch {}
+    }, 500);
+    return () => { window.removeEventListener("storage", onStorage); clearInterval(t); };
+  }, []);
+  return id;
+}
+
+function useActiveProjectType(): "drainage" | "piling_labour" {
+  const id = useActiveProjectId();
+  const { data } = useQuery({
+    queryKey: ["active-project-type", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("projects")
+        .select("project_type")
+        .eq("id", id!)
+        .maybeSingle();
+      return (data?.project_type ?? "drainage") as "drainage" | "piling_labour";
+    },
+  });
+  return data ?? "drainage";
+}
+
+
 export function SiteShell({ section, children }: { section: string; children: React.ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const projectType = useActiveProjectType();
