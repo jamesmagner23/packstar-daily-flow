@@ -702,6 +702,147 @@ async function processEvent(body: any) {
     }
   }
 
+  // ===== Piling labour-hire: piles drilled, pours, cage deliveries =====
+  // pile_schedule rows are upserted via pile_events. concrete_dockets and
+  // cage_deliveries get one row per save event so the client report can
+  // pull them straight back out.
+  const resolvePileId = async (ref: string): Promise<string | null> => {
+    if (!ref) return null;
+    const { data } = await supabaseAdmin
+      .from("pile_schedule")
+      .select("id")
+      .eq("project_id", projectId)
+      .eq("pile_ref", ref.trim())
+      .maybeSingle();
+    return data?.id ?? null;
+  };
+
+  if (saveBlock && Array.isArray(saveBlock.piles_drilled)) {
+    for (const p of saveBlock.piles_drilled) {
+      try {
+        const ref = String(p.pile_ref ?? "").trim();
+        if (!ref) continue;
+        const pileId = await resolvePileId(ref);
+        if (!pileId) {
+          console.warn("[slack-webhook] piles_drilled: unknown pile_ref", ref);
+          continue;
+        }
+        // Idempotent: skip if a drilled event already exists for this pile today.
+        const { data: existing } = await supabaseAdmin
+          .from("pile_events")
+          .select("id")
+          .eq("pile_id", pileId)
+          .eq("event_date", today)
+          .eq("event_type", "drilled")
+          .maybeSingle();
+        if (existing?.id) continue;
+        await supabaseAdmin.from("pile_events").insert({
+          project_id: projectId,
+          pile_id: pileId,
+          event_date: today,
+          event_type: "drilled",
+          daily_report_id: report.id,
+          notes: p.notes ?? null,
+        });
+        await supabaseAdmin
+          .from("pile_schedule")
+          .update({ status: "drilled" })
+          .eq("id", pileId)
+          .neq("status", "poured")
+          .neq("status", "complete");
+      } catch (e) {
+        console.error("[slack-webhook] piles_drilled loop error:", (e as Error).message);
+      }
+    }
+  }
+
+  if (saveBlock && Array.isArray(saveBlock.concrete_pours)) {
+    for (const pour of saveBlock.concrete_pours) {
+      try {
+        const ref = String(pour.pile_ref ?? "").trim();
+        const pileId = ref ? await resolvePileId(ref) : null;
+        const vol = pour.volume_m3 != null ? Number(pour.volume_m3) : null;
+        // pile_events: poured
+        if (pileId) {
+          const { data: existing } = await supabaseAdmin
+            .from("pile_events")
+            .select("id")
+            .eq("pile_id", pileId)
+            .eq("event_date", today)
+            .eq("event_type", "poured")
+            .maybeSingle();
+          if (!existing?.id) {
+            await supabaseAdmin.from("pile_events").insert({
+              project_id: projectId,
+              pile_id: pileId,
+              event_date: today,
+              event_type: "poured",
+              daily_report_id: report.id,
+              volume_m3: vol,
+            });
+            await supabaseAdmin
+              .from("pile_schedule")
+              .update({ status: "poured" })
+              .eq("id", pileId)
+              .neq("status", "complete");
+          }
+        }
+        // concrete_dockets row (photo comes in via Slack file upload separately,
+        // matched on docket_number or pile_ref).
+        const docketNo = pour.docket_number ? String(pour.docket_number).trim() : null;
+        if (docketNo) {
+          const { data: existing } = await supabaseAdmin
+            .from("concrete_dockets")
+            .select("id")
+            .eq("project_id", projectId)
+            .eq("docket_number", docketNo)
+            .maybeSingle();
+          if (!existing?.id) {
+            await supabaseAdmin.from("concrete_dockets").insert({
+              project_id: projectId,
+              pile_id: pileId,
+              event_date: today,
+              volume_m3: vol,
+              supplier: pour.supplier ?? null,
+              docket_number: docketNo,
+              daily_report_id: report.id,
+            });
+          }
+        } else if (pileId) {
+          // No docket number yet — still log the pour so it shows on the report.
+          await supabaseAdmin.from("concrete_dockets").insert({
+            project_id: projectId,
+            pile_id: pileId,
+            event_date: today,
+            volume_m3: vol,
+            supplier: pour.supplier ?? null,
+            daily_report_id: report.id,
+          });
+        }
+      } catch (e) {
+        console.error("[slack-webhook] concrete_pours loop error:", (e as Error).message);
+      }
+    }
+  }
+
+  if (saveBlock && Array.isArray(saveBlock.cage_deliveries)) {
+    for (const cage of saveBlock.cage_deliveries) {
+      try {
+        const count = Number(cage.count ?? 0);
+        if (!count) continue;
+        await supabaseAdmin.from("cage_deliveries").insert({
+          project_id: projectId,
+          delivery_date: today,
+          count,
+          notes: cage.notes ?? null,
+          daily_report_id: report.id,
+        });
+      } catch (e) {
+        console.error("[slack-webhook] cage_deliveries loop error:", (e as Error).message);
+      }
+    }
+  }
+
   // Plant on-hire / off-hire events. "today" / null normalises to report date.
   const normaliseDate = (raw: any): string => {
     if (!raw || raw === "today") return today;
