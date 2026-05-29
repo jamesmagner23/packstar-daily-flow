@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import Anthropic from "@anthropic-ai/sdk";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { SLACK_DAILY_FLOW_PROMPT } from "@/lib/prompts/slack-daily-flow";
+import { SLACK_PILING_FLOW_PROMPT } from "@/lib/prompts/slack-piling-flow";
 import { persistComputedReport, notifyDirectorOnWrap } from "@/lib/evening-summary/persist";
 import { handlePhotoTicket, looksLikeTicketCaption } from "@/lib/slack/photo-ticket";
 import { handleProfileLookup, PROFILE_PATTERN } from "@/lib/slack/profile-lookup";
@@ -518,6 +519,8 @@ async function processEvent(body: any) {
     { data: triggers },
     { data: priorReports },
     { data: openHires },
+    { data: pileSchedule },
+    { data: labourRates },
   ] = await Promise.all([
     supabaseAdmin.from("projects").select("*").eq("id", projectId).single(),
     supabaseAdmin.from("pits").select("pit_id, separable_portion_code, status").eq("project_id", projectId),
@@ -537,6 +540,15 @@ async function processEvent(body: any) {
       .select("plant_id_code, on_date, rate_basis")
       .eq("project_id", projectId)
       .is("off_date", null),
+    supabaseAdmin
+      .from("pile_schedule")
+      .select("pile_ref, sheet_ref, diameter_mm, design_depth_m, design_volume_m3, status")
+      .eq("project_id", projectId)
+      .order("pile_ref"),
+    supabaseAdmin
+      .from("labour_hire_rates")
+      .select("kind, description, nt_rate, ot_rate, day_rate, classifications(classification, employment_type)")
+      .eq("project_id", projectId),
   ]);
 
   if (!project) {
@@ -546,23 +558,35 @@ async function processEvent(body: any) {
   }
 
   const pitStatus = buildPitStatus(pits ?? [], priorReports ?? []);
-
   const hcRep = (project as any).head_contractor_rep ?? "the head contractor's rep";
+  const projectType = ((project as any).project_type ?? "drainage") as "drainage" | "piling_labour";
 
-  const systemPrompt = SLACK_DAILY_FLOW_PROMPT
-    .replaceAll("{{SUPERVISOR_FIRST_NAME}}", supFirst)
-    .replaceAll("{{TODAY_DATE}}", melbLongDate(today))
-    .replaceAll("{{PROJECT_NAME}}", project.name)
-    .replaceAll("{{HEAD_CONTRACTOR}}", project.head_contractor)
-    .replaceAll("{{HC_REP_NAME}}", hcRep)
-    .replaceAll("{{PIT_REGISTER_JSON}}", JSON.stringify(pits ?? []))
-    .replaceAll("{{PIT_STATUS_JSON}}", JSON.stringify(pitStatus))
-    .replaceAll("{{BOQ_JSON}}", JSON.stringify(boq ?? []))
-    .replaceAll("{{CREW_TODAY_JSON}}", JSON.stringify(crew ?? []))
-    .replaceAll("{{PLANT_TODAY_JSON}}", JSON.stringify(plant ?? []))
-    .replaceAll("{{VARIATION_CLAUSES_JSON}}", JSON.stringify(clauses ?? []))
-    .replaceAll("{{VARIATION_TRIGGERS_JSON}}", JSON.stringify(triggers ?? []))
-    .replaceAll("{{OPEN_HIRES_JSON}}", JSON.stringify(openHires ?? []));
+  const systemPrompt = projectType === "piling_labour"
+    ? SLACK_PILING_FLOW_PROMPT
+        .replaceAll("{{SUPERVISOR_FIRST_NAME}}", supFirst)
+        .replaceAll("{{TODAY_DATE}}", melbLongDate(today))
+        .replaceAll("{{PROJECT_NAME}}", project.name)
+        .replaceAll("{{HEAD_CONTRACTOR}}", project.head_contractor)
+        .replaceAll("{{PILE_SCHEDULE_JSON}}", JSON.stringify(pileSchedule ?? []))
+        .replaceAll("{{CREW_TODAY_JSON}}", JSON.stringify(crew ?? []))
+        .replaceAll("{{PLANT_TODAY_JSON}}", JSON.stringify(plant ?? []))
+        .replaceAll("{{LABOUR_RATES_JSON}}", JSON.stringify(labourRates ?? []))
+        .replaceAll("{{VARIATION_CLAUSES_JSON}}", JSON.stringify(clauses ?? []))
+        .replaceAll("{{VARIATION_TRIGGERS_JSON}}", JSON.stringify(triggers ?? []))
+    : SLACK_DAILY_FLOW_PROMPT
+        .replaceAll("{{SUPERVISOR_FIRST_NAME}}", supFirst)
+        .replaceAll("{{TODAY_DATE}}", melbLongDate(today))
+        .replaceAll("{{PROJECT_NAME}}", project.name)
+        .replaceAll("{{HEAD_CONTRACTOR}}", project.head_contractor)
+        .replaceAll("{{HC_REP_NAME}}", hcRep)
+        .replaceAll("{{PIT_REGISTER_JSON}}", JSON.stringify(pits ?? []))
+        .replaceAll("{{PIT_STATUS_JSON}}", JSON.stringify(pitStatus))
+        .replaceAll("{{BOQ_JSON}}", JSON.stringify(boq ?? []))
+        .replaceAll("{{CREW_TODAY_JSON}}", JSON.stringify(crew ?? []))
+        .replaceAll("{{PLANT_TODAY_JSON}}", JSON.stringify(plant ?? []))
+        .replaceAll("{{VARIATION_CLAUSES_JSON}}", JSON.stringify(clauses ?? []))
+        .replaceAll("{{VARIATION_TRIGGERS_JSON}}", JSON.stringify(triggers ?? []))
+        .replaceAll("{{OPEN_HIRES_JSON}}", JSON.stringify(openHires ?? []));
 
   // Reconstruct conversation
   const history: ChatMsg[] = Array.isArray(report.message_history)
