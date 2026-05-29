@@ -142,13 +142,22 @@ function Dashboard() {
   return (
     <SiteShell section="Dashboard">
       <div className="space-y-12">
-        <header className="space-y-3">
-          <div className="t-eyebrow">{project?.code ?? "No project loaded"}</div>
-          <h1 className="t-display">{project?.name ?? "Connect a project to begin"}</h1>
-          {project?.head_contractor && (
-            <p className="t-lead">Head contractor {project.head_contractor}. {shortDate(new Date())}.</p>
-          )}
+        <header className="space-y-3 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div className="space-y-3">
+            <div className="t-eyebrow">{project?.code ?? "No project loaded"}</div>
+            <h1 className="t-display">{project?.name ?? "Connect a project to begin"}</h1>
+            {project?.head_contractor && (
+              <p className="t-lead">Head contractor {project.head_contractor}. {shortDate(new Date())}.</p>
+            )}
+          </div>
+          <Link
+            to="/reports"
+            className="inline-flex items-center px-4 py-2 border border-[color:var(--brand)] text-[color:var(--brand)] text-xs uppercase tracking-wider hover:bg-[color:var(--brand)] hover:text-white transition-colors whitespace-nowrap"
+          >
+            View reports →
+          </Link>
         </header>
+
 
         <section>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
