@@ -23,6 +23,7 @@ import { Route as SafetyIndexRouteImport } from './routes/safety.index'
 import { Route as ReportsIndexRouteImport } from './routes/reports.index'
 import { Route as ProcureIndexRouteImport } from './routes/procure.index'
 import { Route as PlantIndexRouteImport } from './routes/plant.index'
+import { Route as PilesIndexRouteImport } from './routes/piles.index'
 import { Route as CrewIndexRouteImport } from './routes/crew.index'
 import { Route as ComplianceIndexRouteImport } from './routes/compliance.index'
 import { Route as VariationsIdRouteImport } from './routes/variations.$id'
@@ -117,6 +118,11 @@ const ProcureIndexRoute = ProcureIndexRouteImport.update({
 const PlantIndexRoute = PlantIndexRouteImport.update({
   id: '/plant/',
   path: '/plant/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PilesIndexRoute = PilesIndexRouteImport.update({
+  id: '/piles/',
+  path: '/piles/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CrewIndexRoute = CrewIndexRouteImport.update({
@@ -270,6 +276,7 @@ export interface FileRoutesByFullPath {
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
   '/crew/': typeof CrewIndexRoute
+  '/piles/': typeof PilesIndexRoute
   '/plant/': typeof PlantIndexRoute
   '/procure/': typeof ProcureIndexRoute
   '/reports/': typeof ReportsIndexRoute
@@ -311,6 +318,7 @@ export interface FileRoutesByTo {
   '/variations/$id': typeof VariationsIdRoute
   '/compliance': typeof ComplianceIndexRoute
   '/crew': typeof CrewIndexRoute
+  '/piles': typeof PilesIndexRoute
   '/plant': typeof PlantIndexRoute
   '/procure': typeof ProcureIndexRoute
   '/reports': typeof ReportsIndexRoute
@@ -353,6 +361,7 @@ export interface FileRoutesById {
   '/variations/$id': typeof VariationsIdRoute
   '/compliance/': typeof ComplianceIndexRoute
   '/crew/': typeof CrewIndexRoute
+  '/piles/': typeof PilesIndexRoute
   '/plant/': typeof PlantIndexRoute
   '/procure/': typeof ProcureIndexRoute
   '/reports/': typeof ReportsIndexRoute
@@ -396,6 +405,7 @@ export interface FileRouteTypes {
     | '/variations/$id'
     | '/compliance/'
     | '/crew/'
+    | '/piles/'
     | '/plant/'
     | '/procure/'
     | '/reports/'
@@ -437,6 +447,7 @@ export interface FileRouteTypes {
     | '/variations/$id'
     | '/compliance'
     | '/crew'
+    | '/piles'
     | '/plant'
     | '/procure'
     | '/reports'
@@ -478,6 +489,7 @@ export interface FileRouteTypes {
     | '/variations/$id'
     | '/compliance/'
     | '/crew/'
+    | '/piles/'
     | '/plant/'
     | '/procure/'
     | '/reports/'
@@ -520,6 +532,7 @@ export interface RootRouteChildren {
   VariationsIdRoute: typeof VariationsIdRoute
   ComplianceIndexRoute: typeof ComplianceIndexRoute
   CrewIndexRoute: typeof CrewIndexRoute
+  PilesIndexRoute: typeof PilesIndexRoute
   PlantIndexRoute: typeof PlantIndexRoute
   ProcureIndexRoute: typeof ProcureIndexRoute
   ReportsIndexRoute: typeof ReportsIndexRoute
@@ -641,6 +654,13 @@ declare module '@tanstack/react-router' {
       path: '/plant'
       fullPath: '/plant/'
       preLoaderRoute: typeof PlantIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/piles/': {
+      id: '/piles/'
+      path: '/piles'
+      fullPath: '/piles/'
+      preLoaderRoute: typeof PilesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/crew/': {
@@ -850,6 +870,7 @@ const rootRouteChildren: RootRouteChildren = {
   VariationsIdRoute: VariationsIdRoute,
   ComplianceIndexRoute: ComplianceIndexRoute,
   CrewIndexRoute: CrewIndexRoute,
+  PilesIndexRoute: PilesIndexRoute,
   PlantIndexRoute: PlantIndexRoute,
   ProcureIndexRoute: ProcureIndexRoute,
   ReportsIndexRoute: ReportsIndexRoute,
