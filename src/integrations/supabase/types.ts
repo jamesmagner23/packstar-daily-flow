@@ -67,6 +67,39 @@ export type Database = {
           },
         ]
       }
+      cage_deliveries: {
+        Row: {
+          count: number
+          created_at: string
+          daily_report_id: string | null
+          delivery_date: string
+          id: string
+          notes: string | null
+          photo_urls: string[]
+          project_id: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          daily_report_id?: string | null
+          delivery_date: string
+          id?: string
+          notes?: string | null
+          photo_urls?: string[]
+          project_id: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          daily_report_id?: string | null
+          delivery_date?: string
+          id?: string
+          notes?: string | null
+          photo_urls?: string[]
+          project_id?: string
+        }
+        Relationships: []
+      }
       classifications: {
         Row: {
           classification: string
@@ -120,6 +153,53 @@ export type Database = {
           type?: string
         }
         Relationships: []
+      }
+      concrete_dockets: {
+        Row: {
+          created_at: string
+          daily_report_id: string | null
+          docket_number: string | null
+          event_date: string
+          id: string
+          photo_url: string | null
+          pile_id: string | null
+          project_id: string
+          supplier: string | null
+          volume_m3: number | null
+        }
+        Insert: {
+          created_at?: string
+          daily_report_id?: string | null
+          docket_number?: string | null
+          event_date: string
+          id?: string
+          photo_url?: string | null
+          pile_id?: string | null
+          project_id: string
+          supplier?: string | null
+          volume_m3?: number | null
+        }
+        Update: {
+          created_at?: string
+          daily_report_id?: string | null
+          docket_number?: string | null
+          event_date?: string
+          id?: string
+          photo_url?: string | null
+          pile_id?: string | null
+          project_id?: string
+          supplier?: string | null
+          volume_m3?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concrete_dockets_pile_id_fkey"
+            columns: ["pile_id"]
+            isOneToOne: false
+            referencedRelation: "pile_schedule"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       crew_members: {
         Row: {
@@ -492,6 +572,45 @@ export type Database = {
         }
         Relationships: []
       }
+      labour_hire_rates: {
+        Row: {
+          active: boolean
+          classification_id: string | null
+          created_at: string
+          day_rate: number | null
+          description: string | null
+          id: string
+          kind: string
+          nt_rate: number | null
+          ot_rate: number | null
+          project_id: string
+        }
+        Insert: {
+          active?: boolean
+          classification_id?: string | null
+          created_at?: string
+          day_rate?: number | null
+          description?: string | null
+          id?: string
+          kind?: string
+          nt_rate?: number | null
+          ot_rate?: number | null
+          project_id: string
+        }
+        Update: {
+          active?: boolean
+          classification_id?: string | null
+          created_at?: string
+          day_rate?: number | null
+          description?: string | null
+          id?: string
+          kind?: string
+          nt_rate?: number | null
+          ot_rate?: number | null
+          project_id?: string
+        }
+        Relationships: []
+      }
       person_competencies: {
         Row: {
           competency_id: string
@@ -619,6 +738,95 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pile_events: {
+        Row: {
+          created_at: string
+          daily_report_id: string | null
+          event_date: string
+          event_type: string
+          id: string
+          notes: string | null
+          person_id: string | null
+          pile_id: string
+          project_id: string
+          volume_m3: number | null
+        }
+        Insert: {
+          created_at?: string
+          daily_report_id?: string | null
+          event_date: string
+          event_type: string
+          id?: string
+          notes?: string | null
+          person_id?: string | null
+          pile_id: string
+          project_id: string
+          volume_m3?: number | null
+        }
+        Update: {
+          created_at?: string
+          daily_report_id?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          notes?: string | null
+          person_id?: string | null
+          pile_id?: string
+          project_id?: string
+          volume_m3?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pile_events_pile_id_fkey"
+            columns: ["pile_id"]
+            isOneToOne: false
+            referencedRelation: "pile_schedule"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pile_schedule: {
+        Row: {
+          created_at: string
+          design_depth_m: number | null
+          design_volume_m3: number | null
+          diameter_mm: number | null
+          id: string
+          notes: string | null
+          pile_ref: string
+          project_id: string
+          sheet_ref: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          design_depth_m?: number | null
+          design_volume_m3?: number | null
+          diameter_mm?: number | null
+          id?: string
+          notes?: string | null
+          pile_ref: string
+          project_id: string
+          sheet_ref?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          design_depth_m?: number | null
+          design_volume_m3?: number | null
+          diameter_mm?: number | null
+          id?: string
+          notes?: string | null
+          pile_ref?: string
+          project_id?: string
+          sheet_ref?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       pits: {
         Row: {
@@ -1065,7 +1273,9 @@ export type Database = {
           package: string | null
           payment_claim_dates: string | null
           payment_claim_method: string | null
+          pile_schedule_url: string | null
           principal: string | null
+          project_type: string
           raw_contract_json: Json | null
           site_address: string | null
           working_days: string | null
@@ -1092,7 +1302,9 @@ export type Database = {
           package?: string | null
           payment_claim_dates?: string | null
           payment_claim_method?: string | null
+          pile_schedule_url?: string | null
           principal?: string | null
+          project_type?: string
           raw_contract_json?: Json | null
           site_address?: string | null
           working_days?: string | null
@@ -1119,7 +1331,9 @@ export type Database = {
           package?: string | null
           payment_claim_dates?: string | null
           payment_claim_method?: string | null
+          pile_schedule_url?: string | null
           principal?: string | null
+          project_type?: string
           raw_contract_json?: Json | null
           site_address?: string | null
           working_days?: string | null

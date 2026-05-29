@@ -1,48 +1,89 @@
-# Option A — supervisor picks their project each evening
+# Piling labour-hire project type
 
-Today the bot assumes one project per supervisor (`supervisors.project_id`). You want supervisors who float between sites (Blake, Ryan, Cormac) to be **asked** which job they were on, then the whole report flow runs against that choice.
+A second project flavour alongside drainage. Same project switcher, same crew/plant plumbing — the daily flow, commercials, and reports branch on `project_type`.
 
-## What changes
+## 1. Data model
 
-### 1. Data
-- Add **Ryan Olsson** as a supervisor row (slack id `U0B6685DL4X`, email `rdolsson01@gmail.com`). He stays in `crew_members` too (he operates plant + supervises — your "Both" choice).
-- Keep `supervisors.project_id` as a **default/home** (not a hard constraint). Set Ryan's home → Thompsons Rd, Blake stays Moonee Valley.
-- Cormac: skip for now, no Slack yet. Add him when his Slack ID lands.
+Add to `projects`:
+- `project_type text not null default 'drainage'` — `'drainage' | 'piling_labour'`
 
-### 2. Evening DM opener (`daily-prompt.ts`)
-Change the opener from "G'day Blake, how'd today go?" to a project picker. Example:
+New tables (all RLS-on, scoped via `project_id`):
 
-> Evening Blake — which job today?
-> • *Moonee Valley* (CC0439)
-> • *Thompsons Rd* (T100)
-> Just type the name (or "MV" / "TR").
+- **`pile_schedule`** — one row per pile from the uploaded schedule
+  - `project_id`, `pile_ref` (e.g. P37-01), `sheet_ref`, `diameter_mm`, `design_depth_m`, `design_volume_m3`, `notes`, `status` ('pending'|'drilled'|'poured'|'complete')
+- **`pile_events`** — drilled/poured events per pile per day
+  - `project_id`, `pile_id`, `event_date`, `event_type` ('drilled'|'poured'|'cage_set'), `person_id`, `daily_report_id`, `volume_m3`, `notes`
+- **`concrete_dockets`** — uploaded docket photos
+  - `project_id`, `pile_id` (nullable), `event_date`, `volume_m3`, `supplier`, `docket_number`, `photo_url`, `daily_report_id`
+- **`cage_deliveries`** — reo cage drops
+  - `project_id`, `delivery_date`, `count`, `photo_urls[]`, `notes`, `daily_report_id`
+- **`labour_hire_rates`** — schedule rates the client pays us
+  - `project_id`, `classification_id` (nullable for ute), `kind` ('labour'|'ute'|'other'), `nt_rate`, `ot_rate`, `day_rate`, `description`
 
-List built dynamically from `projects` where `active = true`.
+New storage buckets: `pile-schedules`, `concrete-dockets`, `cage-photos`.
 
-### 3. Slack webhook (`slack-webhook.ts`)
-New first turn before report creation:
+## 2. Commercials
 
-```text
-no report exists for today
-  → parse supervisor's reply against active projects (name, code, common aliases: "moonee"/"mv", "thompsons"/"tr")
-    → matched: create daily_reports with that project_id, post real opener ("Beauty — wrapping Moonee Valley. How'd it go?")
-    → no match: re-list the active projects and wait
-report exists → existing flow unchanged
-```
+For `project_type = 'piling_labour'`:
+- **Revenue** = Σ (crew hours × labour_hire_rates.nt_rate/ot_rate by classification) + ute day rate × ute-days
+- **Cost** = existing classification EBA cost × hours (unchanged)
+- **Margin** = revenue − cost
+- No BOQ involvement — `lib/evening-summary/compute.ts` branches on project_type.
 
-Aliases live in a small map per project (kept in `projects` table later; hardcoded for now since you only have two).
+## 3. Pile schedule upload
 
-### 4. Reporting
-`daily_reports.project_id` is already set per report, so downstream PDF/email/director DM already attribute correctly — no change needed.
+- New screen `/setup/piles` (only visible when project_type='piling_labour').
+- Upload PDF/CSV; PDF parsed with Lovable AI (gemini-2.5-pro, vision) into `pile_schedule` rows. User reviews + confirms before insert.
+- The uploaded PDF (e.g. `CH 4200 - Pile Schedule - Sheet 37.pdf`) stored in `pile-schedules` bucket and linked on `projects.pile_schedule_url`.
 
-## What does NOT change
-- Pre-start morning flow (operator-driven, already project-agnostic).
-- Director wrap notification.
-- The Today screen.
-- RLS.
+## 4. Slack daily wrap — piling variant
 
-## Open question (won't block — I'll default unless you object)
-If a supervisor accidentally picks the wrong project and replies with wrap text on the same line ("Was at Moonee, knocked out 3 pits"), I'll match the project first then treat the remainder as the start of the wrap. Cleaner than forcing two messages.
+New prompt template in `lib/prompts/` for piling, asked by the bot at end of shift:
+1. Which piles drilled today? (multi-select from outstanding pile_refs)
+2. Any concrete pours? → for each: pile_ref, m³, docket photo upload
+3. Cages delivered? → count + photos
+4. Plant pre-starts confirmed (existing flow)
+5. SWMS sign-on (later — flagging out of scope unless wanted now)
+6. Issues / variations (existing trigger keyword scan)
 
-## Risk
-Small. The picker only runs when no report exists for the day. If parsing fails three times the bot just keeps asking — supervisor can ping you to fix.
+Slack webhook handler branches on `project_type` to pick the prompt set. Photos uploaded via Slack get pushed to the right bucket and linked to the relevant `pile_events` / `concrete_dockets` / `cage_deliveries` row.
+
+## 5. Reports — two new sub-tabs
+
+Under `/overview` (or a new top-level `/project-reports` if you prefer), add tabs that appear only for piling projects:
+
+**Client tab** (`/reports/client`)
+- Date, piles drilled today (refs), concrete poured (m³ + docket thumbnails), cages delivered, photo gallery, supervisor signoff.
+- "Export PDF" — branded, share with head contractor.
+
+**Internal tab** (`/reports/internal`)
+- Pile schedule burn-down (X of Y complete, % done, ahead/behind est)
+- Daily revenue / cost / margin (same KPI band component, fed from piling commercials)
+- Plant utilisation, crew hours
+
+## 6. UI surface changes
+
+- Project switcher: group projects by type (Drainage / Piling labour-hire).
+- Nav: hide `/variations` and BOQ-driven `/reports` rows for piling projects; show piles + client-report instead.
+- New `/setup/piles` and `/setup/labour-hire-rates` screens.
+
+## 7. Build order (so it's usable early)
+
+1. Schema migration + GRANTs + RLS + storage buckets
+2. `labour_hire_rates` admin screen + project_type toggle on project setup
+3. Pile schedule PDF upload + AI parse + review screen
+4. Piling commercials in compute.ts + KPI band feeds
+5. Slack piling wrap prompt + concrete docket / cage capture flows
+6. Client report tab + PDF export
+7. Internal dashboard tab (pile burn-down + $)
+
+## Technical notes
+
+- All new tables: `GRANT SELECT, INSERT, UPDATE, DELETE ... TO authenticated; GRANT ALL ... TO service_role;` + RLS policies mirroring existing project-scoped patterns.
+- PDF parse uses Lovable AI Gateway (`google/gemini-2.5-pro`, no extra API key).
+- Server-side logic via `createServerFn` — no new edge functions.
+- The uploaded `CH 4200 - Pile Schedule - Sheet 37.pdf` will be used as the first test fixture for the parser.
+
+---
+
+Want me to ship in the order above, or shuffle (e.g. Slack flow first, dashboard later)?
