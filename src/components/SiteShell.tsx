@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
-  TrendingUp,
+  LayoutDashboard,
+  Briefcase,
   Users,
   ClipboardCheck,
   HardHat,
-  BarChart3,
   Truck,
+  BarChart3,
   Menu,
   X,
   ChevronLeft,
@@ -28,55 +29,87 @@ type Tab = {
   subNav?: SubNavItem[];
 };
 
-const TABS: Tab[] = [
-  {
-    key: "finance",
-    label: "Finance",
-    to: "/",
-    icon: TrendingUp,
-    paths: ["/", "/overview", "/variations", "/reports", "/setup", "/piles"],
-    subNav: [
-      { to: "/overview", label: "Overview" },
-      { to: "/", label: "Dashboard" },
-      { to: "/variations", label: "Variations" },
-      { to: "/reports", label: "Reports" },
-      { to: "/piles", label: "Pile schedule" },
-      { to: "/piles/rates", label: "Labour-hire rates" },
-      { to: "/setup", label: "Project setup" },
-    ],
-  },
-  {
-    key: "people",
-    label: "People",
-    to: "/crew",
-    icon: Users,
-    paths: ["/people", "/crew", "/tickets", "/sites"],
-    subNav: [
-      { to: "/crew", label: "Crew" },
-      { to: "/tickets", label: "Tickets" },
-      { to: "/sites", label: "Sites" },
-      { to: "/people/team", label: "Team" },
-      { to: "/people/roles", label: "Roles" },
-      { to: "/people/training", label: "Training" },
-    ],
-  },
-  { key: "compliance", label: "Compliance", to: "/compliance", icon: ClipboardCheck, paths: ["/compliance"] },
-  { key: "safety", label: "Safety", to: "/safety", icon: HardHat, paths: ["/safety"] },
-  { key: "plant", label: "Plant", to: "/plant", icon: Truck, paths: ["/plant"] },
-  { key: "utilisation", label: "Utilisation", to: "/utilisation", icon: BarChart3, paths: ["/utilisation"] },
-  {
-    key: "procure",
-    label: "Procure",
-    to: "/procure",
-    icon: Truck,
-    paths: ["/procure"],
-    subNav: [
-      { to: "/procure", label: "Overview" },
-      { to: "/procure/suppliers", label: "Suppliers" },
-      { to: "/procure/equipment", label: "Equipment Catalogue" },
-    ],
-  },
-];
+function getTabs(projectType: "drainage" | "piling_labour"): Tab[] {
+  const projectPaths = [
+    "/", "/variations", "/reports", "/setup", "/piles", "/compliance", "/safety",
+  ];
+  const projectSubNav: SubNavItem[] =
+    projectType === "piling_labour"
+      ? [
+          { to: "/", label: "Dashboard" },
+          { to: "/piles", label: "Pile schedule" },
+          { to: "/compliance", label: "Compliance" },
+          { to: "/safety", label: "Safety" },
+          { to: "/reports", label: "Reports" },
+          { to: "/piles/rates", label: "Labour-hire rates" },
+          { to: "/setup", label: "Project setup" },
+        ]
+      : [
+          { to: "/", label: "Dashboard" },
+          { to: "/variations", label: "Variations" },
+          { to: "/compliance", label: "Compliance" },
+          { to: "/safety", label: "Safety" },
+          { to: "/reports", label: "Reports" },
+          { to: "/setup", label: "Project setup" },
+        ];
+
+  return [
+    {
+      key: "overview",
+      label: "Overview",
+      to: "/overview",
+      icon: LayoutDashboard,
+      paths: ["/overview"],
+    },
+    {
+      key: "project",
+      label: "Project",
+      to: "/",
+      icon: Briefcase,
+      paths: projectPaths,
+      subNav: projectSubNav,
+    },
+    {
+      key: "people",
+      label: "People",
+      to: "/crew",
+      icon: Users,
+      paths: ["/people", "/crew", "/tickets", "/sites"],
+      subNav: [
+        { to: "/crew", label: "Crew" },
+        { to: "/tickets", label: "Tickets" },
+        { to: "/sites", label: "Sites" },
+        { to: "/people/team", label: "Team" },
+        { to: "/people/roles", label: "Roles" },
+        { to: "/people/training", label: "Training" },
+      ],
+    },
+    {
+      key: "plant",
+      label: "Plant",
+      to: "/plant",
+      icon: Truck,
+      paths: ["/plant", "/utilisation"],
+      subNav: [
+        { to: "/plant", label: "Fleet" },
+        { to: "/utilisation", label: "Utilisation" },
+      ],
+    },
+    {
+      key: "procure",
+      label: "Procure",
+      to: "/procure",
+      icon: BarChart3,
+      paths: ["/procure"],
+      subNav: [
+        { to: "/procure", label: "Overview" },
+        { to: "/procure/suppliers", label: "Suppliers" },
+        { to: "/procure/equipment", label: "Equipment Catalogue" },
+      ],
+    },
+  ];
+}
+
 
 
 function matchPath(path: string, prefix: string) {
