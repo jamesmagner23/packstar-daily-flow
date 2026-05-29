@@ -34,12 +34,14 @@ const TABS: Tab[] = [
     label: "Finance",
     to: "/",
     icon: TrendingUp,
-    paths: ["/", "/overview", "/variations", "/reports", "/setup"],
+    paths: ["/", "/overview", "/variations", "/reports", "/setup", "/piles"],
     subNav: [
       { to: "/overview", label: "Overview" },
       { to: "/", label: "Dashboard" },
       { to: "/variations", label: "Variations" },
       { to: "/reports", label: "Reports" },
+      { to: "/piles", label: "Pile schedule" },
+      { to: "/piles/rates", label: "Labour-hire rates" },
       { to: "/setup", label: "Project setup" },
     ],
   },
@@ -75,6 +77,7 @@ const TABS: Tab[] = [
     ],
   },
 ];
+
 
 function matchPath(path: string, prefix: string) {
   return prefix === "/" ? path === "/" : path === prefix || path.startsWith(prefix + "/");

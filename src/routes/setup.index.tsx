@@ -173,19 +173,24 @@ function SetupPage() {
       </nav>
 
       {tab === "Contract" && project && (
-        <KeyValue rows={[
-          ["Code", project.code],
-          ["Head contractor", project.head_contractor],
-          ["Principal", project.principal],
-          ["Package", project.package],
-          ["Contract date", shortDate(project.contract_date)],
-          ["Contract type", project.contract_type],
-          ["Site address", project.site_address],
-          ["Working hours", `${project.working_hours_start ?? "?"} – ${project.working_hours_end ?? "?"}`],
-          ["Defects liability", project.defects_liability_period_months ? `${project.defects_liability_period_months} months` : "—"],
-          ["LD cap", project.liquidated_damages_cap_pct_of_contract ? `${project.liquidated_damages_cap_pct_of_contract}%` : "—"],
-        ]} />
+        <>
+          <ProjectTypeToggle project={project} onChange={() => qc.invalidateQueries()} />
+          <KeyValue rows={[
+            ["Code", project.code],
+            ["Project type", project.project_type === "piling_labour" ? "Piling — labour hire" : "Drainage"],
+            ["Head contractor", project.head_contractor],
+            ["Principal", project.principal],
+            ["Package", project.package],
+            ["Contract date", shortDate(project.contract_date)],
+            ["Contract type", project.contract_type],
+            ["Site address", project.site_address],
+            ["Working hours", `${project.working_hours_start ?? "?"} – ${project.working_hours_end ?? "?"}`],
+            ["Defects liability", project.defects_liability_period_months ? `${project.defects_liability_period_months} months` : "—"],
+            ["LD cap", project.liquidated_damages_cap_pct_of_contract ? `${project.liquidated_damages_cap_pct_of_contract}%` : "—"],
+          ]} />
+        </>
       )}
+
       {tab === "Portions" && <SimpleTable rows={portions} cols={[["code","Code"],["name","Name"],["commencement","Start",shortDate],["completion","Finish",shortDate],["ld_per_day_aud","LD/day"]]} />}
       {tab === "BOQ" && <SimpleTable rows={boq} cols={[["ref","Ref"],["category","Category"],["description","Description"],["unit","Unit"],["rate","Rate"]]} />}
       {tab === "Pits" && <SimpleTable rows={pits} cols={[["pit_id","Pit"],["separable_portion_code","SP"],["status","Status"]]} />}
@@ -233,3 +238,33 @@ function SimpleTable({ rows, cols }: { rows: any[]; cols: Col[] }) {
     </div>
   );
 }
+
+function ProjectTypeToggle({ project, onChange }: { project: any; onChange: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const current = project.project_type ?? "drainage";
+  async function setType(t: "drainage" | "piling_labour") {
+    if (t === current) return;
+    setBusy(true);
+    await supabase.from("projects").update({ project_type: t }).eq("id", project.id);
+    setBusy(false);
+    onChange();
+  }
+  return (
+    <div className="hairline pt-4 mb-6 flex items-center gap-3">
+      <span className="t-stat-label">Project type</span>
+      <div className="inline-flex border border-rule rounded overflow-hidden">
+        {([["drainage", "Drainage"], ["piling_labour", "Piling — labour hire"]] as const).map(([k, l]) => (
+          <button
+            key={k}
+            disabled={busy}
+            onClick={() => setType(k)}
+            className={`text-xs uppercase tracking-[0.14em] font-semibold px-3 py-1.5 ${current === k ? "bg-[color:var(--brand)] text-white" : "text-meta hover:text-ink"}`}
+          >
+            {l}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
