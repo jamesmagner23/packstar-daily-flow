@@ -121,8 +121,11 @@ const PROJECT_KEY = "pacchq.project.id";
 
 export function SiteShell({ section, children }: { section: string; children: React.ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const activeTab = TABS.find((t) => t.paths.some((p) => matchPath(path, p))) ?? null;
+  const projectType = useActiveProjectType();
+  const tabs = getTabs(projectType);
+  const activeTab = tabs.find((t) => t.paths.some((p) => matchPath(path, p))) ?? null;
   const subNav = activeTab?.subNav;
+
 
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
