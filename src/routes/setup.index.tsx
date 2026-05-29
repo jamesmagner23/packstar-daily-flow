@@ -226,11 +226,11 @@ function SimpleTable({ rows, cols }: { rows: any[]; cols: Col[] }) {
   return (
     <div className="hairline pt-4 overflow-x-auto">
       <table className="w-full text-left">
-        <thead><tr className="t-stat-label">{cols.map(([, label]) => <th key={label} className="py-2 font-semibold">{label}</th>)}</tr></thead>
+        <thead><tr className="t-stat-label">{cols.map((c) => <th key={c[1]} className="py-2 font-semibold">{c[1]}</th>)}</tr></thead>
         <tbody>
           {rows.map((r, i) => (
             <tr key={i} className="border-t border-rule">
-              {cols.map(([k, , fmt]) => <td key={k} className="py-3 text-xs">{fmt ? fmt(r[k]) : (r[k] ?? "—")}</td>)}
+              {cols.map((c) => <td key={c[0]} className="py-3 text-xs">{c[2] ? c[2](r[c[0]]) : (r[c[0]] ?? "—")}</td>)}
             </tr>
           ))}
         </tbody>

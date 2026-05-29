@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
-  TrendingUp,
+  LayoutDashboard,
+  Briefcase,
   Users,
   ClipboardCheck,
   HardHat,
-  BarChart3,
   Truck,
+  BarChart3,
   Menu,
   X,
   ChevronLeft,
@@ -28,55 +29,87 @@ type Tab = {
   subNav?: SubNavItem[];
 };
 
-const TABS: Tab[] = [
-  {
-    key: "finance",
-    label: "Finance",
-    to: "/",
-    icon: TrendingUp,
-    paths: ["/", "/overview", "/variations", "/reports", "/setup", "/piles"],
-    subNav: [
-      { to: "/overview", label: "Overview" },
-      { to: "/", label: "Dashboard" },
-      { to: "/variations", label: "Variations" },
-      { to: "/reports", label: "Reports" },
-      { to: "/piles", label: "Pile schedule" },
-      { to: "/piles/rates", label: "Labour-hire rates" },
-      { to: "/setup", label: "Project setup" },
-    ],
-  },
-  {
-    key: "people",
-    label: "People",
-    to: "/crew",
-    icon: Users,
-    paths: ["/people", "/crew", "/tickets", "/sites"],
-    subNav: [
-      { to: "/crew", label: "Crew" },
-      { to: "/tickets", label: "Tickets" },
-      { to: "/sites", label: "Sites" },
-      { to: "/people/team", label: "Team" },
-      { to: "/people/roles", label: "Roles" },
-      { to: "/people/training", label: "Training" },
-    ],
-  },
-  { key: "compliance", label: "Compliance", to: "/compliance", icon: ClipboardCheck, paths: ["/compliance"] },
-  { key: "safety", label: "Safety", to: "/safety", icon: HardHat, paths: ["/safety"] },
-  { key: "plant", label: "Plant", to: "/plant", icon: Truck, paths: ["/plant"] },
-  { key: "utilisation", label: "Utilisation", to: "/utilisation", icon: BarChart3, paths: ["/utilisation"] },
-  {
-    key: "procure",
-    label: "Procure",
-    to: "/procure",
-    icon: Truck,
-    paths: ["/procure"],
-    subNav: [
-      { to: "/procure", label: "Overview" },
-      { to: "/procure/suppliers", label: "Suppliers" },
-      { to: "/procure/equipment", label: "Equipment Catalogue" },
-    ],
-  },
-];
+function getTabs(projectType: "drainage" | "piling_labour"): Tab[] {
+  const projectPaths = [
+    "/", "/variations", "/reports", "/setup", "/piles", "/compliance", "/safety",
+  ];
+  const projectSubNav: SubNavItem[] =
+    projectType === "piling_labour"
+      ? [
+          { to: "/", label: "Dashboard" },
+          { to: "/piles", label: "Pile schedule" },
+          { to: "/compliance", label: "Compliance" },
+          { to: "/safety", label: "Safety" },
+          { to: "/reports", label: "Reports" },
+          { to: "/piles/rates", label: "Labour-hire rates" },
+          { to: "/setup", label: "Project setup" },
+        ]
+      : [
+          { to: "/", label: "Dashboard" },
+          { to: "/variations", label: "Variations" },
+          { to: "/compliance", label: "Compliance" },
+          { to: "/safety", label: "Safety" },
+          { to: "/reports", label: "Reports" },
+          { to: "/setup", label: "Project setup" },
+        ];
+
+  return [
+    {
+      key: "overview",
+      label: "Overview",
+      to: "/overview",
+      icon: LayoutDashboard,
+      paths: ["/overview"],
+    },
+    {
+      key: "project",
+      label: "Project",
+      to: "/",
+      icon: Briefcase,
+      paths: projectPaths,
+      subNav: projectSubNav,
+    },
+    {
+      key: "people",
+      label: "People",
+      to: "/crew",
+      icon: Users,
+      paths: ["/people", "/crew", "/tickets", "/sites"],
+      subNav: [
+        { to: "/crew", label: "Crew" },
+        { to: "/tickets", label: "Tickets" },
+        { to: "/sites", label: "Sites" },
+        { to: "/people/team", label: "Team" },
+        { to: "/people/roles", label: "Roles" },
+        { to: "/people/training", label: "Training" },
+      ],
+    },
+    {
+      key: "plant",
+      label: "Plant",
+      to: "/plant",
+      icon: Truck,
+      paths: ["/plant", "/utilisation"],
+      subNav: [
+        { to: "/plant", label: "Fleet" },
+        { to: "/utilisation", label: "Utilisation" },
+      ],
+    },
+    {
+      key: "procure",
+      label: "Procure",
+      to: "/procure",
+      icon: BarChart3,
+      paths: ["/procure"],
+      subNav: [
+        { to: "/procure", label: "Overview" },
+        { to: "/procure/suppliers", label: "Suppliers" },
+        { to: "/procure/equipment", label: "Equipment Catalogue" },
+      ],
+    },
+  ];
+}
+
 
 
 function matchPath(path: string, prefix: string) {
@@ -86,10 +119,50 @@ function matchPath(path: string, prefix: string) {
 const SIDEBAR_COLLAPSED_KEY = "pacchq.sidebar.collapsed";
 const PROJECT_KEY = "pacchq.project.id";
 
+function useActiveProjectId(): string | null {
+  const [id, setId] = useState<string | null>(null);
+  useEffect(() => {
+    try { setId(localStorage.getItem(PROJECT_KEY)); } catch {}
+    function onStorage(e: StorageEvent) {
+      if (e.key === PROJECT_KEY) setId(e.newValue);
+    }
+    window.addEventListener("storage", onStorage);
+    const t = setInterval(() => {
+      try {
+        const v = localStorage.getItem(PROJECT_KEY);
+        setId((cur) => (cur === v ? cur : v));
+      } catch {}
+    }, 500);
+    return () => { window.removeEventListener("storage", onStorage); clearInterval(t); };
+  }, []);
+  return id;
+}
+
+function useActiveProjectType(): "drainage" | "piling_labour" {
+  const id = useActiveProjectId();
+  const { data } = useQuery({
+    queryKey: ["active-project-type", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("projects")
+        .select("project_type")
+        .eq("id", id!)
+        .maybeSingle();
+      return (data?.project_type ?? "drainage") as "drainage" | "piling_labour";
+    },
+  });
+  return data ?? "drainage";
+}
+
+
 export function SiteShell({ section, children }: { section: string; children: React.ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const activeTab = TABS.find((t) => t.paths.some((p) => matchPath(path, p))) ?? null;
+  const projectType = useActiveProjectType();
+  const tabs = getTabs(projectType);
+  const activeTab = tabs.find((t) => t.paths.some((p) => matchPath(path, p))) ?? null;
   const subNav = activeTab?.subNav;
+
 
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -240,10 +313,13 @@ function SidebarNav({
   activeKey: string | null;
   onItemClick?: () => void;
 }) {
+  const projectType = useActiveProjectType();
+  const tabs = getTabs(projectType);
   return (
     <nav className="flex-1 overflow-y-auto py-3">
       <ul className="flex flex-col gap-0.5 px-2">
-        {TABS.map((t) => {
+        {tabs.map((t) => {
+
           const active = t.key === activeKey;
           const Icon = t.icon;
           return (
