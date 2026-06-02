@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell } from "@/components/SiteShell";
 import { shortDate } from "@/lib/format";
+import { PROJECT_TYPE_OPTIONS, projectTypeLabel, normalizeProjectType, type ProjectType } from "@/lib/project-types";
+
 
 export const Route = createFileRoute("/setup/")({
   head: () => ({ meta: [{ title: "Project setup — PACC HQ" }] }),
@@ -203,7 +205,7 @@ function SetupPage() {
           >
             {allProjects.map((p: any) => (
               <option key={p.id} value={p.id}>
-                {p.code} — {p.name} ({p.project_type === "piling_labour" ? "Piling" : "Drainage"})
+                {p.code} — {p.name} ({projectTypeLabel(p.project_type)})
               </option>
             ))}
           </select>
@@ -230,7 +232,7 @@ function SetupPage() {
           <ProjectTypeToggle project={project} onChange={() => qc.invalidateQueries()} />
           <KeyValue rows={[
             ["Code", project.code],
-            ["Project type", project.project_type === "piling_labour" ? "Piling — labour hire" : "Drainage"],
+            ["Project type", projectTypeLabel(project.project_type)],
             ["Head contractor", project.head_contractor],
             ["Principal", project.principal],
             ["Package", project.package],
@@ -294,8 +296,8 @@ function SimpleTable({ rows, cols }: { rows: any[]; cols: Col[] }) {
 
 function ProjectTypeToggle({ project, onChange }: { project: any; onChange: () => void }) {
   const [busy, setBusy] = useState(false);
-  const current = project.project_type ?? "drainage";
-  async function setType(t: "drainage" | "piling_labour") {
+  const current = normalizeProjectType(project.project_type);
+  async function setType(t: ProjectType) {
     if (t === current) return;
     setBusy(true);
     await supabase.from("projects").update({ project_type: t }).eq("id", project.id);
@@ -303,17 +305,18 @@ function ProjectTypeToggle({ project, onChange }: { project: any; onChange: () =
     onChange();
   }
   return (
-    <div className="hairline pt-4 mb-6 flex items-center gap-3">
-      <span className="t-stat-label">Project type</span>
-      <div className="inline-flex border border-rule rounded overflow-hidden">
-        {([["drainage", "Drainage"], ["piling_labour", "Piling — labour hire"]] as const).map(([k, l]) => (
+    <div className="hairline pt-4 mb-6 flex items-start gap-3 flex-wrap">
+      <span className="t-stat-label pt-2">Project type</span>
+      <div className="inline-flex border border-rule rounded overflow-hidden flex-wrap">
+        {PROJECT_TYPE_OPTIONS.map((opt) => (
           <button
-            key={k}
+            key={opt.value}
             disabled={busy}
-            onClick={() => setType(k)}
-            className={`text-xs uppercase tracking-[0.14em] font-semibold px-3 py-1.5 ${current === k ? "bg-[color:var(--brand)] text-white" : "text-meta hover:text-ink"}`}
+            title={opt.hint}
+            onClick={() => setType(opt.value)}
+            className={`text-xs uppercase tracking-[0.14em] font-semibold px-3 py-1.5 ${current === opt.value ? "bg-[color:var(--brand)] text-white" : "text-meta hover:text-ink"}`}
           >
-            {l}
+            {opt.label}
           </button>
         ))}
       </div>
@@ -322,11 +325,12 @@ function ProjectTypeToggle({ project, onChange }: { project: any; onChange: () =
 }
 
 
+
 function NewProjectDialog({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [headContractor, setHeadContractor] = useState("");
-  const [projectType, setProjectType] = useState<"drainage" | "piling_labour">("drainage");
+  const [projectType, setProjectType] = useState<ProjectType>("lump_sum");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -368,10 +372,12 @@ function NewProjectDialog({ onClose, onCreated }: { onClose: () => void; onCreat
           </label>
           <label className="flex flex-col gap-1">
             <span className="t-stat-label">Project type</span>
-            <select value={projectType} onChange={(e) => setProjectType(e.target.value as any)} className="border border-rule px-3 py-1.5 text-sm bg-white">
-              <option value="drainage">Drainage</option>
-              <option value="piling_labour">Piling — labour hire</option>
+            <select value={projectType} onChange={(e) => setProjectType(e.target.value as ProjectType)} className="border border-rule px-3 py-1.5 text-sm bg-white">
+              {PROJECT_TYPE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label} — {opt.hint}</option>
+              ))}
             </select>
+
           </label>
           {err && <p className="text-xs text-red-600">{err}</p>}
         </div>

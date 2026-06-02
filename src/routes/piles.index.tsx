@@ -132,9 +132,10 @@ function PilesPage() {
         </div>
       </header>
 
-      {project && project.project_type !== "piling_labour" && (
-        <p className="text-xs text-meta mb-6">This is a drainage project. The pile schedule is only used on piling labour-hire projects — switch project type in Setup.</p>
+      {project && project.project_type !== "labour_hire" && project.project_type !== "piling_labour" && (
+        <p className="text-xs text-meta mb-6">The pile schedule is only used on labour-hire (wet hire) projects — switch project type in Setup.</p>
       )}
+
 
       {total > 0 && !draft && (
         <div className="hairline pt-6 mb-8 grid grid-cols-3 gap-6">
