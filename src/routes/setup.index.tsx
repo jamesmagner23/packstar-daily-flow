@@ -18,14 +18,27 @@ function SetupPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [showNew, setShowNew] = useState(false);
+
+  const { data: allProjects = [] } = useQuery({
+    queryKey: ["projects-all"],
+    queryFn: async () => (await supabase.from("projects").select("id,code,name,project_type,active").order("code")).data ?? [],
+  });
 
   const { data: project } = useQuery({
     queryKey: ["project-active"],
     queryFn: async () => {
+      let id: string | null = null;
+      try { id = localStorage.getItem("pacchq.project.id"); } catch {}
+      if (id) {
+        const { data } = await supabase.from("projects").select("*").eq("id", id).maybeSingle();
+        if (data) return data;
+      }
       const { data } = await supabase.from("projects").select("*").eq("active", true).limit(1).maybeSingle();
       return data;
     },
   });
+
 
   const { data: portions = [] } = useQuery({
     queryKey: ["setup-portions", project?.id],
