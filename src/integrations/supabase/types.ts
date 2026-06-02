@@ -1858,6 +1858,8 @@ export type Database = {
         }
         Returns: string
       }
+      is_admin: { Args: never; Returns: boolean }
+      is_admin_or_supervisor: { Args: never; Returns: boolean }
       reconcile_timesheets: {
         Args: { p_work_date: string }
         Returns: {
