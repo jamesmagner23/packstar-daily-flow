@@ -559,9 +559,11 @@ async function processEvent(body: any) {
 
   const pitStatus = buildPitStatus(pits ?? [], priorReports ?? []);
   const hcRep = (project as any).head_contractor_rep ?? "the head contractor's rep";
-  const projectType = ((project as any).project_type ?? "drainage") as "drainage" | "piling_labour";
+  const rawType = (project as any).project_type ?? "lump_sum";
+  const projectType = rawType === "piling_labour" ? "labour_hire" : rawType;
 
-  const systemPrompt = projectType === "piling_labour"
+  const systemPrompt = projectType === "labour_hire"
+
     ? SLACK_PILING_FLOW_PROMPT
         .replaceAll("{{SUPERVISOR_FIRST_NAME}}", supFirst)
         .replaceAll("{{TODAY_DATE}}", melbLongDate(today))
