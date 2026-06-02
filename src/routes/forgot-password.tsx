@@ -12,6 +12,16 @@ function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  function getResetRedirectUrl() {
+    const publicOrigin = "https://packstar-daily-flow.lovable.app";
+    const currentOrigin = window.location.origin;
+    const isPrivatePreview =
+      window.location.hostname.includes("lovableproject.com") ||
+      window.location.hostname.startsWith("id-preview--");
+
+    return `${isPrivatePreview ? publicOrigin : currentOrigin}/reset-password`;
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -19,7 +29,7 @@ function ForgotPasswordPage() {
     if (!trimmed) return setError("Enter your email address.");
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: getResetRedirectUrl(),
     });
     setLoading(false);
     if (error) return setError(error.message);
