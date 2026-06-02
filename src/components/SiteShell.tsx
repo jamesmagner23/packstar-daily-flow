@@ -8,6 +8,7 @@ import {
   HardHat,
   Truck,
   BarChart3,
+  CalendarDays,
   Menu,
   X,
   ChevronLeft,
@@ -65,6 +66,13 @@ function getTabs(projectType: ProjectType): Tab[] {
 
 
   return [
+    {
+      key: "today",
+      label: "Daily site",
+      to: "/today",
+      icon: CalendarDays,
+      paths: ["/today"],
+    },
     {
       key: "overview",
       label: "Overview",
