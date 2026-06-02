@@ -372,10 +372,12 @@ function NewProjectDialog({ onClose, onCreated }: { onClose: () => void; onCreat
           </label>
           <label className="flex flex-col gap-1">
             <span className="t-stat-label">Project type</span>
-            <select value={projectType} onChange={(e) => setProjectType(e.target.value as any)} className="border border-rule px-3 py-1.5 text-sm bg-white">
-              <option value="drainage">Drainage</option>
-              <option value="piling_labour">Piling — labour hire</option>
+            <select value={projectType} onChange={(e) => setProjectType(e.target.value as ProjectType)} className="border border-rule px-3 py-1.5 text-sm bg-white">
+              {PROJECT_TYPE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label} — {opt.hint}</option>
+              ))}
             </select>
+
           </label>
           {err && <p className="text-xs text-red-600">{err}</p>}
         </div>
