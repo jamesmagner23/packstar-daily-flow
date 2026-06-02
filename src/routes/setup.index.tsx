@@ -330,7 +330,7 @@ function NewProjectDialog({ onClose, onCreated }: { onClose: () => void; onCreat
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [headContractor, setHeadContractor] = useState("");
-  const [projectType, setProjectType] = useState<"drainage" | "piling_labour">("drainage");
+  const [projectType, setProjectType] = useState<ProjectType>("lump_sum");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
