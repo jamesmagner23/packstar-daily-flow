@@ -9,6 +9,7 @@ export const Route = createFileRoute("/reset-password")({
 function ResetPasswordPage() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
+  const [invalidLink, setInvalidLink] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -17,13 +18,25 @@ function ResetPasswordPage() {
 
   useEffect(() => {
     // Supabase auto-consumes the recovery token from the URL hash and creates a session.
+    const validationTimer = window.setTimeout(() => setInvalidLink(true), 4500);
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+        window.clearTimeout(validationTimer);
+        setInvalidLink(false);
+        setReady(true);
+      }
     });
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setReady(true);
+      if (data.session) {
+        window.clearTimeout(validationTimer);
+        setInvalidLink(false);
+        setReady(true);
+      }
     });
-    return () => subscription.unsubscribe();
+    return () => {
+      window.clearTimeout(validationTimer);
+      subscription.unsubscribe();
+    };
   }, []);
 
   async function onSubmit(e: React.FormEvent) {
@@ -53,6 +66,11 @@ function ResetPasswordPage() {
         <div className="bg-white border border-rule rounded-2xl p-7 shadow-xl shadow-neutral-900/5">
           {done ? (
             <p className="text-sm text-emerald-700 text-center">Password updated. Redirecting…</p>
+          ) : invalidLink ? (
+            <div className="space-y-4 text-center">
+              <p className="text-sm text-ink">This reset link is missing, expired, or was created before the latest update.</p>
+              <a href="/forgot-password" className="inline-block text-sm text-[color:var(--brand)] hover:underline font-medium">Send a new reset link</a>
+            </div>
           ) : !ready ? (
             <p className="text-sm text-meta text-center">Validating reset link…</p>
           ) : (
