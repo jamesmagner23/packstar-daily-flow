@@ -205,7 +205,7 @@ function SetupPage() {
           >
             {allProjects.map((p: any) => (
               <option key={p.id} value={p.id}>
-                {p.code} — {p.name} ({p.project_type === "piling_labour" ? "Piling" : "Drainage"})
+                {p.code} — {p.name} ({projectTypeLabel(p.project_type)})
               </option>
             ))}
           </select>
