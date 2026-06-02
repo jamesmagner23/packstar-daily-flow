@@ -149,7 +149,7 @@ function useActiveProjectId(): string | null {
   return id;
 }
 
-function useActiveProjectType(): "drainage" | "piling_labour" {
+function useActiveProjectType(): ProjectType {
   const id = useActiveProjectId();
   const { data } = useQuery({
     queryKey: ["active-project-type", id],
@@ -160,11 +160,12 @@ function useActiveProjectType(): "drainage" | "piling_labour" {
         .select("project_type")
         .eq("id", id!)
         .maybeSingle();
-      return (data?.project_type ?? "drainage") as "drainage" | "piling_labour";
+      return normalizeProjectType(data?.project_type);
     },
   });
-  return data ?? "drainage";
+  return data ?? "lump_sum";
 }
+
 
 
 export function SiteShell({ section, children }: { section: string; children: React.ReactNode }) {
