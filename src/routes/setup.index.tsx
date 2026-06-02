@@ -296,8 +296,8 @@ function SimpleTable({ rows, cols }: { rows: any[]; cols: Col[] }) {
 
 function ProjectTypeToggle({ project, onChange }: { project: any; onChange: () => void }) {
   const [busy, setBusy] = useState(false);
-  const current = project.project_type ?? "drainage";
-  async function setType(t: "drainage" | "piling_labour") {
+  const current = normalizeProjectType(project.project_type);
+  async function setType(t: ProjectType) {
     if (t === current) return;
     setBusy(true);
     await supabase.from("projects").update({ project_type: t }).eq("id", project.id);
@@ -305,23 +305,25 @@ function ProjectTypeToggle({ project, onChange }: { project: any; onChange: () =
     onChange();
   }
   return (
-    <div className="hairline pt-4 mb-6 flex items-center gap-3">
-      <span className="t-stat-label">Project type</span>
-      <div className="inline-flex border border-rule rounded overflow-hidden">
-        {([["drainage", "Drainage"], ["piling_labour", "Piling — labour hire"]] as const).map(([k, l]) => (
+    <div className="hairline pt-4 mb-6 flex items-start gap-3 flex-wrap">
+      <span className="t-stat-label pt-2">Project type</span>
+      <div className="inline-flex border border-rule rounded overflow-hidden flex-wrap">
+        {PROJECT_TYPE_OPTIONS.map((opt) => (
           <button
-            key={k}
+            key={opt.value}
             disabled={busy}
-            onClick={() => setType(k)}
-            className={`text-xs uppercase tracking-[0.14em] font-semibold px-3 py-1.5 ${current === k ? "bg-[color:var(--brand)] text-white" : "text-meta hover:text-ink"}`}
+            title={opt.hint}
+            onClick={() => setType(opt.value)}
+            className={`text-xs uppercase tracking-[0.14em] font-semibold px-3 py-1.5 ${current === opt.value ? "bg-[color:var(--brand)] text-white" : "text-meta hover:text-ink"}`}
           >
-            {l}
+            {opt.label}
           </button>
         ))}
       </div>
     </div>
   );
 }
+
 
 
 function NewProjectDialog({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
