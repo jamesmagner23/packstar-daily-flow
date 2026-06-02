@@ -18,14 +18,27 @@ function SetupPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [showNew, setShowNew] = useState(false);
+
+  const { data: allProjects = [] } = useQuery({
+    queryKey: ["projects-all"],
+    queryFn: async () => (await supabase.from("projects").select("id,code,name,project_type,active").order("code")).data ?? [],
+  });
 
   const { data: project } = useQuery({
     queryKey: ["project-active"],
     queryFn: async () => {
+      let id: string | null = null;
+      try { id = localStorage.getItem("pacchq.project.id"); } catch {}
+      if (id) {
+        const { data } = await supabase.from("projects").select("*").eq("id", id).maybeSingle();
+        if (data) return data;
+      }
       const { data } = await supabase.from("projects").select("*").eq("active", true).limit(1).maybeSingle();
       return data;
     },
   });
+
 
   const { data: portions = [] } = useQuery({
     queryKey: ["setup-portions", project?.id],
@@ -146,17 +159,57 @@ function SetupPage() {
           {project && <p className="t-lead mt-3">{project.code} · {project.head_contractor}</p>}
         </div>
         <div className="flex flex-col items-end gap-2">
-          <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
-          <button
-            onClick={() => fileRef.current?.click()}
-            disabled={importing}
-            className="text-xs uppercase tracking-[0.16em] font-semibold bg-[color:var(--brand)] text-white px-4 py-2 hover:bg-[color:var(--brand-deep)] transition disabled:opacity-50"
-          >
-            {importing ? "Importing…" : "Import contract JSON"}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowNew(true)}
+              className="text-xs uppercase tracking-[0.16em] font-semibold border border-[color:var(--brand)] text-[color:var(--brand)] px-4 py-2 hover:bg-[color:var(--brand)]/5 transition"
+            >
+              + New project
+            </button>
+            <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={importing}
+              className="text-xs uppercase tracking-[0.16em] font-semibold bg-[color:var(--brand)] text-white px-4 py-2 hover:bg-[color:var(--brand-deep)] transition disabled:opacity-50"
+            >
+              {importing ? "Importing…" : "Import contract JSON"}
+            </button>
+          </div>
           {msg && <p className="text-xs text-meta">{msg}</p>}
         </div>
       </header>
+
+      {showNew && (
+        <NewProjectDialog
+          onClose={() => setShowNew(false)}
+          onCreated={(id) => {
+            try { localStorage.setItem("pacchq.project.id", id); } catch {}
+            setShowNew(false);
+            qc.invalidateQueries();
+          }}
+        />
+      )}
+
+      {allProjects.length > 0 && (
+        <div className="mb-6 flex items-center gap-3 flex-wrap">
+          <span className="t-stat-label">Switch project</span>
+          <select
+            value={project?.id ?? ""}
+            onChange={(e) => {
+              try { localStorage.setItem("pacchq.project.id", e.target.value); } catch {}
+              qc.invalidateQueries();
+            }}
+            className="text-xs border border-rule rounded px-2 py-1.5 bg-white"
+          >
+            {allProjects.map((p: any) => (
+              <option key={p.id} value={p.id}>
+                {p.code} — {p.name} ({p.project_type === "piling_labour" ? "Piling" : "Drainage"})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
 
       <nav className="hairline pt-4 flex gap-6 flex-wrap mb-8">
         {TABS.map((t) => (
@@ -268,3 +321,67 @@ function ProjectTypeToggle({ project, onChange }: { project: any; onChange: () =
   );
 }
 
+
+function NewProjectDialog({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
+  const [headContractor, setHeadContractor] = useState("");
+  const [projectType, setProjectType] = useState<"drainage" | "piling_labour">("drainage");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function save() {
+    if (!code.trim() || !name.trim()) { setErr("Code and name are required."); return; }
+    setBusy(true); setErr(null);
+    const { data, error } = await supabase
+      .from("projects")
+      .insert({
+        code: code.trim(),
+        name: name.trim(),
+        head_contractor: headContractor.trim() || "—",
+        project_type: projectType,
+        active: true,
+      })
+      .select("id")
+      .single();
+    setBusy(false);
+    if (error) { setErr(error.message); return; }
+    onCreated(data!.id);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white w-full max-w-md p-6 border border-rule" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-lg font-semibold mb-4">New project</h2>
+        <div className="flex flex-col gap-3">
+          <label className="flex flex-col gap-1">
+            <span className="t-stat-label">Project code</span>
+            <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="e.g. METRO-PILING-01" className="border border-rule px-3 py-1.5 text-sm" />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="t-stat-label">Project name</span>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Metro Tunnel Piling Package" className="border border-rule px-3 py-1.5 text-sm" />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="t-stat-label">Head contractor</span>
+            <input value={headContractor} onChange={(e) => setHeadContractor(e.target.value)} placeholder="e.g. CYP Design & Construction" className="border border-rule px-3 py-1.5 text-sm" />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="t-stat-label">Project type</span>
+            <select value={projectType} onChange={(e) => setProjectType(e.target.value as any)} className="border border-rule px-3 py-1.5 text-sm bg-white">
+              <option value="drainage">Drainage</option>
+              <option value="piling_labour">Piling — labour hire</option>
+            </select>
+          </label>
+          {err && <p className="text-xs text-red-600">{err}</p>}
+        </div>
+        <div className="mt-5 flex justify-end gap-2">
+          <button onClick={onClose} className="text-xs uppercase tracking-[0.16em] font-semibold px-4 py-2 text-meta hover:text-ink">Cancel</button>
+          <button onClick={save} disabled={busy} className="text-xs uppercase tracking-[0.16em] font-semibold bg-[color:var(--brand)] text-white px-4 py-2 hover:bg-[color:var(--brand-deep)] disabled:opacity-50">
+            {busy ? "Creating…" : "Create project"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
