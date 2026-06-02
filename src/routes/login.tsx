@@ -145,10 +145,10 @@ function LoginPage() {
               >
                 {loading ? "Signing in…" : "Sign in"}
               </button>
-              <p className="text-xs text-meta text-center">
-                No account?{" "}
+              <div className="flex items-center justify-between text-xs">
+                <Link to="/forgot-password" className="text-meta hover:text-[color:var(--brand)] hover:underline">Forgot password?</Link>
                 <Link to="/signup" className="text-[color:var(--brand)] hover:underline font-medium">Sign up</Link>
-              </p>
+              </div>
             </form>
           ) : (
             <form onSubmit={onMagicSubmit} noValidate className="space-y-4">
