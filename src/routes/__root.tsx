@@ -14,7 +14,14 @@ import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 
-const PUBLIC_PATH_PREFIXES = ["/login", "/signup", "/auth/callback", "/api/public/"];
+const PUBLIC_PATH_PREFIXES = [
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/auth/callback",
+  "/api/public/",
+];
 
 function isPublicPath(path: string) {
   return PUBLIC_PATH_PREFIXES.some((p) => path === p || path.startsWith(p));
