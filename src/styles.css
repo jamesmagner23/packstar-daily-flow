@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
-@source "../src";
 @import "tw-animate-css";
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+@source "../src";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -10,7 +11,7 @@
  * Australian English. No em dashes anywhere in user-facing copy.
  */
 
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+
 
 @theme inline {
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
