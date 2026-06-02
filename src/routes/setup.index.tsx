@@ -232,7 +232,7 @@ function SetupPage() {
           <ProjectTypeToggle project={project} onChange={() => qc.invalidateQueries()} />
           <KeyValue rows={[
             ["Code", project.code],
-            ["Project type", project.project_type === "piling_labour" ? "Piling — labour hire" : "Drainage"],
+            ["Project type", projectTypeLabel(project.project_type)],
             ["Head contractor", project.head_contractor],
             ["Principal", project.principal],
             ["Package", project.package],
