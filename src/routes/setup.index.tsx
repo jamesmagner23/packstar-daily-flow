@@ -321,3 +321,67 @@ function ProjectTypeToggle({ project, onChange }: { project: any; onChange: () =
   );
 }
 
+
+function NewProjectDialog({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
+  const [headContractor, setHeadContractor] = useState("");
+  const [projectType, setProjectType] = useState<"drainage" | "piling_labour">("drainage");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function save() {
+    if (!code.trim() || !name.trim()) { setErr("Code and name are required."); return; }
+    setBusy(true); setErr(null);
+    const { data, error } = await supabase
+      .from("projects")
+      .insert({
+        code: code.trim(),
+        name: name.trim(),
+        head_contractor: headContractor.trim() || "—",
+        project_type: projectType,
+        active: true,
+      })
+      .select("id")
+      .single();
+    setBusy(false);
+    if (error) { setErr(error.message); return; }
+    onCreated(data!.id);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white w-full max-w-md p-6 border border-rule" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-lg font-semibold mb-4">New project</h2>
+        <div className="flex flex-col gap-3">
+          <label className="flex flex-col gap-1">
+            <span className="t-stat-label">Project code</span>
+            <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="e.g. METRO-PILING-01" className="border border-rule px-3 py-1.5 text-sm" />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="t-stat-label">Project name</span>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Metro Tunnel Piling Package" className="border border-rule px-3 py-1.5 text-sm" />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="t-stat-label">Head contractor</span>
+            <input value={headContractor} onChange={(e) => setHeadContractor(e.target.value)} placeholder="e.g. CYP Design & Construction" className="border border-rule px-3 py-1.5 text-sm" />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="t-stat-label">Project type</span>
+            <select value={projectType} onChange={(e) => setProjectType(e.target.value as any)} className="border border-rule px-3 py-1.5 text-sm bg-white">
+              <option value="drainage">Drainage</option>
+              <option value="piling_labour">Piling — labour hire</option>
+            </select>
+          </label>
+          {err && <p className="text-xs text-red-600">{err}</p>}
+        </div>
+        <div className="mt-5 flex justify-end gap-2">
+          <button onClick={onClose} className="text-xs uppercase tracking-[0.16em] font-semibold px-4 py-2 text-meta hover:text-ink">Cancel</button>
+          <button onClick={save} disabled={busy} className="text-xs uppercase tracking-[0.16em] font-semibold bg-[color:var(--brand)] text-white px-4 py-2 hover:bg-[color:var(--brand-deep)] disabled:opacity-50">
+            {busy ? "Creating…" : "Create project"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
