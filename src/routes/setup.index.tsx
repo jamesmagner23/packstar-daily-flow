@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell } from "@/components/SiteShell";
 import { shortDate } from "@/lib/format";
+import { PROJECT_TYPE_OPTIONS, projectTypeLabel, normalizeProjectType, type ProjectType } from "@/lib/project-types";
+
 
 export const Route = createFileRoute("/setup/")({
   head: () => ({ meta: [{ title: "Project setup — PACC HQ" }] }),
