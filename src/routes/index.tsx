@@ -4,302 +4,415 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell } from "@/components/SiteShell";
 import { RangeToggle } from "@/components/RangeToggle";
-import { CrewFilter } from "@/components/CrewFilter";
-import { KpiBand } from "@/components/KpiBand";
-import { useActiveProjectId } from "@/hooks/use-active-project";
-import { aud, pct, shortDate, businessDaysRemaining } from "@/lib/format";
+import { aud, pct, shortDate } from "@/lib/format";
 import {
   type DateRange,
   type RangeKind,
   getWeekRange,
-  workingDaysInRange,
 } from "@/lib/date-range";
-import { aggregateKpis, detectLongHire } from "@/lib/reports-aggregate";
+import {
+  normalizeProjectType,
+  projectTypeLabel,
+  type ProjectType,
+} from "@/lib/project-types";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PACC HQ — PACC operational dashboard" },
-      { name: "description", content: "Daily P&L, productivity, and variations register for PACC project sites." },
+      { title: "PACC HQ — business overview" },
+      { name: "description", content: "Business-wide daily P&L across lump sum, labour hire, plant hire and dry hire." },
     ],
   }),
   component: Dashboard,
 });
 
+const TYPE_ORDER: ProjectType[] = ["lump_sum", "labour_hire", "plant_hire", "dry_hire"];
+const HIRE_TYPES: ProjectType[] = ["labour_hire", "plant_hire", "dry_hire"];
+
+type ProjectRow = { id: string; code: string; name: string; project_type: string | null; active: boolean | null };
+type ReportRow = {
+  id: string;
+  project_id: string | null;
+  report_date: string;
+  revenue_aud: number | null;
+  cost_aud: number | null;
+  margin_aud: number | null;
+};
+
+function sum(rows: ReportRow[], key: "revenue_aud" | "cost_aud" | "margin_aud") {
+  return rows.reduce((acc, r) => acc + Number(r[key] ?? 0), 0);
+}
+
+function gpPct(rev: number, margin: number): number | null {
+  if (rev <= 0) return null;
+  return margin / rev;
+}
+
 function Dashboard() {
   const [kind, setKind] = useState<RangeKind>("week");
   const [range, setRange] = useState<DateRange>(() => getWeekRange());
-  const [crewId, setCrewId] = useState<string>("all");
+  const today = new Date().toISOString().slice(0, 10);
 
-  const activeProjectId = useActiveProjectId();
-
-  const { data: project } = useQuery({
-    queryKey: ["project-active", activeProjectId],
-    queryFn: async () => {
-      if (activeProjectId) {
-        const { data } = await supabase.from("projects").select("*").eq("id", activeProjectId).maybeSingle();
-        if (data) return data;
-      }
-      const { data } = await supabase.from("projects").select("*").eq("active", true).order("code").limit(1).maybeSingle();
-      return data;
-    },
-  });
-
-  const projectId = project?.id as string | undefined;
-
-  const { data: supervisors = [] } = useQuery({
-    queryKey: ["supervisors", projectId],
-    enabled: !!projectId,
+  const { data: projects = [] } = useQuery({
+    queryKey: ["all-projects"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("supervisors")
-        .select("id, name")
-        .eq("project_id", projectId!)
-        .eq("active", true)
-        .order("name");
-      return data ?? [];
+        .from("projects")
+        .select("id, code, name, project_type, active")
+        .order("code");
+      return (data ?? []) as ProjectRow[];
     },
   });
 
   const { data: reports = [] } = useQuery({
-    queryKey: ["reports-in-range", projectId, range.from, range.to, crewId],
-    enabled: !!projectId,
+    queryKey: ["all-reports", range.from, range.to],
     queryFn: async () => {
-      let q = supabase
+      const { data } = await supabase
         .from("daily_reports")
-        .select("id, report_date, supervisor_id, revenue_aud, cost_aud, margin_aud, productivity_pct, works_completed, plant_hours, supervisors(name)")
-        .eq("project_id", projectId!)
+        .select("id, project_id, report_date, revenue_aud, cost_aud, margin_aud")
         .gte("report_date", range.from)
-        .lte("report_date", range.to)
-        .order("report_date", { ascending: false });
-      if (crewId !== "all") q = q.eq("supervisor_id", crewId);
-      const { data } = await q;
-      return data ?? [];
+        .lte("report_date", range.to);
+      return (data ?? []) as ReportRow[];
     },
   });
 
-  const { data: variations = [] } = useQuery({
-    queryKey: ["variations-open", projectId],
-    enabled: !!projectId,
+  const { data: todayReports = [] } = useQuery({
+    queryKey: ["reports-today", today],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("variation_flags")
-        .select("*")
-        .eq("project_id", projectId!)
-        .neq("status", "closed")
-        .order("deadline_at", { ascending: true })
-        .limit(20);
-      return data ?? [];
-    },
-  });
-
-  // Long-hire scan: pull last ~60 days, regardless of selected range.
-  const { data: hireWindow = [] } = useQuery({
-    queryKey: ["plant-hire-window", projectId],
-    enabled: !!projectId,
-    queryFn: async () => {
-      const since = new Date();
-      since.setDate(since.getDate() - 60);
-      const sinceIso = since.toISOString().slice(0, 10);
       const { data } = await supabase
         .from("daily_reports")
-        .select("id, report_date, supervisor_id, revenue_aud, cost_aud, margin_aud, productivity_pct, works_completed, plant_hours")
-        .eq("project_id", projectId!)
-        .gte("report_date", sinceIso);
-      return data ?? [];
+        .select("project_id")
+        .eq("report_date", today);
+      return (data ?? []) as { project_id: string | null }[];
     },
   });
 
-  const { data: plantReg = [] } = useQuery({
-    queryKey: ["plant-items", projectId],
-    enabled: !!projectId,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("plant_items")
-        .select("plant_id_code, description")
-        .eq("project_id", projectId!);
-      return data ?? [];
-    },
-  });
+  const projectIndex = useMemo(() => {
+    const m = new Map<string, ProjectRow & { type: ProjectType }>();
+    for (const p of projects) {
+      m.set(p.id, { ...p, type: normalizeProjectType(p.project_type) });
+    }
+    return m;
+  }, [projects]);
 
-  const kpis = useMemo(
-    () =>
-      aggregateKpis(
-        reports as any,
-        Number(project?.expected_daily_revenue_aud ?? 5000),
-        workingDaysInRange(range),
-      ),
-    [reports, project, range],
-  );
+  // Totals overall
+  const totals = useMemo(() => {
+    const rev = sum(reports, "revenue_aud");
+    const cost = sum(reports, "cost_aud");
+    const margin = sum(reports, "margin_aud");
+    return { rev, cost, margin, gp: gpPct(rev, margin), count: reports.length };
+  }, [reports]);
 
-  const longHire = useMemo(
-    () => detectLongHire(hireWindow as any, plantReg as any, 28, 3).slice(0, 5),
-    [hireWindow, plantReg],
-  );
+  // Breakdown by project type
+  const byType = useMemo(() => {
+    const out: Record<ProjectType, { rev: number; cost: number; margin: number; gp: number | null; reportCount: number; projectIds: Set<string> }> = {
+      lump_sum: { rev: 0, cost: 0, margin: 0, gp: null, reportCount: 0, projectIds: new Set() },
+      labour_hire: { rev: 0, cost: 0, margin: 0, gp: null, reportCount: 0, projectIds: new Set() },
+      plant_hire: { rev: 0, cost: 0, margin: 0, gp: null, reportCount: 0, projectIds: new Set() },
+      dry_hire: { rev: 0, cost: 0, margin: 0, gp: null, reportCount: 0, projectIds: new Set() },
+    };
+    for (const r of reports) {
+      const p = r.project_id ? projectIndex.get(r.project_id) : null;
+      const t: ProjectType = p?.type ?? "lump_sum";
+      out[t].rev += Number(r.revenue_aud ?? 0);
+      out[t].cost += Number(r.cost_aud ?? 0);
+      out[t].margin += Number(r.margin_aud ?? 0);
+      out[t].reportCount += 1;
+      if (r.project_id) out[t].projectIds.add(r.project_id);
+    }
+    for (const t of TYPE_ORDER) out[t].gp = gpPct(out[t].rev, out[t].margin);
+    return out;
+  }, [reports, projectIndex]);
 
-  const crews = supervisors.map((s: any) => ({ id: s.id, name: s.name }));
+  // Per-project rollups
+  const perProject = useMemo(() => {
+    const m = new Map<string, { rev: number; cost: number; margin: number; reportCount: number; lastDate: string | null }>();
+    for (const r of reports) {
+      if (!r.project_id) continue;
+      const cur = m.get(r.project_id) ?? { rev: 0, cost: 0, margin: 0, reportCount: 0, lastDate: null };
+      cur.rev += Number(r.revenue_aud ?? 0);
+      cur.cost += Number(r.cost_aud ?? 0);
+      cur.margin += Number(r.margin_aud ?? 0);
+      cur.reportCount += 1;
+      if (!cur.lastDate || r.report_date > cur.lastDate) cur.lastDate = r.report_date;
+      m.set(r.project_id, cur);
+    }
+    return m;
+  }, [reports]);
+
+  const lumpSumProjects = projects.filter((p) => normalizeProjectType(p.project_type) === "lump_sum" && p.active);
+  const hireProjects = projects.filter((p) => HIRE_TYPES.includes(normalizeProjectType(p.project_type)) && p.active);
+
+  // Alerts
+  const projectsReportedToday = new Set(todayReports.map((r) => r.project_id).filter(Boolean) as string[]);
+  const missingToday = projects.filter((p) => p.active && !projectsReportedToday.has(p.id));
+  const negativeMarginProjects = Array.from(perProject.entries())
+    .filter(([, v]) => v.margin < 0)
+    .map(([id, v]) => ({ project: projectIndex.get(id), ...v }))
+    .filter((x) => x.project);
 
   return (
     <SiteShell section="Dashboard">
       <div className="space-y-12">
         <header className="space-y-3 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div className="space-y-3">
-            <div className="t-eyebrow">{project?.code ?? "No project loaded"}</div>
-            <h1 className="t-display">{project?.name ?? "Connect a project to begin"}</h1>
-            {project?.head_contractor && (
-              <p className="t-lead">Head contractor {project.head_contractor}. {shortDate(new Date())}.</p>
-            )}
+            <div className="t-eyebrow">Business overview</div>
+            <h1 className="t-display">PACC HQ</h1>
+            <p className="t-lead">All active projects, every type. {shortDate(new Date())}.</p>
           </div>
-          <Link
-            to="/reports"
-            className="inline-flex items-center px-4 py-2 border border-[color:var(--brand)] text-[color:var(--brand)] text-xs uppercase tracking-wider hover:bg-[color:var(--brand)] hover:text-white transition-colors whitespace-nowrap"
-          >
-            View reports →
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              to="/reports"
+              className="inline-flex items-center px-4 py-2 border border-[color:var(--brand)] text-[color:var(--brand)] text-xs uppercase tracking-wider hover:bg-[color:var(--brand)] hover:text-white transition-colors whitespace-nowrap"
+            >
+              View reports →
+            </Link>
+            <Link
+              to="/setup"
+              className="inline-flex items-center px-4 py-2 border border-rule text-meta text-xs uppercase tracking-wider hover:text-ink whitespace-nowrap"
+            >
+              Setup
+            </Link>
+          </div>
         </header>
 
-
+        {/* Range + totals */}
         <section>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-            <div className="t-eyebrow">At a glance</div>
-            <div className="flex flex-wrap items-center gap-4">
-              <CrewFilter crews={crews} value={crewId} onChange={setCrewId} />
-              <RangeToggle
-                kind={kind}
-                range={range}
-                onChange={(k, r) => {
-                  setKind(k);
-                  setRange(r);
-                }}
-              />
-            </div>
+            <div className="t-eyebrow">Profitability</div>
+            <RangeToggle
+              kind={kind}
+              range={range}
+              onChange={(k, r) => { setKind(k); setRange(r); }}
+            />
           </div>
-          <KpiBand kpis={kpis} />
-          {kpis.reportCount === 0 && (
-            <p className="text-xs text-meta mt-6">
-              No wraps captured in this range{crewId !== "all" ? " for this crew" : ""}.
-            </p>
+          <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-8 md:gap-8">
+            <Big label="Revenue" value={totals.count ? aud(totals.rev) : "—"} tone="oklch(0.55 0.15 160)" />
+            <Big label="Cost" value={totals.count ? aud(totals.cost) : "—"} tone="oklch(0.50 0.05 250)" />
+            <Big label="Profit" value={totals.count ? aud(totals.margin) : "—"} tone="oklch(0.60 0.18 50)" />
+            <Big label="Profit %" value={totals.gp == null ? "—" : pct(totals.gp)} tone="oklch(0.58 0.16 290)" />
+          </div>
+          {totals.count === 0 && (
+            <p className="text-xs text-meta mt-6">No daily wraps captured in this range across any project.</p>
           )}
         </section>
 
-        {longHire.length > 0 && (
-          <section>
-            <div className="flex items-baseline justify-between mb-4">
-              <div>
-                <div className="t-eyebrow">Utilisation flags</div>
-                <h2 className="t-headline mt-1">Plant on hire 4+ weeks</h2>
-              </div>
-              <Link to="/utilisation" className="t-eyebrow text-meta hover:text-[color:var(--brand)]">View all</Link>
-            </div>
-            <div className="hairline pt-4">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="t-stat-label">
-                    <th className="py-2 font-semibold">Plant</th>
-                    <th className="py-2 font-semibold">Description</th>
-                    <th className="py-2 font-semibold">First seen</th>
-                    <th className="py-2 font-semibold">Last seen</th>
-                    <th className="py-2 font-semibold">Span</th>
-                    <th className="py-2 font-semibold">Active days</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {longHire.map((p) => (
-                    <tr key={p.plant_id} className="border-t border-rule">
-                      <td className="py-3 text-xs font-mono">{p.plant_id}</td>
-                      <td className="py-3 text-xs">{p.description ?? "—"}</td>
-                      <td className="py-3 text-xs">{shortDate(p.first_seen)}</td>
-                      <td className="py-3 text-xs">{shortDate(p.last_seen)}</td>
-                      <td className="py-3 text-xs font-semibold text-[color:var(--brand)]">{p.span_days} days</td>
-                      <td className="py-3 text-xs">{p.active_days}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
-
+        {/* By project type */}
         <section>
-          <div className="flex items-baseline justify-between mb-4">
-            <div>
-              <div className="t-eyebrow">Variations register</div>
-              <h2 className="t-headline mt-1">Open flags</h2>
-            </div>
-            <Link to="/variations" className="t-eyebrow text-meta hover:text-[color:var(--brand)]">View all</Link>
-          </div>
-          <div className="hairline pt-4">
-            {variations.length === 0 ? (
-              <p className="text-xs text-meta py-6">No variations flagged. The bot watches for triggers in the daily wrap.</p>
-            ) : (
-              <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
-              <table className="w-full text-left min-w-[560px]">
-                <thead>
-                  <tr className="t-stat-label">
-                    <th className="py-2 font-semibold">Type</th>
-                    <th className="py-2 font-semibold">Clause</th>
-                    <th className="py-2 font-semibold">Description</th>
-                    <th className="py-2 font-semibold">Deadline</th>
-                    <th className="py-2 font-semibold">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {variations.map((v: any) => {
-                    const bd = businessDaysRemaining(v.deadline_at);
-                    const urgent = bd !== null && bd < 1;
-                    return (
-                      <tr
-                        key={v.id}
-                        onClick={() => (window.location.href = `/variations/${v.id}`)}
-                        className="border-t border-rule cursor-pointer hover:bg-[color:var(--accent)] transition-colors"
-                      >
-                        <td className="py-3 text-xs">{v.claim_type}</td>
-                        <td className="py-3 text-xs font-mono">{v.clause_ref}</td>
-                        <td className="py-3 text-xs max-w-md truncate">
-                          {v.description ?? v.trigger_phrase ?? "—"}
-                        </td>
-                        <td className={`py-3 text-xs ${urgent ? "text-[color:var(--brand)] font-semibold" : ""}`}>
-                          {bd === null ? "—" : bd < 0 ? `${Math.abs(bd)} BD overdue` : `${bd} BD`}
-                        </td>
-                        <td className="py-3 text-xs uppercase tracking-wider text-meta">{v.status}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              </div>
-            )}
+          <div className="t-eyebrow mb-4">By project type</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {TYPE_ORDER.map((t) => {
+              const b = byType[t];
+              return (
+                <div key={t} className="hairline pt-4 px-4 pb-5 border border-rule">
+                  <div className="t-eyebrow text-meta">{projectTypeLabel(t)}</div>
+                  <div className="mt-3 text-2xl font-semibold" style={{ color: b.margin >= 0 ? "oklch(0.60 0.18 50)" : "var(--brand)" }}>
+                    {b.reportCount ? aud(b.margin) : "—"}
+                  </div>
+                  <div className="t-stat-label mt-1">Profit · {b.gp == null ? "—" : pct(b.gp)}</div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-meta">
+                    <div>Rev <span className="text-ink font-semibold">{b.reportCount ? aud(b.rev) : "—"}</span></div>
+                    <div>Cost <span className="text-ink font-semibold">{b.reportCount ? aud(b.cost) : "—"}</span></div>
+                    <div>Wraps <span className="text-ink font-semibold">{b.reportCount}</span></div>
+                    <div>Projects <span className="text-ink font-semibold">{b.projectIds.size}</span></div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
 
+        {/* Lump sum */}
+        <ProjectSection
+          title="Lump sum"
+          eyebrow="Fixed-price contracts"
+          projects={lumpSumProjects}
+          perProject={perProject}
+          projectIndex={projectIndex}
+          showTypeColumn={false}
+        />
+
+        {/* Hire */}
+        <ProjectSection
+          title="Hire — labour, plant & dry"
+          eyebrow="Schedule-rate work"
+          projects={hireProjects}
+          perProject={perProject}
+          projectIndex={projectIndex}
+          showTypeColumn
+        />
+
+        {/* Alerts */}
         <section>
-          <div className="t-eyebrow mb-1">Wraps in range</div>
-          <h2 className="t-headline mb-4">Daily submissions</h2>
-          <div className="hairline pt-4">
-            {reports.length === 0 ? (
-              <p className="text-xs text-meta py-6">No reports submitted in this range.</p>
-            ) : (
-              <ul className="divide-y divide-rule">
-                {reports.map((r: any) => (
-                  <li key={r.id} className="py-3 grid grid-cols-12 items-center gap-4">
-                    <span className="col-span-2 text-xs font-semibold">{shortDate(r.report_date)}</span>
-                    <span className="col-span-3 text-xs text-meta">{r.supervisors?.name ?? "—"}</span>
-                    <span className="col-span-2 text-xs">{pct(r.productivity_pct)}</span>
-                    <span className="col-span-2 text-xs">{aud(r.margin_aud)}</span>
-                    <Link
-                      to="/reports/$id"
-                      params={{ id: r.id }}
-                      className="col-span-3 text-right t-eyebrow text-meta hover:text-[color:var(--brand)]"
-                    >
-                      Open report
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
+          <div className="t-eyebrow mb-1">Today</div>
+          <h2 className="t-headline mb-4">Operational alerts</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <AlertCard
+              title="Missing daily wrap"
+              subtitle={`${missingToday.length} of ${projects.filter(p => p.active).length} active projects`}
+              empty="All active projects have wrapped today."
+              items={missingToday.slice(0, 6).map((p) => ({
+                key: p.id,
+                primary: p.code,
+                secondary: `${p.name} · ${projectTypeLabel(p.project_type)}`,
+              }))}
+            />
+            <AlertCard
+              title="Projects in the red"
+              subtitle="Negative profit in selected range"
+              empty="No projects running at a loss in this range."
+              items={negativeMarginProjects.slice(0, 6).map((x) => ({
+                key: x.project!.id,
+                primary: x.project!.code,
+                secondary: `${aud(x.margin)} · ${projectTypeLabel(x.project!.project_type)}`,
+              }))}
+            />
           </div>
         </section>
       </div>
     </SiteShell>
+  );
+}
+
+function Big({ label, value, tone }: { label: string; value: string; tone: string }) {
+  const display = value.replace(/^-\s*/, "\u2212\u00A0");
+  return (
+    <div className="flex min-w-0 flex-col gap-2">
+      <div
+        className="t-stat whitespace-nowrap overflow-hidden text-ellipsis"
+        style={{ color: tone, fontSize: "clamp(1.1rem, 2.2vw, 2rem)" }}
+        title={value}
+      >
+        {display}
+      </div>
+      <div className="t-stat-label">{label}</div>
+    </div>
+  );
+}
+
+type ProjectRollup = Map<string, { rev: number; cost: number; margin: number; reportCount: number; lastDate: string | null }>;
+
+function ProjectSection({
+  title,
+  eyebrow,
+  projects,
+  perProject,
+  projectIndex,
+  showTypeColumn,
+}: {
+  title: string;
+  eyebrow: string;
+  projects: ProjectRow[];
+  perProject: ProjectRollup;
+  projectIndex: Map<string, ProjectRow & { type: ProjectType }>;
+  showTypeColumn: boolean;
+}) {
+  const rows = projects.map((p) => {
+    const r = perProject.get(p.id) ?? { rev: 0, cost: 0, margin: 0, reportCount: 0, lastDate: null };
+    return { p, ...r, gp: gpPct(r.rev, r.margin) };
+  }).sort((a, b) => b.margin - a.margin);
+
+  const t = title;
+  return (
+    <section>
+      <div className="flex items-baseline justify-between mb-4">
+        <div>
+          <div className="t-eyebrow">{eyebrow}</div>
+          <h2 className="t-headline mt-1">{t}</h2>
+        </div>
+        <span className="t-eyebrow text-meta">{projects.length} active</span>
+      </div>
+      <div className="hairline pt-4">
+        {projects.length === 0 ? (
+          <p className="text-xs text-meta py-6">No active projects of this type. Add one from Setup.</p>
+        ) : (
+          <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
+            <table className="w-full text-left min-w-[640px]">
+              <thead>
+                <tr className="t-stat-label">
+                  <th className="py-2 font-semibold">Project</th>
+                  {showTypeColumn && <th className="py-2 font-semibold">Type</th>}
+                  <th className="py-2 font-semibold text-right">Revenue</th>
+                  <th className="py-2 font-semibold text-right">Cost</th>
+                  <th className="py-2 font-semibold text-right">Profit</th>
+                  <th className="py-2 font-semibold text-right">GP%</th>
+                  <th className="py-2 font-semibold text-right">Wraps</th>
+                  <th className="py-2 font-semibold">Last wrap</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map(({ p, rev, cost, margin, gp, reportCount, lastDate }) => {
+                  const idx = projectIndex.get(p.id);
+                  return (
+                    <tr
+                      key={p.id}
+                      onClick={() => {
+                        try { localStorage.setItem("pacchq.project.id", p.id); } catch {}
+                        window.location.href = "/reports";
+                      }}
+                      className="border-t border-rule cursor-pointer hover:bg-[color:var(--accent)] transition-colors"
+                    >
+                      <td className="py-3 text-xs">
+                        <div className="font-mono font-semibold">{p.code}</div>
+                        <div className="text-meta">{p.name}</div>
+                      </td>
+                      {showTypeColumn && (
+                        <td className="py-3 text-[11px] uppercase tracking-wider text-meta">
+                          {projectTypeLabel(idx?.type ?? p.project_type)}
+                        </td>
+                      )}
+                      <td className="py-3 text-xs text-right">{reportCount ? aud(rev) : "—"}</td>
+                      <td className="py-3 text-xs text-right">{reportCount ? aud(cost) : "—"}</td>
+                      <td
+                        className="py-3 text-xs text-right font-semibold"
+                        style={{ color: reportCount === 0 ? undefined : margin >= 0 ? "oklch(0.55 0.15 160)" : "var(--brand)" }}
+                      >
+                        {reportCount ? aud(margin) : "—"}
+                      </td>
+                      <td className="py-3 text-xs text-right">{gp == null ? "—" : pct(gp)}</td>
+                      <td className="py-3 text-xs text-right">{reportCount}</td>
+                      <td className="py-3 text-xs">{lastDate ? shortDate(lastDate) : "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function AlertCard({
+  title,
+  subtitle,
+  empty,
+  items,
+}: {
+  title: string;
+  subtitle: string;
+  empty: string;
+  items: { key: string; primary: string; secondary: string }[];
+}) {
+  return (
+    <div className="hairline pt-4">
+      <div className="flex items-baseline justify-between mb-3">
+        <div className="text-xs font-semibold">{title}</div>
+        <div className="t-stat-label">{subtitle}</div>
+      </div>
+      {items.length === 0 ? (
+        <p className="text-xs text-meta py-4">{empty}</p>
+      ) : (
+        <ul className="divide-y divide-rule">
+          {items.map((it) => (
+            <li key={it.key} className="py-2.5 flex items-center justify-between gap-3">
+              <span className="text-xs font-mono font-semibold">{it.primary}</span>
+              <span className="text-[11px] text-meta truncate">{it.secondary}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
