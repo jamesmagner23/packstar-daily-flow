@@ -159,17 +159,57 @@ function SetupPage() {
           {project && <p className="t-lead mt-3">{project.code} · {project.head_contractor}</p>}
         </div>
         <div className="flex flex-col items-end gap-2">
-          <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
-          <button
-            onClick={() => fileRef.current?.click()}
-            disabled={importing}
-            className="text-xs uppercase tracking-[0.16em] font-semibold bg-[color:var(--brand)] text-white px-4 py-2 hover:bg-[color:var(--brand-deep)] transition disabled:opacity-50"
-          >
-            {importing ? "Importing…" : "Import contract JSON"}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowNew(true)}
+              className="text-xs uppercase tracking-[0.16em] font-semibold border border-[color:var(--brand)] text-[color:var(--brand)] px-4 py-2 hover:bg-[color:var(--brand)]/5 transition"
+            >
+              + New project
+            </button>
+            <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={importing}
+              className="text-xs uppercase tracking-[0.16em] font-semibold bg-[color:var(--brand)] text-white px-4 py-2 hover:bg-[color:var(--brand-deep)] transition disabled:opacity-50"
+            >
+              {importing ? "Importing…" : "Import contract JSON"}
+            </button>
+          </div>
           {msg && <p className="text-xs text-meta">{msg}</p>}
         </div>
       </header>
+
+      {showNew && (
+        <NewProjectDialog
+          onClose={() => setShowNew(false)}
+          onCreated={(id) => {
+            try { localStorage.setItem("pacchq.project.id", id); } catch {}
+            setShowNew(false);
+            qc.invalidateQueries();
+          }}
+        />
+      )}
+
+      {allProjects.length > 0 && (
+        <div className="mb-6 flex items-center gap-3 flex-wrap">
+          <span className="t-stat-label">Switch project</span>
+          <select
+            value={project?.id ?? ""}
+            onChange={(e) => {
+              try { localStorage.setItem("pacchq.project.id", e.target.value); } catch {}
+              qc.invalidateQueries();
+            }}
+            className="text-xs border border-rule rounded px-2 py-1.5 bg-white"
+          >
+            {allProjects.map((p: any) => (
+              <option key={p.id} value={p.id}>
+                {p.code} — {p.name} ({p.project_type === "piling_labour" ? "Piling" : "Drainage"})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
 
       <nav className="hairline pt-4 flex gap-6 flex-wrap mb-8">
         {TABS.map((t) => (
