@@ -598,36 +598,33 @@ async function processEvent(body: any) {
   const newUserMsg: ChatMsg = { role: "user", content: userText, timestamp: nowIso };
   const messages = [...history, newUserMsg].map((m) => ({ role: m.role, content: m.content }));
 
-  // Call Claude with prompt caching on the system block
+  // Call Lovable AI for the next bot reply + structured save block.
   let replyText = "Bot's having a moment. Try again in a minute or just ping James direct.";
   let assistantText = "";
   let usage: any = null;
   try {
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const response = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: 1024,
-      system: [
-        {
-          type: "text",
-          text: systemPrompt,
-          cache_control: { type: "ephemeral" },
-        },
-      ],
-      messages,
+    const key = process.env.LOVABLE_API_KEY;
+    if (!key) throw new Error("LOVABLE_API_KEY is not set");
+    const gateway = createOpenAICompatible({
+      name: "lovable-ai",
+      baseURL: "https://ai.gateway.lovable.dev/v1",
+      headers: { "Lovable-API-Key": key },
+    });
+    const response = await generateText({
+      model: gateway(MODEL),
+      system: systemPrompt,
+      messages: messages as any,
+      maxOutputTokens: 1024,
+      temperature: 0.2,
     });
     usage = response.usage;
-    assistantText = response.content
-      .filter((b: any) => b.type === "text")
-      .map((b: any) => b.text)
-      .join("\n")
-      .trim();
+    assistantText = response.text.trim();
     const parsed = extractSaveBlock(assistantText);
     replyText = parsed.reply || "Got it.";
     var saveBlock = parsed.save;
-    console.log("[slack-webhook] claude usage:", JSON.stringify(usage));
+    console.log("[slack-webhook] ai usage:", JSON.stringify(usage));
   } catch (e) {
-    console.error("[slack-webhook] anthropic call failed:", (e as Error).message);
+    console.error("[slack-webhook] ai call failed:", (e as Error).message);
     await postToSlack(channel, replyText);
     return;
   }
