@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import Anthropic from "@anthropic-ai/sdk";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { generateText } from "ai";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { SLACK_DAILY_FLOW_PROMPT } from "@/lib/prompts/slack-daily-flow";
 import { SLACK_PILING_FLOW_PROMPT } from "@/lib/prompts/slack-piling-flow";
@@ -12,8 +13,7 @@ import { handleInductionPhoto, looksLikeInductionCaption } from "@/lib/slack/ind
 import { handleEligibilityQuery, ELIGIBILITY_PATTERN } from "@/lib/slack/eligibility-query";
 import { handlePrestartPhoto, handlePrestartQuery, looksLikePrestartCaption, PRESTART_QUERY_PATTERN } from "@/lib/slack/prestart";
 
-
-const MODEL = "claude-sonnet-4-5";
+const MODEL = "google/gemini-3-flash-preview";
 const MELB_TZ = "Australia/Melbourne";
 
 type ChatMsg = { role: "user" | "assistant"; content: string; timestamp: string };
