@@ -182,9 +182,13 @@ function Dashboard() {
             />
           </div>
           <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-8 md:gap-8">
-            <Big label="Revenue" value={totals.count ? aud(totals.rev) : "—"} tone="oklch(0.55 0.15 160)" />
-            <Big label="Cost" value={totals.count ? aud(totals.cost) : "—"} tone="oklch(0.50 0.05 250)" />
-            <Big label="Profit" value={totals.count ? aud(totals.margin) : "—"} tone="oklch(0.60 0.18 50)" />
+            <Big label="Revenue" value={totals.count ? aud(totals.rev) : "—"} tone="var(--ink)" />
+            <Big label="Cost" value={totals.count ? aud(totals.cost) : "—"} tone="oklch(0.65 0.18 50)" />
+            <Big
+              label="Profit"
+              value={totals.count ? audAcct(totals.margin) : "—"}
+              tone={totals.count === 0 ? "var(--ink)" : totals.margin >= 0 ? "oklch(0.55 0.15 160)" : "var(--brand)"}
+            />
           </div>
           {totals.count === 0 && (
             <p className="text-xs text-meta mt-6">No daily wraps captured in this range across any project.</p>
