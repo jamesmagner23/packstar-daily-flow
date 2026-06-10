@@ -6,6 +6,7 @@
 // for that asset today.
 
 import { createFileRoute } from "@tanstack/react-router";
+import { requireCronSecret } from "@/lib/cron-auth";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { dmAdmin, dmUser, siteOrigin } from "@/lib/slack/post";
 
@@ -26,6 +27,8 @@ export const Route = createFileRoute("/api/public/hooks/prestart-missing")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const unauth = requireCronSecret(request);
+        if (unauth) return unauth;
         const url = new URL(request.url);
         const mode = (url.searchParams.get("mode") ?? "operator").toLowerCase();
         const today = melbToday();

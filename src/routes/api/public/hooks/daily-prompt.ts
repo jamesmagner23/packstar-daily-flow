@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { requireCronSecret } from "@/lib/cron-auth";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 // Victoria public holidays (gazetted) — 2026 + 2027.
@@ -188,6 +189,8 @@ export const Route = createFileRoute("/api/public/hooks/daily-prompt")({
   server: {
     handlers: {
       GET: async ({ request }) => {
+        const unauth = requireCronSecret(request);
+        if (unauth) return unauth;
         const url = new URL(request.url);
         const force = url.searchParams.get("force") === "1";
         try {

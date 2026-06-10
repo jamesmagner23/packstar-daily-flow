@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { requireCronSecret } from "@/lib/cron-auth";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { persistComputedReport, notifyDirectorOnWrap } from "@/lib/evening-summary/persist";
 
@@ -21,6 +22,8 @@ export const Route = createFileRoute("/api/public/hooks/recompute-report")({
   server: {
     handlers: {
       GET: async ({ request }) => {
+        const unauth = requireCronSecret(request);
+        if (unauth) return unauth;
         const url = new URL(request.url);
         const date = url.searchParams.get("date") ?? melbDateISO();
         const supervisorId = url.searchParams.get("supervisor_id") ?? undefined;
