@@ -62,7 +62,11 @@ function QuotesPage() {
   async function pollNow() {
     setPolling(true);
     try {
-      const res = await fetch("/api/public/procure/poll-gmail", { method: "POST" });
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/public/procure/poll-gmail", {
+        method: "POST",
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      });
       const json = await res.json();
       if (!res.ok || !json.ok) throw new Error(json.error ?? `Status ${res.status}`);
       toast.success(`Scanned ${json.scanned} · saved ${json.saved} new quote(s)`);

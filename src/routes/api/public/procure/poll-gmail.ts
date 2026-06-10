@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireCronSecret } from "@/lib/cron-auth";
+import { isAuthenticatedAdmin } from "@/lib/admin-auth";
 import {
   listInboxSince,
   getMessage,
@@ -163,11 +164,13 @@ export const Route = createFileRoute("/api/public/procure/poll-gmail")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        if (await isAuthenticatedAdmin(request)) return runPoll();
         const unauth = requireCronSecret(request);
         if (unauth) return unauth;
         return runPoll();
       },
       GET: async ({ request }) => {
+        if (await isAuthenticatedAdmin(request)) return runPoll();
         const unauth = requireCronSecret(request);
         if (unauth) return unauth;
         return runPoll();
