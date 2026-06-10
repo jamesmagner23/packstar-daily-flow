@@ -941,6 +941,7 @@ async function processEvent(body: any) {
         projectId: projectId as string,
         supervisorName: supervisor.name,
         productivityPct: computed.productivity_pct,
+        marginAud: computed.margin_aud,
         variationCount: vfCount ?? 0,
         siteOrigin,
       });
