@@ -153,23 +153,19 @@ function Dashboard() {
 
   return (
     <SiteShell section="Dashboard">
-      <div className="space-y-12">
-        <header className="space-y-3 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-          <div className="space-y-3">
-            <div className="t-eyebrow">Business overview</div>
-            <h1 className="t-display">PACC HQ</h1>
-            <p className="t-lead">All active projects, every type. {shortDate(new Date())}.</p>
-          </div>
-          <div className="flex gap-2">
+      <div className="space-y-8">
+        <header className="flex items-center justify-between gap-4">
+          <p className="text-sm text-meta">All active projects · {shortDate(new Date())}</p>
+          <div className="flex gap-2 shrink-0">
             <Link
               to="/reports"
-              className="inline-flex items-center px-4 py-2 border border-[color:var(--brand)] text-[color:var(--brand)] text-xs uppercase tracking-wider hover:bg-[color:var(--brand)] hover:text-white transition-colors whitespace-nowrap"
+              className="inline-flex items-center px-3 py-1.5 border border-[color:var(--brand)] text-[color:var(--brand)] text-xs hover:bg-[color:var(--brand)] hover:text-white transition-colors whitespace-nowrap"
             >
-              View reports →
+              Reports →
             </Link>
             <Link
               to="/setup"
-              className="inline-flex items-center px-4 py-2 border border-rule text-meta text-xs uppercase tracking-wider hover:text-ink whitespace-nowrap"
+              className="inline-flex items-center px-3 py-1.5 border border-rule text-meta text-xs hover:text-ink whitespace-nowrap"
             >
               Setup
             </Link>
@@ -179,7 +175,6 @@ function Dashboard() {
         {/* Range + totals */}
         <section>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-            <div className="t-eyebrow">Profitability</div>
             <RangeToggle
               kind={kind}
               range={range}
