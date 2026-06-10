@@ -45,7 +45,7 @@ function sum(rows: ReportRow[], key: "revenue_aud" | "cost_aud" | "margin_aud") 
 
 function gpPct(rev: number, margin: number): number | null {
   if (rev <= 0) return null;
-  return margin / rev;
+  return (margin / rev) * 100;
 }
 
 function Dashboard() {
@@ -186,11 +186,10 @@ function Dashboard() {
               onChange={(k, r) => { setKind(k); setRange(r); }}
             />
           </div>
-          <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-8 md:gap-8">
+          <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-8 md:gap-8">
             <Big label="Revenue" value={totals.count ? aud(totals.rev) : "—"} tone="oklch(0.55 0.15 160)" />
             <Big label="Cost" value={totals.count ? aud(totals.cost) : "—"} tone="oklch(0.50 0.05 250)" />
             <Big label="Profit" value={totals.count ? aud(totals.margin) : "—"} tone="oklch(0.60 0.18 50)" />
-            <Big label="Profit %" value={totals.gp == null ? "—" : pct(totals.gp)} tone="oklch(0.58 0.16 290)" />
           </div>
           {totals.count === 0 && (
             <p className="text-xs text-meta mt-6">No daily wraps captured in this range across any project.</p>
@@ -209,7 +208,7 @@ function Dashboard() {
                   <div className="mt-3 text-2xl font-semibold" style={{ color: b.margin >= 0 ? "oklch(0.60 0.18 50)" : "var(--brand)" }}>
                     {b.reportCount ? aud(b.margin) : "—"}
                   </div>
-                  <div className="t-stat-label mt-1">Profit · {b.gp == null ? "—" : pct(b.gp)}</div>
+                  <div className="t-stat-label mt-1">{b.reportCount} {b.reportCount === 1 ? "wrap" : "wraps"}</div>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-meta">
                     <div>Rev <span className="text-ink font-semibold">{b.reportCount ? aud(b.rev) : "—"}</span></div>
                     <div>Cost <span className="text-ink font-semibold">{b.reportCount ? aud(b.cost) : "—"}</span></div>
@@ -335,7 +334,6 @@ function ProjectSection({
                   <th className="py-2 font-semibold text-right">Revenue</th>
                   <th className="py-2 font-semibold text-right">Cost</th>
                   <th className="py-2 font-semibold text-right">Profit</th>
-                  <th className="py-2 font-semibold text-right">GP%</th>
                   <th className="py-2 font-semibold text-right">Wraps</th>
                   <th className="py-2 font-semibold">Last wrap</th>
                 </tr>
@@ -369,7 +367,6 @@ function ProjectSection({
                       >
                         {reportCount ? aud(margin) : "—"}
                       </td>
-                      <td className="py-3 text-xs text-right">{gp == null ? "—" : pct(gp)}</td>
                       <td className="py-3 text-xs text-right">{reportCount}</td>
                       <td className="py-3 text-xs">{lastDate ? shortDate(lastDate) : "—"}</td>
                     </tr>
