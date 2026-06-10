@@ -339,7 +339,7 @@ function ProjectSection({
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ p, rev, cost, margin, gp, reportCount, lastDate }) => {
+                {rows.map(({ p, rev, cost, margin, reportCount, lastDate }) => {
                   const idx = projectIndex.get(p.id);
                   return (
                     <tr
