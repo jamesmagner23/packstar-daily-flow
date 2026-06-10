@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BrandBarTop, BrandBarBottom } from "./BrandBar";
+
 
 type SubNavItem = { to: string; label: string };
 type Tab = {
@@ -213,8 +213,6 @@ export function SiteShell({ section, children }: { section: string; children: Re
 
   return (
     <div className="min-h-screen flex flex-col">
-      <BrandBarTop section={section} />
-
       {/* Top bar */}
       <header className="border-b border-rule bg-white sticky top-0 z-30">
         <div className="px-3 md:px-6 h-14 flex items-center gap-3">
@@ -294,14 +292,14 @@ export function SiteShell({ section, children }: { section: string; children: Re
           {subNav && (
             <div className="border-b border-rule bg-white">
               <div className="px-4 md:px-8 max-w-[1400px] mx-auto w-full">
-                <nav className="flex flex-wrap gap-x-5 gap-y-2 sm:gap-6 py-3">
+                <nav className="flex gap-5 sm:gap-6 py-3 overflow-x-auto no-scrollbar -mx-4 px-4">
                   {subNav.map((n) => {
                     const active = matchPath(path, n.to);
                     return (
                       <Link
                         key={n.to}
                         to={n.to}
-                        className={`text-[11px] md:text-xs font-semibold uppercase tracking-[0.14em] md:tracking-[0.16em] ${
+                        className={`text-xs font-semibold tracking-tight whitespace-nowrap shrink-0 ${
                           active ? "text-[color:var(--brand)]" : "text-[color:var(--meta)] hover:text-ink"
                         }`}
                       >
@@ -317,7 +315,6 @@ export function SiteShell({ section, children }: { section: string; children: Re
           <main className="flex-1 px-4 md:px-8 lg:px-12 py-6 md:py-10 max-w-[1400px] w-full mx-auto">
             {children}
           </main>
-          <BrandBarBottom section={section} page="PACC HQ v0.1" />
         </div>
       </div>
     </div>
