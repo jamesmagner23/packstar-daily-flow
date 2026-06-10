@@ -3,6 +3,7 @@
 // a deep link to the web pre-start form. Spaced 200ms apart for rate limits.
 
 import { createFileRoute } from "@tanstack/react-router";
+import { requireCronSecret } from "@/lib/cron-auth";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { dmUser, siteOrigin } from "@/lib/slack/post";
 
@@ -22,7 +23,9 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export const Route = createFileRoute("/api/public/hooks/prestart-morning-dm")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        const unauth = requireCronSecret(request);
+        if (unauth) return unauth;
         const today = melbToday();
 
         const { data: allocs, error } = await supabaseAdmin

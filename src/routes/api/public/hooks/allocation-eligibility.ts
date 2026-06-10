@@ -22,6 +22,7 @@
 //      allocation write (trigger already swallows on its side).
 
 import { createFileRoute } from "@tanstack/react-router";
+import { requireCronSecret } from "@/lib/cron-auth";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { dmUser, dmAdmin, siteOrigin } from "@/lib/slack/post";
@@ -61,6 +62,8 @@ export const Route = createFileRoute("/api/public/hooks/allocation-eligibility")
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const unauth = requireCronSecret(request);
+        if (unauth) return unauth;
         let parsed: z.infer<typeof Payload>;
         try {
           const body = await request.json();
