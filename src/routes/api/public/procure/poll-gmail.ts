@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireCronSecret } from "@/lib/cron-auth";
+import { isAuthenticatedAdmin } from "@/lib/admin-auth";
 import {
   listInboxSince,
   getMessage,
