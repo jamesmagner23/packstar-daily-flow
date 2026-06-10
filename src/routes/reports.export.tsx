@@ -56,14 +56,45 @@ function ExportReports() {
     else setRange(rangeForKind(k));
   }
 
-  const url = useMemo(() => {
+  const queryString = useMemo(() => {
     const params = new URLSearchParams({ kind, from: range.from, to: range.to });
     if ((kind === "project" || kind === "crew" || kind === "plant") && projectId) {
       params.set("projectId", projectId);
     }
     if (kind === "crew" && crewName) params.set("crewName", crewName);
-    return `/api/public/reports/pdf?${params.toString()}`;
+    return params.toString();
   }, [kind, range, projectId, crewName]);
+
+  const [downloading, setDownloading] = useState(false);
+  async function downloadPdf() {
+    setDownloading(true);
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      if (!token) {
+        alert("Please sign in again.");
+        return;
+      }
+      const res = await fetch(`/api/public/reports/pdf?${queryString}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        alert(`Download failed: ${res.status}`);
+        return;
+      }
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `pacc-${kind}-${range.from}-to-${range.to}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   const needsProject = kind === "project" || kind === "crew" || kind === "plant";
   const showCrew = kind === "crew";
@@ -160,15 +191,13 @@ function ExportReports() {
         )}
 
         <div className="hairline pt-6 flex items-center gap-4">
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-4 py-2 bg-[color:var(--brand)] text-white text-xs uppercase tracking-wider hover:opacity-90"
+          <button
+            onClick={downloadPdf}
+            disabled={downloading}
+            className="px-4 py-2 bg-[color:var(--brand)] text-white text-xs uppercase tracking-wider hover:opacity-90 disabled:opacity-50"
           >
-            Download PDF
-          </a>
-          <a href={url} className="t-eyebrow text-meta hover:text-foreground">Open in new tab</a>
+            {downloading ? "Preparing…" : "Download PDF"}
+          </button>
         </div>
       </div>
     </SiteShell>
