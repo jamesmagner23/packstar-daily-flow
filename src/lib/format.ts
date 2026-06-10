@@ -8,6 +8,18 @@ export const aud = (n: number | null | undefined) => {
   }).format(n);
 };
 
+// Accounting style: negatives in parentheses, e.g. ($7,759). Used for
+// signed P&L figures so columns line up visually without a leading "-".
+export const audAcct = (n: number | null | undefined) => {
+  if (n == null) return "—";
+  const abs = new Intl.NumberFormat("en-AU", {
+    style: "currency",
+    currency: "AUD",
+    maximumFractionDigits: 0,
+  }).format(Math.abs(n));
+  return n < 0 ? `(${abs})` : abs;
+};
+
 export const pct = (n: number | null | undefined) => {
   if (n == null) return "—";
   return `${Math.round(n)}%`;

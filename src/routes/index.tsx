@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell } from "@/components/SiteShell";
 import { RangeToggle } from "@/components/RangeToggle";
-import { aud, pct, shortDate } from "@/lib/format";
+import { aud, audAcct, pct, shortDate } from "@/lib/format";
 import {
   type DateRange,
   type RangeKind,
@@ -182,9 +182,13 @@ function Dashboard() {
             />
           </div>
           <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-8 md:gap-8">
-            <Big label="Revenue" value={totals.count ? aud(totals.rev) : "—"} tone="oklch(0.55 0.15 160)" />
-            <Big label="Cost" value={totals.count ? aud(totals.cost) : "—"} tone="oklch(0.50 0.05 250)" />
-            <Big label="Profit" value={totals.count ? aud(totals.margin) : "—"} tone="oklch(0.60 0.18 50)" />
+            <Big label="Revenue" value={totals.count ? aud(totals.rev) : "—"} tone="var(--ink)" />
+            <Big label="Cost" value={totals.count ? aud(totals.cost) : "—"} tone="oklch(0.65 0.18 50)" />
+            <Big
+              label="Profit"
+              value={totals.count ? audAcct(totals.margin) : "—"}
+              tone={totals.count === 0 ? "var(--ink)" : totals.margin >= 0 ? "oklch(0.55 0.15 160)" : "var(--brand)"}
+            />
           </div>
           {totals.count === 0 && (
             <p className="text-xs text-meta mt-6">No daily wraps captured in this range across any project.</p>
@@ -200,8 +204,8 @@ function Dashboard() {
               return (
                 <div key={t} className="hairline pt-4 px-4 pb-5 border border-rule">
                   <div className="t-eyebrow text-meta">{projectTypeLabel(t)}</div>
-                  <div className="mt-3 text-2xl font-semibold" style={{ color: b.margin >= 0 ? "oklch(0.60 0.18 50)" : "var(--brand)" }}>
-                    {b.reportCount ? aud(b.margin) : "—"}
+                  <div className="mt-3 text-2xl font-semibold" style={{ color: b.reportCount === 0 ? "var(--ink)" : b.margin >= 0 ? "oklch(0.55 0.15 160)" : "var(--brand)" }}>
+                    {b.reportCount ? audAcct(b.margin) : "—"}
                   </div>
                   <div className="t-stat-label mt-1">{b.reportCount} {b.reportCount === 1 ? "wrap" : "wraps"}</div>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-meta">
@@ -258,7 +262,7 @@ function Dashboard() {
               items={negativeMarginProjects.slice(0, 6).map((x) => ({
                 key: x.project!.id,
                 primary: x.project!.code,
-                secondary: `${aud(x.margin)} · ${projectTypeLabel(x.project!.project_type)}`,
+                secondary: `${audAcct(x.margin)} · ${projectTypeLabel(x.project!.project_type)}`,
               }))}
             />
           </div>
@@ -269,15 +273,14 @@ function Dashboard() {
 }
 
 function Big({ label, value, tone }: { label: string; value: string; tone: string }) {
-  const display = value.replace(/^-\s*/, "\u2212\u00A0");
   return (
     <div className="flex min-w-0 flex-col gap-2">
       <div
-        className="t-stat whitespace-nowrap overflow-hidden text-ellipsis"
+        className="t-stat whitespace-nowrap overflow-hidden text-ellipsis tabular-nums"
         style={{ color: tone, fontSize: "clamp(1.1rem, 2.2vw, 2rem)" }}
         title={value}
       >
-        {display}
+        {value}
       </div>
       <div className="t-stat-label">{label}</div>
     </div>
@@ -354,13 +357,13 @@ function ProjectSection({
                           {projectTypeLabel(idx?.type ?? p.project_type)}
                         </td>
                       )}
-                      <td className="py-3 text-xs text-right">{reportCount ? aud(rev) : "—"}</td>
-                      <td className="py-3 text-xs text-right">{reportCount ? aud(cost) : "—"}</td>
+                      <td className="py-3 text-xs text-right tabular-nums">{reportCount ? aud(rev) : "—"}</td>
+                      <td className="py-3 text-xs text-right tabular-nums" style={{ color: reportCount === 0 ? undefined : "oklch(0.65 0.18 50)" }}>{reportCount ? aud(cost) : "—"}</td>
                       <td
-                        className="py-3 text-xs text-right font-semibold"
+                        className="py-3 text-xs text-right font-semibold tabular-nums"
                         style={{ color: reportCount === 0 ? undefined : margin >= 0 ? "oklch(0.55 0.15 160)" : "var(--brand)" }}
                       >
-                        {reportCount ? aud(margin) : "—"}
+                        {reportCount ? audAcct(margin) : "—"}
                       </td>
                       <td className="py-3 text-xs text-right">{reportCount}</td>
                       <td className="py-3 text-xs">{lastDate ? shortDate(lastDate) : "—"}</td>
