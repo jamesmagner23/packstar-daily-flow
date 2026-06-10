@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell } from "@/components/SiteShell";
 import { RangeToggle } from "@/components/RangeToggle";
-import { aud, pct, shortDate } from "@/lib/format";
+import { aud, audAcct, pct, shortDate } from "@/lib/format";
 import {
   type DateRange,
   type RangeKind,
