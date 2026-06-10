@@ -62,6 +62,7 @@ export const Route = createFileRoute("/api/public/hooks/recompute-report")({
                 projectId: r.project_id as string,
                 supervisorName: (r as any).supervisors?.name ?? "Crew",
                 productivityPct: computed.productivity_pct,
+                marginAud: computed.margin_aud,
                 variationCount: vfCount ?? 0,
                 siteOrigin,
               });
