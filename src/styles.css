@@ -123,3 +123,8 @@
   .hairline { border-top: 1px solid color-mix(in oklab, var(--brand) 25%, transparent); }
   .hairline-strong { border-top: 2px solid var(--brand); width: 30mm; }
 }
+
+@utility no-scrollbar {
+  &::-webkit-scrollbar { display: none; }
+  scrollbar-width: none;
+}
