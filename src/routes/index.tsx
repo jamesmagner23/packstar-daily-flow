@@ -204,8 +204,8 @@ function Dashboard() {
               return (
                 <div key={t} className="hairline pt-4 px-4 pb-5 border border-rule">
                   <div className="t-eyebrow text-meta">{projectTypeLabel(t)}</div>
-                  <div className="mt-3 text-2xl font-semibold" style={{ color: b.margin >= 0 ? "oklch(0.60 0.18 50)" : "var(--brand)" }}>
-                    {b.reportCount ? aud(b.margin) : "—"}
+                  <div className="mt-3 text-2xl font-semibold" style={{ color: b.reportCount === 0 ? "var(--ink)" : b.margin >= 0 ? "oklch(0.55 0.15 160)" : "var(--brand)" }}>
+                    {b.reportCount ? audAcct(b.margin) : "—"}
                   </div>
                   <div className="t-stat-label mt-1">{b.reportCount} {b.reportCount === 1 ? "wrap" : "wraps"}</div>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-meta">
