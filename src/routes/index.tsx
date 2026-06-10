@@ -357,13 +357,13 @@ function ProjectSection({
                           {projectTypeLabel(idx?.type ?? p.project_type)}
                         </td>
                       )}
-                      <td className="py-3 text-xs text-right">{reportCount ? aud(rev) : "—"}</td>
-                      <td className="py-3 text-xs text-right">{reportCount ? aud(cost) : "—"}</td>
+                      <td className="py-3 text-xs text-right tabular-nums">{reportCount ? aud(rev) : "—"}</td>
+                      <td className="py-3 text-xs text-right tabular-nums" style={{ color: reportCount === 0 ? undefined : "oklch(0.65 0.18 50)" }}>{reportCount ? aud(cost) : "—"}</td>
                       <td
-                        className="py-3 text-xs text-right font-semibold"
+                        className="py-3 text-xs text-right font-semibold tabular-nums"
                         style={{ color: reportCount === 0 ? undefined : margin >= 0 ? "oklch(0.55 0.15 160)" : "var(--brand)" }}
                       >
-                        {reportCount ? aud(margin) : "—"}
+                        {reportCount ? audAcct(margin) : "—"}
                       </td>
                       <td className="py-3 text-xs text-right">{reportCount}</td>
                       <td className="py-3 text-xs">{lastDate ? shortDate(lastDate) : "—"}</td>
