@@ -262,7 +262,7 @@ function Dashboard() {
               items={negativeMarginProjects.slice(0, 6).map((x) => ({
                 key: x.project!.id,
                 primary: x.project!.code,
-                secondary: `${aud(x.margin)} · ${projectTypeLabel(x.project!.project_type)}`,
+                secondary: `${audAcct(x.margin)} · ${projectTypeLabel(x.project!.project_type)}`,
               }))}
             />
           </div>
