@@ -30,6 +30,7 @@ export async function notifyDirectorOnWrap(args: {
   projectId: string;
   supervisorName: string;
   productivityPct: number;
+  marginAud: number;
   variationCount: number;
   siteOrigin: string;
 }): Promise<void> {
@@ -52,7 +53,10 @@ export async function notifyDirectorOnWrap(args: {
       ? "No variations flagged."
       : `${args.variationCount} variation${args.variationCount === 1 ? "" : "s"} flagged.`;
     const link = `${args.siteOrigin.replace(/\/$/, "")}/reports/${args.reportId}`;
-    const text = `${supFirst}'s wrap is in. Productivity ${args.productivityPct}%. ${variationLine} <${link}|View report>`;
+    const margin = Math.round(args.marginAud ?? 0);
+    const absFmt = Math.abs(margin).toLocaleString("en-AU");
+    const pnlLine = margin >= 0 ? `Profit $${absFmt}.` : `Loss -$${absFmt}.`;
+    const text = `${supFirst}'s wrap is in. ${pnlLine} ${variationLine} <${link}|View report>`;
 
     const res = await fetch("https://slack.com/api/chat.postMessage", {
       method: "POST",
