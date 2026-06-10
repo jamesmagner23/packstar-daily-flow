@@ -308,7 +308,7 @@ function ProjectSection({
 }) {
   const rows = projects.map((p) => {
     const r = perProject.get(p.id) ?? { rev: 0, cost: 0, margin: 0, reportCount: 0, lastDate: null };
-    return { p, ...r, gp: gpPct(r.rev, r.margin) };
+    return { p, ...r };
   }).sort((a, b) => b.margin - a.margin);
 
   const t = title;
