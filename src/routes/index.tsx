@@ -273,15 +273,14 @@ function Dashboard() {
 }
 
 function Big({ label, value, tone }: { label: string; value: string; tone: string }) {
-  const display = value.replace(/^-\s*/, "\u2212\u00A0");
   return (
     <div className="flex min-w-0 flex-col gap-2">
       <div
-        className="t-stat whitespace-nowrap overflow-hidden text-ellipsis"
+        className="t-stat whitespace-nowrap overflow-hidden text-ellipsis tabular-nums"
         style={{ color: tone, fontSize: "clamp(1.1rem, 2.2vw, 2rem)" }}
         title={value}
       >
-        {display}
+        {value}
       </div>
       <div className="t-stat-label">{label}</div>
     </div>
