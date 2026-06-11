@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
+  
   Briefcase,
   Users,
   ClipboardCheck,
@@ -78,7 +78,7 @@ function getTabs(projectType: ProjectType): Tab[] {
       key: "overview",
       label: "Overview",
       to: "/overview",
-      icon: LayoutDashboard,
+      icon: BarChart3,
       paths: ["/overview"],
     },
     {
