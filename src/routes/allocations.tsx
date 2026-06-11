@@ -53,8 +53,15 @@ type Allocation = {
   employment_type: string | null;
   planned_hours: number | null;
   actual_hours: number | null;
+  planned_allocation_id: string | null;
   notes: string | null;
 };
+
+function isPast(d: Date) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const dd = new Date(d); dd.setHours(0, 0, 0, 0);
+  return dd.getTime() < today.getTime();
+}
 
 // ---------- page ----------
 function AllocationsPage() {
