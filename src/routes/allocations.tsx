@@ -629,10 +629,10 @@ function MonthView({ date, setDate, setView, projects }: {
     queryKey: ["v2-month-range", from, to],
     queryFn: async () => {
       const { data, error } = await supabase.from("daily_allocations")
-        .select("id, allocation_date, job_id")
+        .select("id, allocation_date, job_id, planned_hours")
         .gte("allocation_date", from).lte("allocation_date", to);
       if (error) throw error;
-      return (data ?? []) as { id: string; allocation_date: string; job_id: string }[];
+      return (data ?? []) as { id: string; allocation_date: string; job_id: string; planned_hours: number | null }[];
     },
   });
   const rows = q.data ?? [];
@@ -646,12 +646,22 @@ function MonthView({ date, setDate, setView, projects }: {
             {days.map((d) => {
               const iso = isoDate(d);
               const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-              const count = rows.filter((a) => a.job_id === p.id && a.allocation_date === iso).length;
+              const dayRows = rows.filter((a) => a.job_id === p.id && a.allocation_date === iso);
+              const count = dayRows.length;
+              const hours = dayRows.reduce((s, a) => s + (a.planned_hours ?? 0), 0);
               const bg = count > 0 ? "#FFFFFF" : (isWeekend ? "#D6D3CB" : C.chip);
               return (
                 <button key={iso} onClick={() => { setDate(d); setView("today"); }}
-                  className="rounded inline-flex items-center justify-center" style={{ height: 22, background: bg, border: `0.5px solid ${C.rule}`, fontSize: 10, fontWeight: 600, color: count > 0 ? C.ink : C.meta }} title={iso}>
-                  {count > 0 ? count : d.getDate()}
+                  className="rounded flex flex-col items-center justify-center py-1" style={{ background: bg, border: `0.5px solid ${C.rule}`, color: C.ink }} title={iso}>
+                  <div style={{ fontSize: 9, color: C.meta, lineHeight: 1 }}>{d.getDate()}</div>
+                  {count > 0 ? (
+                    <>
+                      <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.1, marginTop: 2 }}>{count}</div>
+                      <div style={{ fontSize: 9, color: C.meta, lineHeight: 1 }}>{hours}h</div>
+                    </>
+                  ) : (
+                    <div style={{ height: 14 }} />
+                  )}
                 </button>
               );
             })}
