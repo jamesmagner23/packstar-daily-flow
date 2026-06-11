@@ -254,7 +254,7 @@ function SetupPage() {
       {tab === "Requirements" && project && <RequirementsTab projectId={project.id} />}
       {tab === "Variation clauses" && <SimpleTable rows={clauses} cols={[["claim_type","Type"],["clause_ref","Clause"],["notice_deadline_bd","Notice BD"],["full_report_deadline_bd","Full report BD"]]} />}
       {tab === "Triggers" && <SimpleTable rows={triggers} cols={[["claim_type","Type"],["clause_ref","Clause"],["keywords","Keywords",(v:any)=>Array.isArray(v)?v.join(", "):v]]} />}
-      {tab === "Supervisors" && <SimpleTable rows={supers} cols={[["name","Name"],["slack_user_id","Slack ID"],["email","Email"],["active","Active",(v:any)=>v?"Yes":"No"]]} />}
+      {tab === "Supervisors" && project && <SupervisorsTab projectId={project.id} />}
 
       {!project && (
         <p className="text-xs text-meta">Import the MVRC contract JSON to get started. The button is in the top right.</p>
