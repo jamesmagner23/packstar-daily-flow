@@ -44,6 +44,16 @@ function startOfWeek(d: Date) {
 const fmtLong = (d: Date) =>
   new Intl.DateTimeFormat("en-AU", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(d);
 
+// Normalise free-form crew employment_type into the values allowed by the
+// daily_allocations.employment_type check constraint.
+function normEmployment(v: string | null | undefined): "employee" | "casual" | "subcontractor" {
+  const s = (v ?? "").toLowerCase().trim();
+  if (s.startsWith("sub")) return "subcontractor";
+  if (s.startsWith("cas")) return "casual";
+  return "employee"; // employee, full time, office, blank, etc.
+}
+
+
 // ---------- types (loose; integration types may not yet include new tables) ----------
 type Crew = { id: string; name: string; employment_type: string | null };
 type Project = {
@@ -706,9 +716,9 @@ function AllocationModal({ modal, crew, projects, classifications, plant, onClos
   const [classificationId, setClassificationId] = useState<string>(isEdit ? (a!.classification_id ?? "") : "");
   const [plantIds, setPlantIds] = useState<string[]>(isEdit ? (a!.plant_asset_ids ?? []) : []);
   const [employmentType, setEmploymentType] = useState<string>(() => {
-    if (isEdit) return a!.employment_type ?? crew.find((c) => c.id === a!.person_id)?.employment_type ?? "employee";
+    if (isEdit) return normEmployment(a!.employment_type ?? crew.find((c) => c.id === a!.person_id)?.employment_type);
     const c = crew.find((x) => x.id === modal.person_id);
-    return c?.employment_type ?? "employee";
+    return normEmployment(c?.employment_type);
   });
   const [plannedHours, setPlannedHours] = useState<string>(isEdit ? String(a!.planned_hours ?? 10) : "10");
   const [notes, setNotes] = useState<string>(isEdit ? (a!.notes ?? "") : "");
@@ -718,7 +728,7 @@ function AllocationModal({ modal, crew, projects, classifications, plant, onClos
   useEffect(() => {
     if (isEdit) return;
     const c = crew.find((x) => x.id === personId);
-    if (c?.employment_type) setEmploymentType(c.employment_type);
+    if (c?.employment_type) setEmploymentType(normEmployment(c.employment_type));
   }, [personId, crew, isEdit]);
 
   useEffect(() => {
@@ -895,7 +905,7 @@ function WeekPlannerModal({ weekStart, crew, projects, classifications, onClose 
 
   useEffect(() => {
     const c = crew.find((x) => x.id === personId);
-    if (c?.employment_type) setEmploymentType(c.employment_type);
+    if (c?.employment_type) setEmploymentType(normEmployment(c.employment_type));
   }, [personId, crew]);
 
   useEffect(() => {
