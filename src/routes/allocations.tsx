@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell } from "@/components/SiteShell";
+import { useRole } from "@/hooks/use-role";
 
 export const Route = createFileRoute("/allocations")({
   head: () => ({ meta: [{ title: "Allocations — PACC HQ" }] }),
@@ -12,6 +13,7 @@ export const Route = createFileRoute("/allocations")({
 
 const BRAND = "#DC3D3F";
 const GREEN = "#22c55e";
+const ORANGE = "#f59e0b";
 
 // ---------- date helpers (AU week Mon–Sun) ----------
 function startOfWeek(d: Date) {
