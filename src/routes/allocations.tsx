@@ -17,10 +17,12 @@ export const Route = createFileRoute("/allocations")({
 // ---------- locked light palette ----------
 const C = {
   brand: "#DC3D3F",
+  brandDeep: "#C8333A",
   ink: "#1A1A1A",
   meta: "#4A4A4A",
   rule: "#E5E5E5",
   surface: "#FFFFFF",
+  page: "#F1EFE8",
   chip: "#F1EFE8",
   green: "#22c55e",
   blue: "#185FA5",
@@ -174,7 +176,7 @@ function AllocationsPage() {
 
   return (
     <SiteShell section="Allocations">
-      <div style={{ background: "#FAFAF7", colorScheme: "light", color: C.ink, fontFamily: POPPINS }} className="-mx-4 -my-6 px-4 py-6 md:-mx-8 md:px-8 min-h-screen">
+      <div style={{ background: "#F1EFE8", colorScheme: "light", color: C.ink, fontFamily: POPPINS }} className="-mx-4 -my-6 p-[14px] md:-mx-8 min-h-screen">
         <Header date={date} setDate={setDate} view={view} setView={setView} />
 
         {view === "today" && (
@@ -350,7 +352,7 @@ function TodayView(props: {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[10px]">
         {cards.map((p) => {
           const projAllocs = allocations.filter((a) => a.job_id === p.id);
           const projReqs = reqs.filter((r) => r.project_id === p.id);
@@ -376,7 +378,7 @@ function TodayView(props: {
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                  <span style={{ background: C.chip, color: C.ink, fontSize: 12, fontWeight: 500, padding: "2px 10px", borderRadius: 999 }}>
+                  <span style={{ background: C.chip, color: C.ink, fontSize: 12, fontWeight: 500, padding: "3px 10px", borderRadius: 999 }}>
                     {projAllocs.length} crew · {totalHours}h
                   </span>
                   {fc && (
@@ -482,7 +484,7 @@ function TodayView(props: {
                   {unassigned.map((u) => u.name).join(", ")}
                 </p>
               </div>
-              <span style={{ background: C.badBorder, color: C.badDeeper, fontSize: 12, fontWeight: 500, padding: "2px 10px", borderRadius: 999 }}>
+              <span style={{ background: C.badBorder, color: C.badDeeper, fontSize: 12, fontWeight: 500, padding: "3px 10px", borderRadius: 999 }}>
                 {unassigned.length} · Gap
               </span>
             </div>
@@ -532,7 +534,7 @@ function WeekView({ date, setDate, setView, projects, allocations }: {
   const start = startOfWeek(date);
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[10px]">
       {projects.map((p) => (
         <article key={p.id} style={{ background: C.surface, border: `0.5px solid ${C.rule}`, borderLeft: `3px solid ${C.brand}`, borderRadius: 8, padding: "12px 14px" }}>
           <h3 style={{ fontSize: 15, fontWeight: 500, color: C.ink }} className="truncate">{p.name}</h3>
@@ -563,7 +565,7 @@ function MonthView({ date, setDate, setView, projects }: {
   const first = new Date(date.getFullYear(), date.getMonth(), 1);
   const days = Array.from({ length: 30 }, (_, i) => addDays(first, i));
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[10px]">
       {projects.map((p) => (
         <article key={p.id} style={{ background: C.surface, border: `0.5px solid ${C.rule}`, borderLeft: `3px solid ${C.brand}`, borderRadius: 8, padding: "12px 14px" }}>
           <h3 style={{ fontSize: 15, fontWeight: 500 }} className="truncate">{p.name}</h3>
@@ -614,7 +616,7 @@ function PersonView({ weekStart, crew, projects, classifications, plant, onCell,
       <table className="w-full text-xs border-collapse" style={{ fontFamily: POPPINS }}>
         <thead>
           <tr>
-            <th className="sticky left-0 text-left px-3 py-2 font-semibold uppercase tracking-wider min-w-[160px]" style={{ background: "#FAFAF7", color: C.meta, borderBottom: `0.5px solid ${C.rule}`, borderRight: `0.5px solid ${C.rule}`, fontSize: 11 }}>
+            <th className="sticky left-0 text-left px-3 py-2 font-semibold uppercase tracking-wider min-w-[160px]" style={{ background: "#F1EFE8", color: C.meta, borderBottom: `0.5px solid ${C.rule}`, borderRight: `0.5px solid ${C.rule}`, fontSize: 11 }}>
               Crew
             </th>
             {days.map((d) => (
