@@ -136,7 +136,7 @@ export async function handleHandover(text: string, slackUserId: string) {
     const { data: updated } = await supabaseAdmin
       .from("daily_allocations")
       .update({ supervisor_id: incomingCrew.id })
-      .eq("project_id", project.id)
+      .eq("job_id", project.id)
       .eq("supervisor_id", outgoingCrewId)
       .gte("allocation_date", todayIso())
       .select("id");
