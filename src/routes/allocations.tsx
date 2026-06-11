@@ -84,6 +84,8 @@ function AllocationsPage() {
     | { mode: "edit"; allocation: Allocation }
     | null
   >(null);
+  const [planner, setPlanner] = useState(false);
+  const [quickEdit, setQuickEdit] = useState<{ a: Allocation; rect: DOMRect } | null>(null);
 
   // base lookups
   const crewQ = useQuery({
