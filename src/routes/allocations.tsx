@@ -613,7 +613,7 @@ function MonthView({ date, setDate, setView, projects }: {
 // ---------- person view (restored grid) ----------
 function PersonView({ weekStart, crew, projects, classifications, plant, onCell, onEdit }: {
   weekStart: Date; crew: Crew[]; projects: Project[]; classifications: Classification[]; plant: PlantItem[];
-  onCell: (person_id: string, date: string) => void; onEdit: (a: Allocation) => void;
+  onCell: (person_id: string, date: string) => void; onEdit: (a: Allocation, rect: DOMRect) => void;
 }) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const from = isoDate(days[0]); const to = isoDate(days[6]);
