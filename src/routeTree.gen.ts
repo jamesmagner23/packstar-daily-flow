@@ -45,6 +45,7 @@ import { Route as PeopleTeamIndexRouteImport } from './routes/people.team.index'
 import { Route as PeopleRolesIndexRouteImport } from './routes/people.roles.index'
 import { Route as PlantIdPrestartRouteImport } from './routes/plant.$id.prestart'
 import { Route as ApiPublicSlackWebhookRouteImport } from './routes/api/public/slack-webhook'
+import { Route as AllocationsWrapDateRouteImport } from './routes/allocations.wrap.$date'
 import { Route as ApiPublicReportsPdfRouteImport } from './routes/api/public/reports.pdf'
 import { Route as ApiPublicProcurePollGmailRouteImport } from './routes/api/public/procure/poll-gmail'
 import { Route as ApiPublicHooksRecomputeReportRouteImport } from './routes/api/public/hooks/recompute-report'
@@ -234,6 +235,11 @@ const ApiPublicSlackWebhookRoute = ApiPublicSlackWebhookRouteImport.update({
   path: '/api/public/slack-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AllocationsWrapDateRoute = AllocationsWrapDateRouteImport.update({
+  id: '/wrap/$date',
+  path: '/wrap/$date',
+  getParentRoute: () => AllocationsRoute,
+} as any)
 const ApiPublicReportsPdfRoute = ApiPublicReportsPdfRouteImport.update({
   id: '/api/public/reports/pdf',
   path: '/api/public/reports/pdf',
@@ -284,7 +290,7 @@ const ApiPublicHooksAllocationEligibilityRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/allocations': typeof AllocationsRoute
+  '/allocations': typeof AllocationsRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/overview': typeof OverviewRoute
@@ -314,6 +320,7 @@ export interface FileRoutesByFullPath {
   '/tickets/': typeof TicketsIndexRoute
   '/utilisation/': typeof UtilisationIndexRoute
   '/variations/': typeof VariationsIndexRoute
+  '/allocations/wrap/$date': typeof AllocationsWrapDateRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
   '/plant/$id/prestart': typeof PlantIdPrestartRoute
   '/people/roles/': typeof PeopleRolesIndexRoute
@@ -330,7 +337,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/allocations': typeof AllocationsRoute
+  '/allocations': typeof AllocationsRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/overview': typeof OverviewRoute
@@ -360,6 +367,7 @@ export interface FileRoutesByTo {
   '/tickets': typeof TicketsIndexRoute
   '/utilisation': typeof UtilisationIndexRoute
   '/variations': typeof VariationsIndexRoute
+  '/allocations/wrap/$date': typeof AllocationsWrapDateRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
   '/plant/$id/prestart': typeof PlantIdPrestartRoute
   '/people/roles': typeof PeopleRolesIndexRoute
@@ -377,7 +385,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/allocations': typeof AllocationsRoute
+  '/allocations': typeof AllocationsRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/overview': typeof OverviewRoute
@@ -407,6 +415,7 @@ export interface FileRoutesById {
   '/tickets/': typeof TicketsIndexRoute
   '/utilisation/': typeof UtilisationIndexRoute
   '/variations/': typeof VariationsIndexRoute
+  '/allocations/wrap/$date': typeof AllocationsWrapDateRoute
   '/api/public/slack-webhook': typeof ApiPublicSlackWebhookRoute
   '/plant/$id/prestart': typeof PlantIdPrestartRoute
   '/people/roles/': typeof PeopleRolesIndexRoute
@@ -455,6 +464,7 @@ export interface FileRouteTypes {
     | '/tickets/'
     | '/utilisation/'
     | '/variations/'
+    | '/allocations/wrap/$date'
     | '/api/public/slack-webhook'
     | '/plant/$id/prestart'
     | '/people/roles/'
@@ -501,6 +511,7 @@ export interface FileRouteTypes {
     | '/tickets'
     | '/utilisation'
     | '/variations'
+    | '/allocations/wrap/$date'
     | '/api/public/slack-webhook'
     | '/plant/$id/prestart'
     | '/people/roles'
@@ -547,6 +558,7 @@ export interface FileRouteTypes {
     | '/tickets/'
     | '/utilisation/'
     | '/variations/'
+    | '/allocations/wrap/$date'
     | '/api/public/slack-webhook'
     | '/plant/$id/prestart'
     | '/people/roles/'
@@ -564,7 +576,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AllocationsRoute: typeof AllocationsRoute
+  AllocationsRoute: typeof AllocationsRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   OverviewRoute: typeof OverviewRoute
@@ -862,6 +874,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSlackWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/allocations/wrap/$date': {
+      id: '/allocations/wrap/$date'
+      path: '/wrap/$date'
+      fullPath: '/allocations/wrap/$date'
+      preLoaderRoute: typeof AllocationsWrapDateRouteImport
+      parentRoute: typeof AllocationsRoute
+    }
     '/api/public/reports/pdf': {
       id: '/api/public/reports/pdf'
       path: '/api/public/reports/pdf'
@@ -921,6 +940,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AllocationsRouteChildren {
+  AllocationsWrapDateRoute: typeof AllocationsWrapDateRoute
+}
+
+const AllocationsRouteChildren: AllocationsRouteChildren = {
+  AllocationsWrapDateRoute: AllocationsWrapDateRoute,
+}
+
+const AllocationsRouteWithChildren = AllocationsRoute._addFileChildren(
+  AllocationsRouteChildren,
+)
+
 interface PlantIdRouteChildren {
   PlantIdPrestartRoute: typeof PlantIdPrestartRoute
 }
@@ -934,7 +965,7 @@ const PlantIdRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AllocationsRoute: AllocationsRoute,
+  AllocationsRoute: AllocationsRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   OverviewRoute: OverviewRoute,
