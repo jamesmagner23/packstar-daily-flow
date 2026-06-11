@@ -9,6 +9,7 @@ import {
   Truck,
   BarChart3,
   CalendarDays,
+  CalendarRange,
   Menu,
   X,
   ChevronLeft,
@@ -102,6 +103,13 @@ function getTabs(projectType: ProjectType): Tab[] {
         { to: "/people/roles", label: "Roles" },
         { to: "/people/training", label: "Training" },
       ],
+    },
+    {
+      key: "allocations",
+      label: "Allocations",
+      to: "/allocations",
+      icon: CalendarRange,
+      paths: ["/allocations"],
     },
     {
       key: "plant",
