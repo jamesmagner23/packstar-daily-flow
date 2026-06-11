@@ -257,7 +257,7 @@ function AllocationsPage() {
 }
 
 // ---------- header ----------
-function Header({ date, setDate, view, setView }: { date: Date; setDate: (d: Date) => void; view: View; setView: (v: View) => void }) {
+function Header({ date, setDate, view, setView, onPlanWeek }: { date: Date; setDate: (d: Date) => void; view: View; setView: (v: View) => void; onPlanWeek: () => void }) {
   return (
     <header className="mb-5 flex flex-col gap-4">
       <div className="flex items-start justify-between gap-4 flex-wrap">
