@@ -134,7 +134,7 @@ function AllocationsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("daily_allocations")
-        .select("id, allocation_date, person_id, job_id, classification_id, plant_item_id, supervisor_id, status, source, employment_type, planned_hours, actual_hours, notes")
+        .select("id, allocation_date, person_id, job_id, classification_id, plant_item_id, supervisor_id, status, source, employment_type, planned_hours, actual_hours, planned_allocation_id, notes")
         .gte("allocation_date", fromIso)
         .lte("allocation_date", toIso);
       if (error) throw error;
