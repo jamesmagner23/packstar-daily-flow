@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
+  LayoutDashboard: _LayoutDashboard,
   Briefcase,
   Users,
   ClipboardCheck,
