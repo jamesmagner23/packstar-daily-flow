@@ -275,8 +275,8 @@ function ReportDetail() {
                 const qty = Number(w.quantity ?? 0);
                 const pctC = Number(w.pct_complete ?? 0);
                 const rev = qty * (pctC / 100) * rate;
-                const desc = [line?.material, line?.diameter_mm ? `${line.diameter_mm}mm` : null, line?.depth_band_m ? `${line.depth_band_m}m deep` : null]
-                  .filter(Boolean).join(" · ") || line?.description || "—";
+                const specBits = [line?.material, line?.diameter_mm ? `${line.diameter_mm}mm` : null, line?.depth_band_m ? `${line.depth_band_m}m deep` : null].filter(Boolean).join(" · ");
+                const desc = [line?.description, specBits].filter(Boolean).join(" — ") || specBits || line?.description || "—";
                 const run = w.to_pit ? `${w.from_pit ?? "—"} → ${w.to_pit}` : (w.from_pit ?? "—");
                 const upd = (k: string, v: any) => setWorks((xs) => xs.map((x, j) => j === i ? { ...x, [k]: v } : x));
                 return (
