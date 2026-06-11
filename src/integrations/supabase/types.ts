@@ -1011,10 +1011,12 @@ export type Database = {
           daily_rate: number | null
           description: string | null
           id: string
+          name: string | null
           plant_id_code: string
           project_id: string | null
           rate_basis: string
           tonnage_class: string | null
+          type: string | null
           weekly_rate: number | null
         }
         Insert: {
@@ -1024,10 +1026,12 @@ export type Database = {
           daily_rate?: number | null
           description?: string | null
           id?: string
+          name?: string | null
           plant_id_code: string
           project_id?: string | null
           rate_basis?: string
           tonnage_class?: string | null
+          type?: string | null
           weekly_rate?: number | null
         }
         Update: {
@@ -1037,10 +1041,12 @@ export type Database = {
           daily_rate?: number | null
           description?: string | null
           id?: string
+          name?: string | null
           plant_id_code?: string
           project_id?: string | null
           rate_basis?: string
           tonnage_class?: string | null
+          type?: string | null
           weekly_rate?: number | null
         }
         Relationships: [
@@ -1308,6 +1314,93 @@ export type Database = {
           },
         ]
       }
+      project_requirements: {
+        Row: {
+          active: boolean
+          classification_id: string | null
+          created_at: string
+          id: string
+          plant_type: string | null
+          project_id: string
+          required_count: number
+          requirement_type: string
+        }
+        Insert: {
+          active?: boolean
+          classification_id?: string | null
+          created_at?: string
+          id?: string
+          plant_type?: string | null
+          project_id: string
+          required_count?: number
+          requirement_type: string
+        }
+        Update: {
+          active?: boolean
+          classification_id?: string | null
+          created_at?: string
+          id?: string
+          plant_type?: string | null
+          project_id?: string
+          required_count?: number
+          requirement_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_requirements_classification_id_fkey"
+            columns: ["classification_id"]
+            isOneToOne: false
+            referencedRelation: "classifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_requirements_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_supervisors: {
+        Row: {
+          created_at: string
+          id: string
+          project_id: string
+          role: string
+          supervisor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          project_id: string
+          role?: string
+          supervisor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          project_id?: string
+          role?: string
+          supervisor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_supervisors_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_supervisors_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "crew_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           active: boolean | null
@@ -1321,7 +1414,9 @@ export type Database = {
           head_contractor: string
           head_contractor_rep: Json | null
           id: string
+          latitude: number | null
           liquidated_damages_cap_pct_of_contract: number | null
+          longitude: number | null
           max_daily_delay_costs_aud: number | null
           max_total_delay_costs_pct_of_contract: number | null
           name: string
@@ -1334,6 +1429,7 @@ export type Database = {
           project_type: string
           raw_contract_json: Json | null
           site_address: string | null
+          work_type: string | null
           working_days: string | null
           working_hours_end: string | null
           working_hours_start: string | null
@@ -1350,7 +1446,9 @@ export type Database = {
           head_contractor: string
           head_contractor_rep?: Json | null
           id?: string
+          latitude?: number | null
           liquidated_damages_cap_pct_of_contract?: number | null
+          longitude?: number | null
           max_daily_delay_costs_aud?: number | null
           max_total_delay_costs_pct_of_contract?: number | null
           name: string
@@ -1363,6 +1461,7 @@ export type Database = {
           project_type?: string
           raw_contract_json?: Json | null
           site_address?: string | null
+          work_type?: string | null
           working_days?: string | null
           working_hours_end?: string | null
           working_hours_start?: string | null
@@ -1379,7 +1478,9 @@ export type Database = {
           head_contractor?: string
           head_contractor_rep?: Json | null
           id?: string
+          latitude?: number | null
           liquidated_damages_cap_pct_of_contract?: number | null
+          longitude?: number | null
           max_daily_delay_costs_aud?: number | null
           max_total_delay_costs_pct_of_contract?: number | null
           name?: string
@@ -1392,11 +1493,20 @@ export type Database = {
           project_type?: string
           raw_contract_json?: Json | null
           site_address?: string | null
+          work_type?: string | null
           working_days?: string | null
           working_hours_end?: string | null
           working_hours_start?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_work_type_fkey"
+            columns: ["work_type"]
+            isOneToOne: false
+            referencedRelation: "work_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rate_card_variations: {
         Row: {
@@ -1873,6 +1983,77 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      weather_forecasts: {
+        Row: {
+          fetched_at: string
+          forecast_date: string
+          id: string
+          project_id: string
+          rain_probability_pct: number | null
+          source: string
+          temp_max_c: number | null
+          temp_min_c: number | null
+          weather_code: string | null
+        }
+        Insert: {
+          fetched_at?: string
+          forecast_date: string
+          id?: string
+          project_id: string
+          rain_probability_pct?: number | null
+          source?: string
+          temp_max_c?: number | null
+          temp_min_c?: number | null
+          weather_code?: string | null
+        }
+        Update: {
+          fetched_at?: string
+          forecast_date?: string
+          id?: string
+          project_id?: string
+          rain_probability_pct?: number | null
+          source?: string
+          temp_max_c?: number | null
+          temp_min_c?: number | null
+          weather_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weather_forecasts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      work_types: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string
+          display_order: number
+          id: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description: string
+          display_order?: number
+          id?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string
+          display_order?: number
+          id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
