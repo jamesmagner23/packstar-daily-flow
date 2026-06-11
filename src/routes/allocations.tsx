@@ -44,6 +44,16 @@ function startOfWeek(d: Date) {
 const fmtLong = (d: Date) =>
   new Intl.DateTimeFormat("en-AU", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(d);
 
+// Normalise free-form crew employment_type into the values allowed by the
+// daily_allocations.employment_type check constraint.
+function normEmployment(v: string | null | undefined): "employee" | "casual" | "subcontractor" {
+  const s = (v ?? "").toLowerCase().trim();
+  if (s.startsWith("sub")) return "subcontractor";
+  if (s.startsWith("cas")) return "casual";
+  return "employee"; // employee, full time, office, blank, etc.
+}
+
+
 // ---------- types (loose; integration types may not yet include new tables) ----------
 type Crew = { id: string; name: string; employment_type: string | null };
 type Project = {
