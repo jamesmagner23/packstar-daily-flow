@@ -288,6 +288,7 @@ export type Database = {
           job_id: string
           notes: string | null
           person_id: string
+          planned_allocation_id: string | null
           planned_hours: number | null
           plant_asset_ids: string[] | null
           plant_item_id: string | null
@@ -307,6 +308,7 @@ export type Database = {
           job_id: string
           notes?: string | null
           person_id: string
+          planned_allocation_id?: string | null
           planned_hours?: number | null
           plant_asset_ids?: string[] | null
           plant_item_id?: string | null
@@ -326,6 +328,7 @@ export type Database = {
           job_id?: string
           notes?: string | null
           person_id?: string
+          planned_allocation_id?: string | null
           planned_hours?: number | null
           plant_asset_ids?: string[] | null
           plant_item_id?: string | null
@@ -354,6 +357,13 @@ export type Database = {
             columns: ["person_id"]
             isOneToOne: false
             referencedRelation: "crew_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_allocations_planned_allocation_id_fkey"
+            columns: ["planned_allocation_id"]
+            isOneToOne: false
+            referencedRelation: "daily_allocations"
             referencedColumns: ["id"]
           },
           {
@@ -404,6 +414,7 @@ export type Database = {
       }
       daily_reports: {
         Row: {
+          allocation_count: number | null
           complete: boolean | null
           cost_aud: number | null
           created_at: string | null
@@ -421,11 +432,15 @@ export type Database = {
           report_date: string
           revenue_aud: number | null
           structured: Json | null
+          submitted_at: string | null
+          submitted_by: string | null
           supervisor_id: string | null
           updated_at: string | null
+          variance_count: number | null
           works_completed: Json | null
         }
         Insert: {
+          allocation_count?: number | null
           complete?: boolean | null
           cost_aud?: number | null
           created_at?: string | null
@@ -443,11 +458,15 @@ export type Database = {
           report_date: string
           revenue_aud?: number | null
           structured?: Json | null
+          submitted_at?: string | null
+          submitted_by?: string | null
           supervisor_id?: string | null
           updated_at?: string | null
+          variance_count?: number | null
           works_completed?: Json | null
         }
         Update: {
+          allocation_count?: number | null
           complete?: boolean | null
           cost_aud?: number | null
           created_at?: string | null
@@ -465,8 +484,11 @@ export type Database = {
           report_date?: string
           revenue_aud?: number | null
           structured?: Json | null
+          submitted_at?: string | null
+          submitted_by?: string | null
           supervisor_id?: string | null
           updated_at?: string | null
+          variance_count?: number | null
           works_completed?: Json | null
         }
         Relationships: [
