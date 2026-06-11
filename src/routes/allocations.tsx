@@ -81,7 +81,7 @@ type Forecast = {
 type WorkType = { id: string; code: string; description: string };
 type ProjectSupervisor = { project_id: string; supervisor_id: string };
 
-type View = "today" | "week" | "month" | "person";
+type View = "today" | "week" | "month" | "person" | "plant";
 
 // ---------- page ----------
 function AllocationsPage() {
@@ -208,7 +208,7 @@ function AllocationsPage() {
             onEdit={(a) => setModal({ mode: "edit", allocation: a })}
           />
         )}
-        {view === "week" && <WeekView date={date} setDate={setDate} setView={setView} projects={projectsQ.data ?? []} allocations={allocQ.data ?? []} />}
+        {view === "week" && <WeekView date={date} setDate={setDate} setView={setView} projects={projectsQ.data ?? []} />}
         {view === "month" && <MonthView date={date} setDate={setDate} setView={setView} projects={projectsQ.data ?? []} />}
         {view === "person" && (
           <PersonView
@@ -218,6 +218,15 @@ function AllocationsPage() {
             classifications={classQ.data ?? []}
             plant={plantQ.data ?? []}
             onCell={(person_id, d) => setModal({ mode: "create", person_id, date: d })}
+            onEdit={(a, rect) => setQuickEdit({ a, rect })}
+          />
+        )}
+        {view === "plant" && (
+          <PlantView
+            weekStart={startOfWeek(date)}
+            plant={plantQ.data ?? []}
+            projects={projectsQ.data ?? []}
+            crew={crewQ.data ?? []}
             onEdit={(a, rect) => setQuickEdit({ a, rect })}
           />
         )}
@@ -294,7 +303,7 @@ function Header({ date, setDate, view, setView, onPlanWeek }: { date: Date; setD
       </div>
 
       <div className="inline-flex p-1 rounded-full self-start" style={{ background: C.chip }}>
-        {(["today","week","month","person"] as View[]).map((v) => {
+        {(["today","week","month","person","plant"] as View[]).map((v) => {
           const active = view === v;
           return (
             <button key={v} onClick={() => setView(v)}
@@ -561,12 +570,24 @@ function LegendDot({ color, label }: { color: string; label: string }) {
 }
 
 // ---------- week shell ----------
-function WeekView({ date, setDate, setView, projects, allocations }: {
+function WeekView({ date, setDate, setView, projects }: {
   date: Date; setDate: (d: Date) => void; setView: (v: View) => void;
-  projects: Project[]; allocations: Allocation[];
+  projects: Project[];
 }) {
   const start = startOfWeek(date);
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
+  const from = isoDate(days[0]); const to = isoDate(days[6]);
+  const q = useQuery({
+    queryKey: ["v2-week-range", from, to],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("daily_allocations")
+        .select("id, allocation_date, job_id, planned_hours")
+        .gte("allocation_date", from).lte("allocation_date", to);
+      if (error) throw error;
+      return (data ?? []) as { id: string; allocation_date: string; job_id: string; planned_hours: number | null }[];
+    },
+  });
+  const rows = q.data ?? [];
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[10px]">
       {projects.map((p) => (
@@ -576,12 +597,15 @@ function WeekView({ date, setDate, setView, projects, allocations }: {
           <div className="mt-3 grid grid-cols-7 gap-1">
             {days.map((d) => {
               const iso = isoDate(d);
-              const count = allocations.filter((a) => a.job_id === p.id && a.allocation_date === iso).length;
+              const dayRows = rows.filter((a) => a.job_id === p.id && a.allocation_date === iso);
+              const count = dayRows.length;
+              const hours = dayRows.reduce((s, a) => s + (a.planned_hours ?? 0), 0);
               return (
                 <button key={iso} onClick={() => { setDate(d); setView("today"); }}
-                  className="rounded text-center py-1.5" style={{ background: C.chip, color: C.ink }}>
+                  className="rounded text-center py-1.5" style={{ background: count > 0 ? "#FFFFFF" : C.chip, color: C.ink, border: `0.5px solid ${C.rule}` }}>
                   <div style={{ fontSize: 9, color: C.meta }}>{d.toLocaleDateString("en-AU", { weekday: "short" }).slice(0,1)}</div>
                   <div style={{ fontSize: 12, fontWeight: 600 }}>{count}</div>
+                  <div style={{ fontSize: 9, color: C.meta }}>{hours ? `${hours}h` : "—"}</div>
                 </button>
               );
             })}
@@ -597,25 +621,118 @@ function MonthView({ date, setDate, setView, projects }: {
   date: Date; setDate: (d: Date) => void; setView: (v: View) => void; projects: Project[];
 }) {
   const first = new Date(date.getFullYear(), date.getMonth(), 1);
-  const days = Array.from({ length: 30 }, (_, i) => addDays(first, i));
+  const last = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  const days = Array.from({ length: last.getDate() }, (_, i) => addDays(first, i));
+  const from = isoDate(first); const to = isoDate(last);
+  const q = useQuery({
+    queryKey: ["v2-month-range", from, to],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("daily_allocations")
+        .select("id, allocation_date, job_id")
+        .gte("allocation_date", from).lte("allocation_date", to);
+      if (error) throw error;
+      return (data ?? []) as { id: string; allocation_date: string; job_id: string }[];
+    },
+  });
+  const rows = q.data ?? [];
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[10px]">
       {projects.map((p) => (
         <article key={p.id} style={{ background: C.surface, border: `0.5px solid ${C.rule}`, borderLeft: `3px solid ${C.brand}`, borderRadius: 8, padding: "12px 14px" }}>
           <h3 style={{ fontSize: 15, fontWeight: 500 }} className="truncate">{p.name}</h3>
           <p style={{ fontSize: 11, color: C.meta }} className="truncate">{p.head_contractor ?? "—"}</p>
-          <div className="mt-3 grid grid-cols-10 gap-1">
+          <div className="mt-3 grid grid-cols-7 gap-1">
             {days.map((d) => {
+              const iso = isoDate(d);
               const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-              const bg = isWeekend ? "#D6D3CB" : C.chip;
+              const count = rows.filter((a) => a.job_id === p.id && a.allocation_date === iso).length;
+              const bg = count > 0 ? "#FFFFFF" : (isWeekend ? "#D6D3CB" : C.chip);
               return (
-                <button key={isoDate(d)} onClick={() => { setDate(d); setView("today"); }}
-                  className="rounded" style={{ height: 18, background: bg }} title={isoDate(d)} />
+                <button key={iso} onClick={() => { setDate(d); setView("today"); }}
+                  className="rounded inline-flex items-center justify-center" style={{ height: 22, background: bg, border: `0.5px solid ${C.rule}`, fontSize: 10, fontWeight: 600, color: count > 0 ? C.ink : C.meta }} title={iso}>
+                  {count > 0 ? count : d.getDate()}
+                </button>
               );
             })}
           </div>
         </article>
       ))}
+    </div>
+  );
+}
+
+// ---------- plant view ----------
+function PlantView({ weekStart, plant, projects, crew, onEdit }: {
+  weekStart: Date; plant: PlantItem[]; projects: Project[]; crew: Crew[];
+  onEdit: (a: Allocation, rect: DOMRect) => void;
+}) {
+  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  const from = isoDate(days[0]); const to = isoDate(days[6]);
+  const q = useQuery({
+    queryKey: ["v2-plant-grid", from, to],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("daily_allocations")
+        .select("id, allocation_date, person_id, job_id, classification_id, plant_item_id, plant_asset_ids, supervisor_id, status, source, employment_type, planned_hours, actual_hours, notes")
+        .gte("allocation_date", from).lte("allocation_date", to);
+      if (error) throw error; return (data ?? []) as Allocation[];
+    },
+  });
+  const projMap = new Map(projects.map((p) => [p.id, p]));
+  const crewMap = new Map(crew.map((c) => [c.id, c]));
+  const rows = q.data ?? [];
+
+  return (
+    <div style={{ background: C.surface, border: `0.5px solid ${C.rule}`, borderRadius: 8 }} className="overflow-x-auto">
+      <table className="w-full text-xs border-collapse" style={{ fontFamily: POPPINS }}>
+        <thead>
+          <tr>
+            <th className="sticky left-0 text-left px-3 py-2 font-semibold uppercase tracking-wider min-w-[180px]" style={{ background: "#F1EFE8", color: C.meta, borderBottom: `0.5px solid ${C.rule}`, borderRight: `0.5px solid ${C.rule}`, fontSize: 11 }}>
+              Plant
+            </th>
+            {days.map((d) => (
+              <th key={isoDate(d)} className="text-left px-3 py-2 font-semibold uppercase tracking-wider min-w-[150px]" style={{ color: C.meta, borderBottom: `0.5px solid ${C.rule}`, fontSize: 11 }}>
+                {d.toLocaleDateString("en-AU", { weekday: "short", day: "2-digit", month: "2-digit" })}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {plant.length === 0 && (
+            <tr><td colSpan={8} className="px-3 py-6 text-center" style={{ color: C.meta }}>No plant items.</td></tr>
+          )}
+          {plant.map((pl) => (
+            <tr key={pl.id}>
+              <td className="sticky left-0 px-3 py-2 align-top" style={{ background: C.surface, color: C.ink, borderBottom: `0.5px solid ${C.rule}`, borderRight: `0.5px solid ${C.rule}`, fontWeight: 500 }}>
+                <div style={{ fontSize: 12 }}>{pl.plant_id_code ?? pl.name ?? "—"}</div>
+                {pl.description && <div style={{ fontSize: 10, color: C.meta }} className="truncate">{pl.description}</div>}
+              </td>
+              {days.map((d) => {
+                const iso = isoDate(d);
+                const items = rows.filter((a) => a.allocation_date === iso && (a.plant_asset_ids ?? []).includes(pl.id));
+                return (
+                  <td key={iso} className="px-2 py-2 align-top" style={{ borderBottom: `0.5px solid ${C.rule}` }}>
+                    <div className="flex flex-col gap-1">
+                      {items.map((a) => {
+                        const code = projMap.get(a.job_id)?.code ?? "—";
+                        const first = crewMap.get(a.person_id)?.name?.split(" ")[0] ?? "—";
+                        return (
+                          <button key={a.id} onClick={(e) => onEdit(a, (e.currentTarget as HTMLElement).getBoundingClientRect())} className="text-left rounded px-1.5 py-1" style={{ background: "#FFFFFF", border: `1px solid ${C.rule}`, borderLeft: `3px solid ${a.status === "actual" ? C.green : C.brand}` }}>
+                            <div style={{ fontSize: 11, fontWeight: 600, color: C.ink }} className="truncate">{code}</div>
+                            <div style={{ fontSize: 9, color: C.meta }} className="truncate">{first} · {a.planned_hours ?? 0}h</div>
+                          </button>
+                        );
+                      })}
+                      {items.length === 0 && (
+                        <div style={{ height: 6 }} />
+                      )}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
