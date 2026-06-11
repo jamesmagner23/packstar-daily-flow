@@ -666,7 +666,7 @@ function PersonView({ weekStart, crew, projects, classifications, plant, onCell,
                         const code = projMap.get(a.job_id)?.code ?? "—";
                         const cls = a.classification_id ? classMap.get(a.classification_id) : null;
                         return (
-                          <button key={a.id} onClick={() => onEdit(a)} className="text-left rounded px-1.5 py-1" style={{ background: "#FFFFFF", border: `1px solid ${C.rule}`, borderLeft: `3px solid ${a.status === "actual" ? C.green : C.brand}` }}>
+                          <button key={a.id} onClick={(e) => onEdit(a, (e.currentTarget as HTMLElement).getBoundingClientRect())} className="text-left rounded px-1.5 py-1" style={{ background: "#FFFFFF", border: `1px solid ${C.rule}`, borderLeft: `3px solid ${a.status === "actual" ? C.green : C.brand}` }}>
                             <div style={{ fontSize: 11, fontWeight: 600, color: C.ink }} className="truncate">{code}</div>
                             <div style={{ fontSize: 9, color: C.meta }} className="truncate">
                               {(cls?.code ?? "")} · {a.planned_hours ?? 0}h
