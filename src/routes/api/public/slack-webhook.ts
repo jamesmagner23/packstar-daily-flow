@@ -367,6 +367,16 @@ async function processEvent(body: any) {
     }
     return;
   }
+  // 2b. handover <project> to <name>
+  if (HANDOVER_PATTERN.test(userText)) {
+    console.log("[slack-webhook] dispatch: handover");
+    try {
+      await handleHandover(userText, slackUserId);
+    } catch (e) {
+      console.error("[slack-webhook] handover handler threw:", (e as Error).message);
+    }
+    return;
+  }
   // 3. expiring [days]
   if (EXPIRING_PATTERN.test(userText)) {
     console.log("[slack-webhook] dispatch: expiring");
