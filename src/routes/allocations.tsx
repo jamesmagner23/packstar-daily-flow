@@ -81,7 +81,7 @@ type Forecast = {
 type WorkType = { id: string; code: string; description: string };
 type ProjectSupervisor = { project_id: string; supervisor_id: string };
 
-type View = "today" | "week" | "month" | "person";
+type View = "today" | "week" | "month" | "person" | "plant";
 
 // ---------- page ----------
 function AllocationsPage() {
@@ -208,7 +208,7 @@ function AllocationsPage() {
             onEdit={(a) => setModal({ mode: "edit", allocation: a })}
           />
         )}
-        {view === "week" && <WeekView date={date} setDate={setDate} setView={setView} projects={projectsQ.data ?? []} allocations={allocQ.data ?? []} />}
+        {view === "week" && <WeekView date={date} setDate={setDate} setView={setView} projects={projectsQ.data ?? []} />}
         {view === "month" && <MonthView date={date} setDate={setDate} setView={setView} projects={projectsQ.data ?? []} />}
         {view === "person" && (
           <PersonView
@@ -218,6 +218,15 @@ function AllocationsPage() {
             classifications={classQ.data ?? []}
             plant={plantQ.data ?? []}
             onCell={(person_id, d) => setModal({ mode: "create", person_id, date: d })}
+            onEdit={(a, rect) => setQuickEdit({ a, rect })}
+          />
+        )}
+        {view === "plant" && (
+          <PlantView
+            weekStart={startOfWeek(date)}
+            plant={plantQ.data ?? []}
+            projects={projectsQ.data ?? []}
+            crew={crewQ.data ?? []}
             onEdit={(a, rect) => setQuickEdit({ a, rect })}
           />
         )}
@@ -294,7 +303,7 @@ function Header({ date, setDate, view, setView, onPlanWeek }: { date: Date; setD
       </div>
 
       <div className="inline-flex p-1 rounded-full self-start" style={{ background: C.chip }}>
-        {(["today","week","month","person"] as View[]).map((v) => {
+        {(["today","week","month","person","plant"] as View[]).map((v) => {
           const active = view === v;
           return (
             <button key={v} onClick={() => setView(v)}
