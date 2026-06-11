@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell } from "@/components/SiteShell";
-import { useRole } from "@/hooks/use-role";
+
 
 export const Route = createFileRoute("/allocations")({
   head: () => ({ meta: [{ title: "Allocations — PACC HQ" }] }),
