@@ -84,6 +84,8 @@ function AllocationsPage() {
     | { mode: "edit"; allocation: Allocation }
     | null
   >(null);
+  const [planner, setPlanner] = useState(false);
+  const [quickEdit, setQuickEdit] = useState<{ a: Allocation; rect: DOMRect } | null>(null);
 
   // base lookups
   const crewQ = useQuery({
@@ -177,7 +179,7 @@ function AllocationsPage() {
   return (
     <SiteShell section="Allocations">
       <div style={{ background: "#F1EFE8", colorScheme: "light", color: C.ink, fontFamily: POPPINS }} className="-mx-4 -my-6 p-[14px] md:-mx-8 min-h-screen">
-        <Header date={date} setDate={setDate} view={view} setView={setView} />
+        <Header date={date} setDate={setDate} view={view} setView={setView} onPlanWeek={() => setPlanner(true)} />
 
         {view === "today" && (
           <TodayView
@@ -206,7 +208,7 @@ function AllocationsPage() {
             classifications={classQ.data ?? []}
             plant={plantQ.data ?? []}
             onCell={(person_id, d) => setModal({ mode: "create", person_id, date: d })}
-            onEdit={(a) => setModal({ mode: "edit", allocation: a })}
+            onEdit={(a, rect) => setQuickEdit({ a, rect })}
           />
         )}
 
@@ -231,12 +233,31 @@ function AllocationsPage() {
           onClose={() => setModal(null)}
         />
       )}
+      {planner && (
+        <WeekPlannerModal
+          weekStart={startOfWeek(date)}
+          crew={crewQ.data ?? []}
+          projects={projectsQ.data ?? []}
+          classifications={classQ.data ?? []}
+          onClose={() => setPlanner(false)}
+        />
+      )}
+      {quickEdit && (
+        <QuickEditPopover
+          allocation={quickEdit.a}
+          anchor={quickEdit.rect}
+          projects={projectsQ.data ?? []}
+          classifications={classQ.data ?? []}
+          onClose={() => setQuickEdit(null)}
+          onFull={() => { setModal({ mode: "edit", allocation: quickEdit.a }); setQuickEdit(null); }}
+        />
+      )}
     </SiteShell>
   );
 }
 
 // ---------- header ----------
-function Header({ date, setDate, view, setView }: { date: Date; setDate: (d: Date) => void; view: View; setView: (v: View) => void }) {
+function Header({ date, setDate, view, setView, onPlanWeek }: { date: Date; setDate: (d: Date) => void; view: View; setView: (v: View) => void; onPlanWeek: () => void }) {
   return (
     <header className="mb-5 flex flex-col gap-4">
       <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -255,6 +276,9 @@ function Header({ date, setDate, view, setView }: { date: Date; setDate: (d: Dat
           </button>
           <button onClick={() => setDate(addDays(date, 1))} aria-label="Next" className="h-9 w-9 inline-flex items-center justify-center rounded-md border" style={{ borderColor: C.rule, background: C.surface, color: C.ink }}>
             <ChevronRight className="h-4 w-4" />
+          </button>
+          <button onClick={onPlanWeek} className="h-9 px-3 text-xs uppercase tracking-[0.16em] font-semibold rounded-md text-white" style={{ background: C.brand }}>
+            + Plan week
           </button>
         </div>
       </div>
@@ -589,7 +613,7 @@ function MonthView({ date, setDate, setView, projects }: {
 // ---------- person view (restored grid) ----------
 function PersonView({ weekStart, crew, projects, classifications, plant, onCell, onEdit }: {
   weekStart: Date; crew: Crew[]; projects: Project[]; classifications: Classification[]; plant: PlantItem[];
-  onCell: (person_id: string, date: string) => void; onEdit: (a: Allocation) => void;
+  onCell: (person_id: string, date: string) => void; onEdit: (a: Allocation, rect: DOMRect) => void;
 }) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const from = isoDate(days[0]); const to = isoDate(days[6]);
@@ -642,7 +666,7 @@ function PersonView({ weekStart, crew, projects, classifications, plant, onCell,
                         const code = projMap.get(a.job_id)?.code ?? "—";
                         const cls = a.classification_id ? classMap.get(a.classification_id) : null;
                         return (
-                          <button key={a.id} onClick={() => onEdit(a)} className="text-left rounded px-1.5 py-1" style={{ background: "#FFFFFF", border: `1px solid ${C.rule}`, borderLeft: `3px solid ${a.status === "actual" ? C.green : C.brand}` }}>
+                          <button key={a.id} onClick={(e) => onEdit(a, (e.currentTarget as HTMLElement).getBoundingClientRect())} className="text-left rounded px-1.5 py-1" style={{ background: "#FFFFFF", border: `1px solid ${C.rule}`, borderLeft: `3px solid ${a.status === "actual" ? C.green : C.brand}` }}>
                             <div style={{ fontSize: 11, fontWeight: 600, color: C.ink }} className="truncate">{code}</div>
                             <div style={{ fontSize: 9, color: C.meta }} className="truncate">
                               {(cls?.code ?? "")} · {a.planned_hours ?? 0}h
@@ -846,5 +870,270 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span style={{ fontSize: 10, color: C.meta, letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>{label}</span>
       {children}
     </label>
+  );
+}
+
+// ---------- week planner (bulk) ----------
+function WeekPlannerModal({ weekStart, crew, projects, classifications, onClose }: {
+  weekStart: Date; crew: Crew[]; projects: Project[]; classifications: Classification[]; onClose: () => void;
+}) {
+  const qc = useQueryClient();
+  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  const [personId, setPersonId] = useState("");
+  const [projectId, setProjectId] = useState("");
+  const [classificationId, setClassificationId] = useState("");
+  const [employmentType, setEmploymentType] = useState("employee");
+  const [plannedHours, setPlannedHours] = useState("10");
+  const [notes, setNotes] = useState("");
+  // default Mon–Fri
+  const [picked, setPicked] = useState<Record<string, boolean>>(() => {
+    const o: Record<string, boolean> = {};
+    days.forEach((d, i) => { o[isoDate(d)] = i < 5; });
+    return o;
+  });
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    const c = crew.find((x) => x.id === personId);
+    if (c?.employment_type) setEmploymentType(c.employment_type);
+  }, [personId, crew]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const selectedDates = Object.entries(picked).filter(([, v]) => v).map(([k]) => k);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      if (!personId) throw new Error("Pick a person.");
+      if (!projectId) throw new Error("Pick a project.");
+      if (selectedDates.length === 0) throw new Error("Pick at least one day.");
+      const { data: u } = await supabase.auth.getUser();
+      const rows = selectedDates.map((d) => ({
+        allocation_date: d,
+        person_id: personId,
+        job_id: projectId,
+        classification_id: classificationId || null,
+        employment_type: employmentType,
+        planned_hours: plannedHours ? Number(plannedHours) : null,
+        notes: notes || null,
+        source: "board",
+        status: "planned",
+        created_by: u.user?.id ?? null,
+      }));
+      const { error } = await supabase.from("daily_allocations").insert(rows as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["v2-alloc"] });
+      qc.invalidateQueries({ queryKey: ["v2-person-grid"] });
+      onClose();
+    },
+    onError: (e: any) => setErr(e?.message ?? String(e)),
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ fontFamily: POPPINS, colorScheme: "light" }}>
+      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.4)" }} onClick={onClose} />
+      <div className="relative rounded-lg shadow-xl w-full max-w-lg" style={{ background: C.surface, border: `0.5px solid ${C.rule}`, color: C.ink }}>
+        <div className="px-5 py-4 flex items-baseline justify-between" style={{ borderBottom: `0.5px solid ${C.rule}` }}>
+          <div>
+            <h2 className="text-base font-bold" style={{ color: C.brand }}>Plan week</h2>
+            <p style={{ fontSize: 11, color: C.meta }}>
+              Week of {weekStart.toLocaleDateString("en-AU", { day: "2-digit", month: "short" })}
+            </p>
+          </div>
+          <button onClick={onClose} style={{ color: C.meta }}>✕</button>
+        </div>
+        <div className="px-5 py-4 grid gap-3">
+          <Field label="Person">
+            <select value={personId} onChange={(e) => setPersonId(e.target.value)} className="sel">
+              <option value="">— Select —</option>
+              {crew.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </Field>
+          <Field label="Project">
+            <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="sel">
+              <option value="">— Select —</option>
+              {projects.map((p) => <option key={p.id} value={p.id}>{p.code} — {p.name}</option>)}
+            </select>
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Classification">
+              <select value={classificationId} onChange={(e) => setClassificationId(e.target.value)} className="sel">
+                <option value="">— None —</option>
+                {classifications.map((c) => (
+                  <option key={c.id} value={c.id}>{c.code ?? c.classification}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Employment">
+              <select value={employmentType} onChange={(e) => setEmploymentType(e.target.value)} className="sel">
+                <option value="employee">Employee</option>
+                <option value="casual">Casual</option>
+                <option value="subcontractor">Subcontractor</option>
+              </select>
+            </Field>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Planned hours">
+              <input type="number" step="0.25" value={plannedHours} onChange={(e) => setPlannedHours(e.target.value)} className="sel" />
+            </Field>
+            <Field label="Notes">
+              <input value={notes} onChange={(e) => setNotes(e.target.value)} className="sel" />
+            </Field>
+          </div>
+          <div>
+            <div style={{ fontSize: 10, color: C.meta, letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }} className="mb-2">Days</div>
+            <div className="flex flex-wrap gap-2">
+              {days.map((d) => {
+                const iso = isoDate(d);
+                const on = !!picked[iso];
+                return (
+                  <button
+                    key={iso}
+                    type="button"
+                    onClick={() => setPicked((p) => ({ ...p, [iso]: !p[iso] }))}
+                    className="px-3 h-9 rounded-md text-xs font-semibold uppercase tracking-wider"
+                    style={{
+                      background: on ? C.brand : C.surface,
+                      color: on ? "#fff" : C.ink,
+                      border: `1px solid ${on ? C.brand : C.rule}`,
+                    }}
+                  >
+                    {d.toLocaleDateString("en-AU", { weekday: "short" })} {d.getDate()}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-2" style={{ fontSize: 11, color: C.meta }}>
+              {selectedDates.length} day{selectedDates.length === 1 ? "" : "s"} — creates one allocation per day.
+            </p>
+          </div>
+          {err && <p className="text-xs inline-flex items-center gap-1" style={{ color: C.brand }}><AlertCircle className="h-3.5 w-3.5" />{err}</p>}
+        </div>
+        <div className="px-5 py-4 flex items-center justify-end gap-2" style={{ borderTop: `0.5px solid ${C.rule}` }}>
+          <button onClick={onClose} className="text-xs uppercase tracking-[0.16em] font-semibold px-3 py-2 rounded" style={{ border: `1px solid ${C.rule}`, color: C.ink, background: C.surface }}>Cancel</button>
+          <button onClick={() => save.mutate()} disabled={save.isPending} className="text-xs uppercase tracking-[0.16em] font-semibold px-4 py-2 rounded text-white" style={{ background: C.green }}>
+            {save.isPending ? "Saving…" : `Save ${selectedDates.length || ""}`}
+          </button>
+        </div>
+      </div>
+      <style>{`
+        .sel { width:100%; border:1px solid ${C.rule}; border-radius:4px; padding:6px 10px; font-size:12px; background:${C.surface}; color:${C.ink}; font-family:${POPPINS}; }
+        .sel:focus { outline:none; border-color:${C.brand}; }
+      `}</style>
+    </div>
+  );
+}
+
+// ---------- quick edit popover (inline) ----------
+function QuickEditPopover({ allocation, anchor, projects, classifications, onClose, onFull }: {
+  allocation: Allocation; anchor: DOMRect; projects: Project[]; classifications: Classification[];
+  onClose: () => void; onFull: () => void;
+}) {
+  const qc = useQueryClient();
+  const [projectId, setProjectId] = useState(allocation.job_id);
+  const [classificationId, setClassificationId] = useState(allocation.classification_id ?? "");
+  const [plannedHours, setPlannedHours] = useState(String(allocation.planned_hours ?? ""));
+  const [notes, setNotes] = useState(allocation.notes ?? "");
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const W = 280;
+  const left = Math.min(window.innerWidth - W - 12, Math.max(12, anchor.left));
+  const top = Math.min(window.innerHeight - 320, anchor.bottom + 6);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("daily_allocations").update({
+        job_id: projectId,
+        classification_id: classificationId || null,
+        planned_hours: plannedHours ? Number(plannedHours) : null,
+        notes: notes || null,
+      }).eq("id", allocation.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["v2-alloc"] });
+      qc.invalidateQueries({ queryKey: ["v2-person-grid"] });
+      onClose();
+    },
+    onError: (e: any) => setErr(e?.message ?? String(e)),
+  });
+
+  const del = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("daily_allocations").delete().eq("id", allocation.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["v2-alloc"] });
+      qc.invalidateQueries({ queryKey: ["v2-person-grid"] });
+      onClose();
+    },
+    onError: (e: any) => setErr(e?.message ?? String(e)),
+  });
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40" onClick={onClose} />
+      <div
+        className="fixed z-50 rounded-lg shadow-xl"
+        style={{ left, top, width: W, background: C.surface, border: `0.5px solid ${C.rule}`, color: C.ink, fontFamily: POPPINS }}
+      >
+        <div className="px-3 py-2 flex items-center justify-between" style={{ borderBottom: `0.5px solid ${C.rule}` }}>
+          <div style={{ fontSize: 11, color: C.meta }}>{allocation.allocation_date}</div>
+          <button onClick={onFull} style={{ fontSize: 10, color: C.brand, fontWeight: 600 }} className="uppercase tracking-wider">More…</button>
+        </div>
+        <div className="px-3 py-3 grid gap-2">
+          <label className="grid gap-1">
+            <span style={{ fontSize: 10, color: C.meta, textTransform: "uppercase", fontWeight: 600 }}>Project</span>
+            <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="qe">
+              {projects.map((p) => <option key={p.id} value={p.id}>{p.code} — {p.name}</option>)}
+            </select>
+          </label>
+          <label className="grid gap-1">
+            <span style={{ fontSize: 10, color: C.meta, textTransform: "uppercase", fontWeight: 600 }}>Classification</span>
+            <select value={classificationId} onChange={(e) => setClassificationId(e.target.value)} className="qe">
+              <option value="">— None —</option>
+              {classifications.map((c) => <option key={c.id} value={c.id}>{c.code ?? c.classification}</option>)}
+            </select>
+          </label>
+          <label className="grid gap-1">
+            <span style={{ fontSize: 10, color: C.meta, textTransform: "uppercase", fontWeight: 600 }}>Hours</span>
+            <input type="number" step="0.25" value={plannedHours} onChange={(e) => setPlannedHours(e.target.value)} className="qe" />
+          </label>
+          <label className="grid gap-1">
+            <span style={{ fontSize: 10, color: C.meta, textTransform: "uppercase", fontWeight: 600 }}>Notes</span>
+            <input value={notes} onChange={(e) => setNotes(e.target.value)} className="qe" />
+          </label>
+          {err && <p style={{ fontSize: 11, color: C.brand }}>{err}</p>}
+        </div>
+        <div className="px-3 py-2 flex items-center justify-between" style={{ borderTop: `0.5px solid ${C.rule}` }}>
+          <button onClick={() => del.mutate()} disabled={del.isPending} className="inline-flex items-center gap-1" style={{ fontSize: 11, color: C.meta }}>
+            <Trash2 className="h-3 w-3" /> Delete
+          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={onClose} className="px-2 py-1 rounded" style={{ fontSize: 11, border: `1px solid ${C.rule}`, color: C.ink }}>Cancel</button>
+            <button onClick={() => save.mutate()} disabled={save.isPending} className="px-3 py-1 rounded text-white" style={{ fontSize: 11, background: C.green }}>
+              {save.isPending ? "Saving…" : "Save"}
+            </button>
+          </div>
+        </div>
+        <style>{`
+          .qe { width:100%; border:1px solid ${C.rule}; border-radius:4px; padding:4px 8px; font-size:12px; background:${C.surface}; color:${C.ink}; font-family:${POPPINS}; }
+          .qe:focus { outline:none; border-color:${C.brand}; }
+        `}</style>
+      </div>
+    </>
   );
 }
