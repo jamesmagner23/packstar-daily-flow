@@ -17,10 +17,12 @@ export const Route = createFileRoute("/allocations")({
 // ---------- locked light palette ----------
 const C = {
   brand: "#DC3D3F",
+  brandDeep: "#C8333A",
   ink: "#1A1A1A",
   meta: "#4A4A4A",
   rule: "#E5E5E5",
   surface: "#FFFFFF",
+  page: "#F1EFE8",
   chip: "#F1EFE8",
   green: "#22c55e",
   blue: "#185FA5",
