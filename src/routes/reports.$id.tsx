@@ -275,8 +275,8 @@ function ReportDetail() {
                 const qty = Number(w.quantity ?? 0);
                 const pctC = Number(w.pct_complete ?? 0);
                 const rev = qty * (pctC / 100) * rate;
-                const desc = [line?.material, line?.diameter_mm ? `${line.diameter_mm}mm` : null, line?.depth_band_m ? `${line.depth_band_m}m deep` : null]
-                  .filter(Boolean).join(" · ") || line?.description || "—";
+                const specBits = [line?.material, line?.diameter_mm ? `${line.diameter_mm}mm` : null, line?.depth_band_m ? `${line.depth_band_m}m deep` : null].filter(Boolean).join(" · ");
+                const desc = [line?.description, specBits].filter(Boolean).join(" — ") || specBits || line?.description || "—";
                 const run = w.to_pit ? `${w.from_pit ?? "—"} → ${w.to_pit}` : (w.from_pit ?? "—");
                 const upd = (k: string, v: any) => setWorks((xs) => xs.map((x, j) => j === i ? { ...x, [k]: v } : x));
                 return (
@@ -290,11 +290,15 @@ function ReportDetail() {
                         </td>
                         <td className="py-2 pr-3 font-mono">
                           <select value={w.boq_ref ?? ""} onChange={(e) => upd("boq_ref", e.target.value)}
-                            className="bg-secondary border border-rule px-1 py-1 text-xs">
+                            className="bg-secondary border border-rule px-1 py-1 text-xs max-w-[260px]">
                             <option value="">—</option>
-                            {(lookups?.boq ?? []).map((b: any) => (
-                              <option key={b.ref} value={b.ref}>{b.ref}</option>
-                            ))}
+                            {(lookups?.boq ?? []).map((b: any) => {
+                              const bits = [b.material, b.diameter_mm ? `${b.diameter_mm}mm` : null, b.depth_band_m ? `${b.depth_band_m}m deep` : null].filter(Boolean).join(" · ");
+                              const label = [b.description, bits].filter(Boolean).join(" — ") || bits || b.description || "";
+                              return (
+                                <option key={b.ref} value={b.ref}>{b.ref}{label ? ` — ${label}` : ""}</option>
+                              );
+                            })}
                           </select>
                         </td>
                         <td className="py-2 pr-3 text-meta">{desc}</td>
