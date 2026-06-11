@@ -71,6 +71,9 @@ function AllocationsPage() {
   const fromIso = isoDate(weekStart);
   const toIso = isoDate(weekEnd);
 
+  const { isAdmin, isSupervisor } = useRole();
+  const today = isoDate(new Date());
+
   const [modal, setModal] = useState<
     | { mode: "create"; person_id: string; date: string }
     | { mode: "edit"; allocation: Allocation }
