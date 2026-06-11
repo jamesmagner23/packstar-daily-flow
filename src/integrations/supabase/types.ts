@@ -102,7 +102,9 @@ export type Database = {
       }
       classifications: {
         Row: {
+          active: boolean
           classification: string
+          code: string | null
           created_at: string
           description: string | null
           eba_source: string | null
@@ -110,9 +112,14 @@ export type Database = {
           id: string
           nt_cost_per_hr: number
           ot_cost_per_hr: number
+          rate_casual: number | null
+          rate_employee: number | null
+          rate_subcontractor: number | null
         }
         Insert: {
+          active?: boolean
           classification: string
+          code?: string | null
           created_at?: string
           description?: string | null
           eba_source?: string | null
@@ -120,9 +127,14 @@ export type Database = {
           id?: string
           nt_cost_per_hr: number
           ot_cost_per_hr: number
+          rate_casual?: number | null
+          rate_employee?: number | null
+          rate_subcontractor?: number | null
         }
         Update: {
+          active?: boolean
           classification?: string
+          code?: string | null
           created_at?: string
           description?: string | null
           eba_source?: string | null
@@ -130,6 +142,9 @@ export type Database = {
           id?: string
           nt_cost_per_hr?: number
           ot_cost_per_hr?: number
+          rate_casual?: number | null
+          rate_employee?: number | null
+          rate_subcontractor?: number | null
         }
         Relationships: []
       }
@@ -267,13 +282,17 @@ export type Database = {
           allocation_date: string
           classification_id: string | null
           created_at: string
+          created_by: string | null
+          employment_type: string | null
           id: string
           job_id: string
           notes: string | null
           person_id: string
           planned_hours: number | null
           plant_asset_ids: string[] | null
+          plant_item_id: string | null
           source: string
+          status: string
           supervisor_id: string | null
           updated_at: string
         }
@@ -282,13 +301,17 @@ export type Database = {
           allocation_date: string
           classification_id?: string | null
           created_at?: string
+          created_by?: string | null
+          employment_type?: string | null
           id?: string
           job_id: string
           notes?: string | null
           person_id: string
           planned_hours?: number | null
           plant_asset_ids?: string[] | null
+          plant_item_id?: string | null
           source: string
+          status?: string
           supervisor_id?: string | null
           updated_at?: string
         }
@@ -297,13 +320,17 @@ export type Database = {
           allocation_date?: string
           classification_id?: string | null
           created_at?: string
+          created_by?: string | null
+          employment_type?: string | null
           id?: string
           job_id?: string
           notes?: string | null
           person_id?: string
           planned_hours?: number | null
           plant_asset_ids?: string[] | null
+          plant_item_id?: string | null
           source?: string
+          status?: string
           supervisor_id?: string | null
           updated_at?: string
         }
@@ -327,6 +354,13 @@ export type Database = {
             columns: ["person_id"]
             isOneToOne: false
             referencedRelation: "crew_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_allocations_plant_item_id_fkey"
+            columns: ["plant_item_id"]
+            isOneToOne: false
+            referencedRelation: "plant_items"
             referencedColumns: ["id"]
           },
           {
