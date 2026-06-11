@@ -179,7 +179,7 @@ function AllocationsPage() {
   return (
     <SiteShell section="Allocations">
       <div style={{ background: "#F1EFE8", colorScheme: "light", color: C.ink, fontFamily: POPPINS }} className="-mx-4 -my-6 p-[14px] md:-mx-8 min-h-screen">
-        <Header date={date} setDate={setDate} view={view} setView={setView} />
+        <Header date={date} setDate={setDate} view={view} setView={setView} onPlanWeek={() => setPlanner(true)} />
 
         {view === "today" && (
           <TodayView
@@ -208,7 +208,7 @@ function AllocationsPage() {
             classifications={classQ.data ?? []}
             plant={plantQ.data ?? []}
             onCell={(person_id, d) => setModal({ mode: "create", person_id, date: d })}
-            onEdit={(a) => setModal({ mode: "edit", allocation: a })}
+            onEdit={(a, rect) => setQuickEdit({ a, rect })}
           />
         )}
 
