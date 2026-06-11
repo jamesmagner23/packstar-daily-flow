@@ -78,7 +78,7 @@ function getTabs(projectType: ProjectType): Tab[] {
       key: "overview",
       label: "Overview",
       to: "/overview",
-      icon: LayoutDashboard,
+      icon: BarChart3,
       paths: ["/overview"],
     },
     {
