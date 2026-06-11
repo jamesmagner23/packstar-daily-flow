@@ -17,6 +17,9 @@ import {
 } from "@/lib/project-types";
 
 export const Route = createFileRoute("/")({
+  beforeLoad: () => {
+    throw redirect({ to: "/overview" });
+  },
   head: () => ({
     meta: [
       { title: "PACC HQ — business overview" },
