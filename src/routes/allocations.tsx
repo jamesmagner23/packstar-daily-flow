@@ -215,8 +215,19 @@ function AllocationsPage() {
                 Crew
               </th>
               {weekDays.map((d) => (
-                <th key={isoDate(d)} className="text-left px-3 py-2 border-b border-rule font-semibold text-meta uppercase tracking-wider min-w-[160px]">
-                  {fmtCol(d)}
+                <th key={isoDate(d)} className="text-left px-3 py-2 border-b border-rule font-semibold text-meta uppercase tracking-wider min-w-[200px]">
+                  <div className="flex items-center justify-between gap-2">
+                    <span>{fmtCol(d)}</span>
+                    {(isAdmin || isSupervisor) && (
+                      <Link
+                        to="/allocations/wrap/$date"
+                        params={{ date: isoDate(d) }}
+                        className="text-[10px] normal-case tracking-normal font-semibold text-meta hover:text-[color:var(--brand)]"
+                      >
+                        Wrap
+                      </Link>
+                    )}
+                  </div>
                 </th>
               ))}
             </tr>
