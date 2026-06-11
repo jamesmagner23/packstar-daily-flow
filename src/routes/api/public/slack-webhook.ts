@@ -8,6 +8,7 @@ import { SLACK_PILING_FLOW_PROMPT } from "@/lib/prompts/slack-piling-flow";
 import { persistComputedReport, notifyDirectorOnWrap } from "@/lib/evening-summary/persist";
 import { handlePhotoTicket, looksLikeTicketCaption } from "@/lib/slack/photo-ticket";
 import { handleProfileLookup, PROFILE_PATTERN } from "@/lib/slack/profile-lookup";
+import { handleHandover, HANDOVER_PATTERN } from "@/lib/slack/handover";
 import { handleExpiring, EXPIRING_PATTERN } from "@/lib/slack/expiring";
 import { handleInductionPhoto, looksLikeInductionCaption } from "@/lib/slack/induction";
 import { handleEligibilityQuery, ELIGIBILITY_PATTERN } from "@/lib/slack/eligibility-query";
@@ -363,6 +364,16 @@ async function processEvent(body: any) {
       await handleProfileLookup(userText, slackUserId);
     } catch (e) {
       console.error("[slack-webhook] profile lookup handler threw:", (e as Error).message);
+    }
+    return;
+  }
+  // 2b. handover <project> to <name>
+  if (HANDOVER_PATTERN.test(userText)) {
+    console.log("[slack-webhook] dispatch: handover");
+    try {
+      await handleHandover(userText, slackUserId);
+    } catch (e) {
+      console.error("[slack-webhook] handover handler threw:", (e as Error).message);
     }
     return;
   }

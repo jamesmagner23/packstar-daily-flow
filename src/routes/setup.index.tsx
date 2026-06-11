@@ -254,7 +254,7 @@ function SetupPage() {
       {tab === "Requirements" && project && <RequirementsTab projectId={project.id} />}
       {tab === "Variation clauses" && <SimpleTable rows={clauses} cols={[["claim_type","Type"],["clause_ref","Clause"],["notice_deadline_bd","Notice BD"],["full_report_deadline_bd","Full report BD"]]} />}
       {tab === "Triggers" && <SimpleTable rows={triggers} cols={[["claim_type","Type"],["clause_ref","Clause"],["keywords","Keywords",(v:any)=>Array.isArray(v)?v.join(", "):v]]} />}
-      {tab === "Supervisors" && <SimpleTable rows={supers} cols={[["name","Name"],["slack_user_id","Slack ID"],["email","Email"],["active","Active",(v:any)=>v?"Yes":"No"]]} />}
+      {tab === "Supervisors" && project && <SupervisorsTab projectId={project.id} />}
 
       {!project && (
         <p className="text-xs text-meta">Import the MVRC contract JSON to get started. The button is in the top right.</p>
@@ -426,6 +426,155 @@ function RequirementsTab({ projectId }: { projectId: string }) {
           </tbody>
         </table>
       )}
+    </div>
+  );
+}
+
+
+function SupervisorsTab({ projectId }: { projectId: string }) {
+  const qc = useQueryClient();
+  const [reassignFrom, setReassignFrom] = useState<any | null>(null);
+
+  const { data: supers = [] } = useQuery({
+    queryKey: ["setup-supers", projectId],
+    queryFn: async () => (await supabase.from("supervisors").select("*").eq("project_id", projectId).order("active", { ascending: false }).order("name")).data ?? [],
+  });
+
+  return (
+    <div className="hairline pt-4">
+      <p className="text-xs text-meta mb-4">Project supervisors. Use <strong>Reassign</strong> to hand over to someone else — future allocations will be moved across.</p>
+      {supers.length === 0 ? (
+        <p className="text-xs text-meta">No supervisors yet.</p>
+      ) : (
+        <table className="w-full text-left">
+          <thead><tr className="t-stat-label">
+            <th className="py-2 font-semibold">Name</th>
+            <th className="py-2 font-semibold">Slack ID</th>
+            <th className="py-2 font-semibold">Email</th>
+            <th className="py-2 font-semibold">Active</th>
+            <th></th>
+          </tr></thead>
+          <tbody>
+            {supers.map((s: any) => (
+              <tr key={s.id} className="border-t border-rule">
+                <td className="py-3 text-xs">{s.name}</td>
+                <td className="py-3 text-xs">{s.slack_user_id ?? "—"}</td>
+                <td className="py-3 text-xs">{s.email ?? "—"}</td>
+                <td className="py-3 text-xs">{s.active ? "Yes" : "No"}</td>
+                <td className="py-3 text-xs text-right">
+                  {s.active && (
+                    <button onClick={() => setReassignFrom(s)} className="text-meta hover:text-[color:var(--brand)] uppercase tracking-[0.16em] font-semibold">
+                      Reassign
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {reassignFrom && (
+        <ReassignSupervisorDialog
+          projectId={projectId}
+          outgoing={reassignFrom}
+          onClose={() => setReassignFrom(null)}
+          onDone={() => {
+            setReassignFrom(null);
+            qc.invalidateQueries({ queryKey: ["setup-supers", projectId] });
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function ReassignSupervisorDialog({
+  projectId, outgoing, onClose, onDone,
+}: { projectId: string; outgoing: any; onClose: () => void; onDone: () => void }) {
+  const [crewId, setCrewId] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const { data: crew = [] } = useQuery({
+    queryKey: ["reassign-crew", projectId],
+    queryFn: async () => (await supabase
+      .from("crew_members")
+      .select("id, name, role, slack_user_id, email")
+      .eq("project_id", projectId)
+      .eq("active", true)
+      .order("name")).data ?? [],
+  });
+
+  async function save() {
+    if (!crewId) { setErr("Pick the incoming supervisor."); return; }
+    const incoming: any = crew.find((c: any) => c.id === crewId);
+    if (!incoming) { setErr("Crew member not found."); return; }
+    if (!incoming.slack_user_id) { setErr(`${incoming.name} has no Slack ID on their crew record. Add it in Crew first.`); return; }
+
+    setBusy(true); setErr(null); setMsg(null);
+
+    // Outgoing crew_member.id (match by slack_user_id)
+    const { data: outgoingCrew } = await supabase
+      .from("crew_members").select("id").eq("slack_user_id", outgoing.slack_user_id).maybeSingle();
+
+    // 1) Deactivate outgoing supervisors row
+    await supabase.from("supervisors").update({ active: false }).eq("id", outgoing.id);
+
+    // 2) Upsert incoming supervisors row
+    const { data: existing } = await supabase
+      .from("supervisors").select("id")
+      .eq("project_id", projectId).eq("slack_user_id", incoming.slack_user_id).maybeSingle();
+    if (existing) {
+      await supabase.from("supervisors").update({ active: true, name: incoming.name, email: incoming.email }).eq("id", existing.id);
+    } else {
+      await supabase.from("supervisors").insert({
+        project_id: projectId, name: incoming.name, slack_user_id: incoming.slack_user_id, email: incoming.email, active: true,
+      });
+    }
+
+    // 3) Reassign future allocations
+    let reassigned = 0;
+    if (outgoingCrew?.id) {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data: updated } = await supabase
+        .from("daily_allocations")
+        .update({ supervisor_id: incoming.id })
+        .eq("job_id", projectId)
+        .eq("supervisor_id", outgoingCrew.id)
+        .gte("allocation_date", today)
+        .select("id");
+      reassigned = updated?.length ?? 0;
+    }
+
+    setBusy(false);
+    setMsg(`Handed over to ${incoming.name}. ${reassigned} future allocation${reassigned === 1 ? "" : "s"} reassigned.`);
+    setTimeout(onDone, 900);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white w-full max-w-md p-6 border border-rule" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-lg font-semibold mb-1">Reassign supervisor</h2>
+        <p className="text-xs text-meta mb-4">Hand over from <strong>{outgoing.name}</strong>. Future-dated allocations will move to the incoming supervisor.</p>
+        <label className="flex flex-col gap-1 mb-3">
+          <span className="t-stat-label">Incoming supervisor</span>
+          <select value={crewId} onChange={(e) => setCrewId(e.target.value)} className="border border-rule px-3 py-1.5 text-sm bg-white">
+            <option value="">Select crew member…</option>
+            {crew.filter((c: any) => c.slack_user_id !== outgoing.slack_user_id).map((c: any) => (
+              <option key={c.id} value={c.id}>{c.name}{c.role ? ` — ${c.role}` : ""}{!c.slack_user_id ? " (no Slack ID)" : ""}</option>
+            ))}
+          </select>
+        </label>
+        {err && <p className="text-xs text-red-600">{err}</p>}
+        {msg && <p className="text-xs text-emerald-700">{msg}</p>}
+        <div className="mt-5 flex justify-end gap-2">
+          <button onClick={onClose} className="text-xs uppercase tracking-[0.16em] font-semibold px-4 py-2 text-meta hover:text-ink">Cancel</button>
+          <button onClick={save} disabled={busy} className="text-xs uppercase tracking-[0.16em] font-semibold bg-[color:var(--brand)] text-white px-4 py-2 hover:bg-[color:var(--brand-deep)] disabled:opacity-50">
+            {busy ? "Reassigning…" : "Reassign"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
