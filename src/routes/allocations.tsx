@@ -233,6 +233,25 @@ function AllocationsPage() {
           onClose={() => setModal(null)}
         />
       )}
+      {planner && (
+        <WeekPlannerModal
+          weekStart={startOfWeek(date)}
+          crew={crewQ.data ?? []}
+          projects={projectsQ.data ?? []}
+          classifications={classQ.data ?? []}
+          onClose={() => setPlanner(false)}
+        />
+      )}
+      {quickEdit && (
+        <QuickEditPopover
+          allocation={quickEdit.a}
+          anchor={quickEdit.rect}
+          projects={projectsQ.data ?? []}
+          classifications={classQ.data ?? []}
+          onClose={() => setQuickEdit(null)}
+          onFull={() => { setModal({ mode: "edit", allocation: quickEdit.a }); setQuickEdit(null); }}
+        />
+      )}
     </SiteShell>
   );
 }
