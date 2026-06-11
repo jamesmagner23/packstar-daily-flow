@@ -90,7 +90,7 @@ function AllocationsPage() {
   const isoD = isoDate(date);
 
   const [modal, setModal] = useState<
-    | { mode: "create"; project_id?: string; person_id?: string; date: string }
+    | { mode: "create"; project_id?: string; person_id?: string; plant_id?: string; date: string }
     | { mode: "edit"; allocation: Allocation }
     | null
   >(null);
@@ -819,7 +819,7 @@ function PersonView({ weekStart, crew, projects, classifications, plant, onCell,
 // ---------- modal ----------
 function AllocationModal({ modal, crew, projects, classifications, plant, onClose }: {
   modal:
-    | { mode: "create"; project_id?: string; person_id?: string; date: string }
+    | { mode: "create"; project_id?: string; person_id?: string; plant_id?: string; date: string }
     | { mode: "edit"; allocation: Allocation };
   crew: Crew[]; projects: Project[]; classifications: Classification[]; plant: PlantItem[];
   onClose: () => void;
@@ -831,7 +831,7 @@ function AllocationModal({ modal, crew, projects, classifications, plant, onClos
   const [personId, setPersonId] = useState<string>(isEdit ? a!.person_id : (modal.person_id ?? ""));
   const [projectId, setProjectId] = useState<string>(isEdit ? a!.job_id : (modal.project_id ?? ""));
   const [classificationId, setClassificationId] = useState<string>(isEdit ? (a!.classification_id ?? "") : "");
-  const [plantIds, setPlantIds] = useState<string[]>(isEdit ? (a!.plant_asset_ids ?? []) : []);
+  const [plantIds, setPlantIds] = useState<string[]>(isEdit ? (a!.plant_asset_ids ?? []) : (modal.plant_id ? [modal.plant_id] : []));
   const [employmentType, setEmploymentType] = useState<string>(() => {
     if (isEdit) return normEmployment(a!.employment_type ?? crew.find((c) => c.id === a!.person_id)?.employment_type);
     const c = crew.find((x) => x.id === modal.person_id);
