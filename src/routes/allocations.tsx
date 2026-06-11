@@ -839,8 +839,10 @@ function AllocationModal({ modal, crew, projects, classifications, plant, onClos
   const qc = useQueryClient();
   const isEdit = modal.mode === "edit";
   const a = isEdit ? modal.allocation : null;
+  // "Plant mode" = the add button was clicked from the Plant grid — we hide person/classification/employment.
+  const isPlantMode = !isEdit && !!(modal as any).plant_id;
 
-  const [personId, setPersonId] = useState<string>(isEdit ? a!.person_id : (modal.person_id ?? ""));
+  const [personId, setPersonId] = useState<string>(isEdit ? (a!.person_id ?? "") : (modal.person_id ?? ""));
   const [projectId, setProjectId] = useState<string>(isEdit ? a!.job_id : (modal.project_id ?? ""));
   const [classificationId, setClassificationId] = useState<string>(isEdit ? (a!.classification_id ?? "") : "");
   const [plantIds, setPlantIds] = useState<string[]>(isEdit ? (a!.plant_asset_ids ?? []) : (modal.plant_id ? [modal.plant_id] : []));
@@ -849,16 +851,27 @@ function AllocationModal({ modal, crew, projects, classifications, plant, onClos
     const c = crew.find((x) => x.id === modal.person_id);
     return normEmployment(c?.employment_type);
   });
+  // Plant ownership picker (only used in plant mode). Default to the existing plant's ownership when known.
+  const initialOwnership = (() => {
+    if (!isPlantMode) return "owned";
+    const pre = plant.find((p) => p.id === (modal as any).plant_id);
+    return (pre as any)?.ownership === "hired" ? "hired" : "owned";
+  })();
+  const [ownership, setOwnership] = useState<"owned" | "hired">(initialOwnership);
+  const [showHireForm, setShowHireForm] = useState(false);
+  const [hirePlantCode, setHirePlantCode] = useState("");
+  const [hirePlantName, setHirePlantName] = useState("");
+  const [hireCost, setHireCost] = useState("");
   const [plannedHours, setPlannedHours] = useState<string>(isEdit ? String(a!.planned_hours ?? 10) : "10");
   const [notes, setNotes] = useState<string>(isEdit ? (a!.notes ?? "") : "");
   const [err, setErr] = useState<string | null>(null);
   const date = isEdit ? a!.allocation_date : modal.date;
 
   useEffect(() => {
-    if (isEdit) return;
+    if (isEdit || isPlantMode) return;
     const c = crew.find((x) => x.id === personId);
     if (c?.employment_type) setEmploymentType(normEmployment(c.employment_type));
-  }, [personId, crew, isEdit]);
+  }, [personId, crew, isEdit, isPlantMode]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
@@ -866,18 +879,48 @@ function AllocationModal({ modal, crew, projects, classifications, plant, onClos
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  const createHiredPlant = useMutation({
+    mutationFn: async () => {
+      if (!projectId) throw new Error("Pick a project before adding hired plant.");
+      if (!hirePlantCode.trim()) throw new Error("Plant ID is required.");
+      const payload: any = {
+        project_id: projectId,
+        plant_id_code: hirePlantCode.trim(),
+        name: hirePlantName.trim() || null,
+        daily_rate: hireCost ? Number(hireCost) : null,
+        ownership: "hired",
+        rate_basis: "daily",
+        active: true,
+      };
+      const { data, error } = await supabase.from("plant_items").insert(payload).select("id").single();
+      if (error) throw error;
+      return data!.id as string;
+    },
+    onSuccess: (newId) => {
+      qc.invalidateQueries({ queryKey: ["v2-plant"] });
+      setPlantIds([newId]);
+      setShowHireForm(false);
+      setHirePlantCode(""); setHirePlantName(""); setHireCost("");
+    },
+    onError: (e: any) => setErr(e?.message ?? String(e)),
+  });
+
   const save = useMutation({
     mutationFn: async () => {
-      if (!personId) throw new Error("Pick a person.");
       if (!projectId) throw new Error("Pick a project.");
+      if (isPlantMode) {
+        if (!plantIds.length) throw new Error("Pick (or add) a plant item.");
+      } else {
+        if (!personId) throw new Error("Pick a person.");
+      }
       const { data: u } = await supabase.auth.getUser();
       const payload: any = {
         allocation_date: date,
-        person_id: personId,
+        person_id: personId || null,
         job_id: projectId,
-        classification_id: classificationId || null,
+        classification_id: isPlantMode ? null : (classificationId || null),
         plant_asset_ids: plantIds.length ? plantIds : null,
-        employment_type: employmentType,
+        employment_type: isPlantMode ? null : employmentType,
         planned_hours: plannedHours ? Number(plannedHours) : null,
         notes: notes || null,
         source: isEdit ? a!.source : "board",
@@ -892,7 +935,12 @@ function AllocationModal({ modal, crew, projects, classifications, plant, onClos
         if (error) throw error;
       }
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["v2-alloc"] }); qc.invalidateQueries({ queryKey: ["v2-person-grid"] }); onClose(); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["v2-alloc"] });
+      qc.invalidateQueries({ queryKey: ["v2-person-grid"] });
+      qc.invalidateQueries({ queryKey: ["v2-plant-grid"] });
+      onClose();
+    },
     onError: (e: any) => setErr(e?.message ?? String(e)),
   });
 
@@ -918,9 +966,11 @@ function AllocationModal({ modal, crew, projects, classifications, plant, onClos
       const { error } = await supabase.from("daily_allocations").delete().eq("id", a!.id);
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["v2-alloc"] }); qc.invalidateQueries({ queryKey: ["v2-person-grid"] }); onClose(); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["v2-alloc"] }); qc.invalidateQueries({ queryKey: ["v2-person-grid"] }); qc.invalidateQueries({ queryKey: ["v2-plant-grid"] }); onClose(); },
     onError: (e: any) => setErr(e?.message ?? String(e)),
   });
+
+  const title = isEdit ? "Edit allocation" : isPlantMode ? "Add plant allocation" : "Add allocation";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ fontFamily: POPPINS, colorScheme: "light" }}>
@@ -928,44 +978,126 @@ function AllocationModal({ modal, crew, projects, classifications, plant, onClos
       <div className="relative rounded-lg shadow-xl w-full max-w-md" style={{ background: C.surface, border: `0.5px solid ${C.rule}`, color: C.ink }}>
         <div className="px-5 py-4 flex items-baseline justify-between" style={{ borderBottom: `0.5px solid ${C.rule}` }}>
           <div>
-            <h2 className="text-base font-bold" style={{ color: C.brand }}>{isEdit ? "Edit allocation" : "Add allocation"}</h2>
+            <h2 className="text-base font-bold" style={{ color: C.brand }}>{title}</h2>
             <p style={{ fontSize: 11, color: C.meta }}>{date}</p>
           </div>
           <button onClick={onClose} style={{ color: C.meta }}>✕</button>
         </div>
         <div className="px-5 py-4 grid gap-3">
-          <Field label="Person">
-            <select value={personId} onChange={(e) => setPersonId(e.target.value)} className="sel">
-              <option value="">— Select —</option>
-              {crew.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </Field>
+          {!isPlantMode && (
+            <Field label="Person">
+              <select value={personId} onChange={(e) => setPersonId(e.target.value)} className="sel">
+                <option value="">— Select —</option>
+                {crew.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </Field>
+          )}
           <Field label="Project">
             <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="sel">
               <option value="">— Select —</option>
               {projects.map((p) => <option key={p.id} value={p.id}>{p.code} — {p.name}</option>)}
             </select>
           </Field>
-          <Field label="Classification">
-            <select value={classificationId} onChange={(e) => setClassificationId(e.target.value)} className="sel">
-              <option value="">— None —</option>
-              {classifications.map((c) => (
-                <option key={c.id} value={c.id}>{c.code ?? c.classification}</option>
-              ))}
+          {!isPlantMode && (
+            <Field label="Classification">
+              <select value={classificationId} onChange={(e) => setClassificationId(e.target.value)} className="sel">
+                <option value="">— None —</option>
+                {classifications.map((c) => (
+                  <option key={c.id} value={c.id}>{c.code ?? c.classification}</option>
+                ))}
+              </select>
+            </Field>
+          )}
+          <Field label={isPlantMode ? "Plant" : "Plant (Ctrl/Cmd to multi-select)"}>
+            <select
+              multiple={!isPlantMode}
+              value={isPlantMode ? (plantIds[0] ?? "") : plantIds}
+              onChange={(e) => {
+                if (isPlantMode) setPlantIds(e.target.value ? [e.target.value] : []);
+                else setPlantIds(Array.from(e.target.selectedOptions, (o) => o.value));
+              }}
+              className="sel"
+              style={!isPlantMode ? { height: 110 } : undefined}
+            >
+              {isPlantMode && <option value="">— Select —</option>}
+              {plant
+                .filter((p) => !isPlantMode || ((p as any).ownership ?? "owned") === ownership)
+                .map((p) => <option key={p.id} value={p.id}>{p.plant_id_code} — {p.name ?? p.description ?? ""}</option>)}
             </select>
           </Field>
-          <Field label="Plant (Ctrl/Cmd to multi-select)">
-            <select multiple value={plantIds} onChange={(e) => setPlantIds(Array.from(e.target.selectedOptions, (o) => o.value))} className="sel" style={{ height: 110 }}>
-              {plant.map((p) => <option key={p.id} value={p.id}>{p.plant_id_code} — {p.name ?? p.description ?? ""}</option>)}
-            </select>
-          </Field>
-          <Field label="Employment type">
-            <select value={employmentType} onChange={(e) => setEmploymentType(e.target.value)} className="sel">
-              <option value="employee">Employee</option>
-              <option value="casual">Casual</option>
-              <option value="subcontractor">Subcontractor</option>
-            </select>
-          </Field>
+          {isPlantMode ? (
+            <>
+              <Field label="Ownership">
+                <div className="flex gap-2">
+                  {(["owned", "hired"] as const).map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => { setOwnership(opt); setPlantIds([]); }}
+                      className="text-xs uppercase tracking-[0.16em] font-semibold px-3 py-2 rounded"
+                      style={{
+                        border: `1px solid ${ownership === opt ? C.brand : C.rule}`,
+                        color: ownership === opt ? "#fff" : C.ink,
+                        background: ownership === opt ? C.brand : C.surface,
+                        flex: 1,
+                      }}
+                    >
+                      {opt === "owned" ? "PACC owned" : "Hired in"}
+                    </button>
+                  ))}
+                </div>
+              </Field>
+              {ownership === "hired" && (
+                <div className="rounded" style={{ border: `0.5px dashed ${C.rule}`, padding: 10 }}>
+                  {!showHireForm ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowHireForm(true)}
+                      className="text-xs uppercase tracking-[0.16em] font-semibold"
+                      style={{ color: C.brand }}
+                    >
+                      + Add new hired plant
+                    </button>
+                  ) : (
+                    <div className="grid gap-2">
+                      <Field label="Plant ID">
+                        <input value={hirePlantCode} onChange={(e) => setHirePlantCode(e.target.value)} className="sel" placeholder="e.g. EX-2003" />
+                      </Field>
+                      <Field label="Name / description">
+                        <input value={hirePlantName} onChange={(e) => setHirePlantName(e.target.value)} className="sel" placeholder="e.g. 20T Excavator" />
+                      </Field>
+                      <Field label="Day cost ($)">
+                        <input type="number" step="0.01" value={hireCost} onChange={(e) => setHireCost(e.target.value)} className="sel" />
+                      </Field>
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => { setShowHireForm(false); setHirePlantCode(""); setHirePlantName(""); setHireCost(""); }}
+                          className="text-xs uppercase tracking-[0.16em] font-semibold px-3 py-1.5 rounded"
+                          style={{ border: `1px solid ${C.rule}`, color: C.ink }}
+                        >Cancel</button>
+                        <button
+                          type="button"
+                          onClick={() => createHiredPlant.mutate()}
+                          disabled={createHiredPlant.isPending}
+                          className="text-xs uppercase tracking-[0.16em] font-semibold px-3 py-1.5 rounded text-white"
+                          style={{ background: C.green }}
+                        >{createHiredPlant.isPending ? "Saving…" : "Save to project"}</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <Field label="Employment type">
+              <select value={employmentType} onChange={(e) => setEmploymentType(e.target.value)} className="sel">
+                <option value="employee">Employee</option>
+                <option value="casual">Casual</option>
+                <option value="subcontractor">Subcontractor</option>
+              </select>
+            </Field>
+          )}
           <Field label="Planned hours">
             <input type="number" step="0.25" value={plannedHours} onChange={(e) => setPlannedHours(e.target.value)} className="sel" />
           </Field>

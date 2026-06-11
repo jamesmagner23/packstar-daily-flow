@@ -85,7 +85,7 @@ function PlantListPage() {
       const allocByAsset = new Map<string, string>();
       for (const a of allocs ?? []) {
         for (const aid of (a.plant_asset_ids ?? []) as string[]) {
-          if (ids.includes(aid)) allocByAsset.set(aid, a.person_id);
+          if (ids.includes(aid) && a.person_id) allocByAsset.set(aid, a.person_id);
         }
       }
       const prestartByAsset = new Map((prestarts ?? []).map((p: any) => [p.asset_id, p]));

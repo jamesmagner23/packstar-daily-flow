@@ -287,7 +287,7 @@ export type Database = {
           id: string
           job_id: string
           notes: string | null
-          person_id: string
+          person_id: string | null
           planned_allocation_id: string | null
           planned_hours: number | null
           plant_asset_ids: string[] | null
@@ -307,7 +307,7 @@ export type Database = {
           id?: string
           job_id: string
           notes?: string | null
-          person_id: string
+          person_id?: string | null
           planned_allocation_id?: string | null
           planned_hours?: number | null
           plant_asset_ids?: string[] | null
@@ -327,7 +327,7 @@ export type Database = {
           id?: string
           job_id?: string
           notes?: string | null
-          person_id?: string
+          person_id?: string | null
           planned_allocation_id?: string | null
           planned_hours?: number | null
           plant_asset_ids?: string[] | null
@@ -1012,6 +1012,7 @@ export type Database = {
           description: string | null
           id: string
           name: string | null
+          ownership: string
           plant_id_code: string
           project_id: string | null
           rate_basis: string
@@ -1027,6 +1028,7 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string | null
+          ownership?: string
           plant_id_code: string
           project_id?: string | null
           rate_basis?: string
@@ -1042,6 +1044,7 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string | null
+          ownership?: string
           plant_id_code?: string
           project_id?: string | null
           rate_basis?: string
