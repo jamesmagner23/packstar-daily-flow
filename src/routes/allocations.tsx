@@ -716,9 +716,9 @@ function AllocationModal({ modal, crew, projects, classifications, plant, onClos
   const [classificationId, setClassificationId] = useState<string>(isEdit ? (a!.classification_id ?? "") : "");
   const [plantIds, setPlantIds] = useState<string[]>(isEdit ? (a!.plant_asset_ids ?? []) : []);
   const [employmentType, setEmploymentType] = useState<string>(() => {
-    if (isEdit) return a!.employment_type ?? crew.find((c) => c.id === a!.person_id)?.employment_type ?? "employee";
+    if (isEdit) return normEmployment(a!.employment_type ?? crew.find((c) => c.id === a!.person_id)?.employment_type);
     const c = crew.find((x) => x.id === modal.person_id);
-    return c?.employment_type ?? "employee";
+    return normEmployment(c?.employment_type);
   });
   const [plannedHours, setPlannedHours] = useState<string>(isEdit ? String(a!.planned_hours ?? 10) : "10");
   const [notes, setNotes] = useState<string>(isEdit ? (a!.notes ?? "") : "");
