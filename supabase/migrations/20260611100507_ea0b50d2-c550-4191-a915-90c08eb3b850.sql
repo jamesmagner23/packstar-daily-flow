@@ -1,0 +1,2 @@
+ALTER TABLE public.daily_allocations ALTER COLUMN person_id DROP NOT NULL;
+ALTER TABLE public.plant_items ADD COLUMN IF NOT EXISTS ownership text NOT NULL DEFAULT 'owned' CHECK (ownership IN ('owned','hired'));
