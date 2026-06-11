@@ -216,7 +216,9 @@ function WrapPage() {
         if (error) throw error;
       }
 
-      // Upsert daily_reports row (one per date+supervisor)
+      // Upsert daily_reports row (one per date+supervisor).
+      // Set `complete` atomically with submitted_at/submitted_by so existing
+      // downstream filters on `complete = true` see board-driven wraps.
       const reportRow = {
         report_date: date,
         supervisor_id: personId,
@@ -224,6 +226,7 @@ function WrapPage() {
         variance_count: variance,
         submitted_at: new Date().toISOString(),
         submitted_by: uid,
+        complete: true,
       };
       // Try to find existing row
       const { data: existing } = await supabase
