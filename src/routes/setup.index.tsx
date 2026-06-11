@@ -12,7 +12,7 @@ export const Route = createFileRoute("/setup/")({
   component: SetupPage,
 });
 
-const TABS = ["Contract", "Portions", "BOQ", "Pits", "Crew", "Plant", "Variation clauses", "Triggers", "Supervisors"] as const;
+const TABS = ["Contract", "Portions", "BOQ", "Pits", "Crew", "Plant", "Requirements", "Variation clauses", "Triggers", "Supervisors"] as const;
 
 function SetupPage() {
   const qc = useQueryClient();
@@ -251,6 +251,7 @@ function SetupPage() {
       {tab === "Pits" && <SimpleTable rows={pits} cols={[["pit_id","Pit"],["separable_portion_code","SP"],["status","Status"]]} />}
       {tab === "Crew" && <SimpleTable rows={crew} cols={[["name","Name"],["role","Role"],["cost_rate_nt","NT rate"],["cost_rate_ot","OT rate"]]} />}
       {tab === "Plant" && <SimpleTable rows={plant} cols={[["plant_id_code","ID"],["description","Description"],["tonnage_class","Class"],["cost_rate_nt","NT rate"],["cost_rate_ot","OT rate"]]} />}
+      {tab === "Requirements" && project && <RequirementsTab projectId={project.id} />}
       {tab === "Variation clauses" && <SimpleTable rows={clauses} cols={[["claim_type","Type"],["clause_ref","Clause"],["notice_deadline_bd","Notice BD"],["full_report_deadline_bd","Full report BD"]]} />}
       {tab === "Triggers" && <SimpleTable rows={triggers} cols={[["claim_type","Type"],["clause_ref","Clause"],["keywords","Keywords",(v:any)=>Array.isArray(v)?v.join(", "):v]]} />}
       {tab === "Supervisors" && <SimpleTable rows={supers} cols={[["name","Name"],["slack_user_id","Slack ID"],["email","Email"],["active","Active",(v:any)=>v?"Yes":"No"]]} />}
