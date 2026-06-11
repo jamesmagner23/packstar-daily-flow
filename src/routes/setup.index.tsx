@@ -326,6 +326,111 @@ function ProjectTypeToggle({ project, onChange }: { project: any; onChange: () =
 }
 
 
+function RequirementsTab({ projectId }: { projectId: string }) {
+  const qc = useQueryClient();
+  const { data: reqs = [] } = useQuery({
+    queryKey: ["setup-reqs", projectId],
+    queryFn: async () => (await (supabase as any).from("project_requirements").select("*").eq("project_id", projectId).order("created_at")).data ?? [],
+  });
+  const { data: classifications = [] } = useQuery({
+    queryKey: ["setup-classifications-all"],
+    queryFn: async () => (await supabase.from("classifications").select("id, code, classification, description").not("code", "is", null).order("code")).data ?? [],
+  });
+
+  const [kind, setKind] = useState<"classification" | "plant_type">("classification");
+  const [classificationId, setClassificationId] = useState("");
+  const [plantType, setPlantType] = useState("");
+  const [count, setCount] = useState(1);
+  const [busy, setBusy] = useState(false);
+
+  async function add() {
+    if (kind === "classification" && !classificationId) return;
+    if (kind === "plant_type" && !plantType.trim()) return;
+    setBusy(true);
+    await (supabase as any).from("project_requirements").insert({
+      project_id: projectId,
+      requirement_type: kind,
+      classification_id: kind === "classification" ? classificationId : null,
+      plant_type: kind === "plant_type" ? plantType.trim() : null,
+      required_count: Math.max(1, count),
+    });
+    setBusy(false);
+    setClassificationId(""); setPlantType(""); setCount(1);
+    qc.invalidateQueries({ queryKey: ["setup-reqs", projectId] });
+  }
+  async function remove(id: string) {
+    await (supabase as any).from("project_requirements").delete().eq("id", id);
+    qc.invalidateQueries({ queryKey: ["setup-reqs", projectId] });
+  }
+
+  const classMap = new Map(classifications.map((c: any) => [c.id, c]));
+
+  return (
+    <div className="hairline pt-4">
+      <p className="text-xs text-meta mb-4">Daily crew/plant requirements for this project. The Allocations board uses these to colour the "Needs" pills on each card.</p>
+
+      <div className="border border-rule rounded p-3 mb-6 flex flex-wrap items-end gap-3 bg-white">
+        <label className="flex flex-col gap-1">
+          <span className="t-stat-label">Type</span>
+          <select value={kind} onChange={(e) => setKind(e.target.value as any)} className="border border-rule px-2 py-1.5 text-sm bg-white">
+            <option value="classification">Classification</option>
+            <option value="plant_type">Plant type</option>
+          </select>
+        </label>
+        {kind === "classification" ? (
+          <label className="flex flex-col gap-1">
+            <span className="t-stat-label">Classification</span>
+            <select value={classificationId} onChange={(e) => setClassificationId(e.target.value)} className="border border-rule px-2 py-1.5 text-sm bg-white min-w-[260px]">
+              <option value="">Select…</option>
+              {classifications.map((c: any) => (
+                <option key={c.id} value={c.id}>{c.code} — {c.description ?? c.classification}</option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <label className="flex flex-col gap-1">
+            <span className="t-stat-label">Plant type</span>
+            <input value={plantType} onChange={(e) => setPlantType(e.target.value)} placeholder="e.g. 20T excavator" className="border border-rule px-2 py-1.5 text-sm min-w-[220px]" />
+          </label>
+        )}
+        <label className="flex flex-col gap-1">
+          <span className="t-stat-label">Required</span>
+          <input type="number" min={1} value={count} onChange={(e) => setCount(Number(e.target.value) || 1)} className="border border-rule px-2 py-1.5 text-sm w-20" />
+        </label>
+        <button onClick={add} disabled={busy} className="text-xs uppercase tracking-[0.16em] font-semibold bg-[color:var(--brand)] text-white px-4 py-2 hover:bg-[color:var(--brand-deep)] disabled:opacity-50">
+          {busy ? "Adding…" : "Add requirement"}
+        </button>
+      </div>
+
+      {reqs.length === 0 ? (
+        <p className="text-xs text-meta">No requirements yet.</p>
+      ) : (
+        <table className="w-full text-left">
+          <thead><tr className="t-stat-label"><th className="py-2 font-semibold">Type</th><th className="py-2 font-semibold">Requirement</th><th className="py-2 font-semibold">Required</th><th></th></tr></thead>
+          <tbody>
+            {reqs.map((r: any) => {
+              const label = r.requirement_type === "classification"
+                ? (() => { const c: any = classMap.get(r.classification_id); return c ? `${c.code} — ${c.description ?? c.classification}` : "—"; })()
+                : (r.plant_type ?? "—");
+              return (
+                <tr key={r.id} className="border-t border-rule">
+                  <td className="py-3 text-xs">{r.requirement_type === "classification" ? "Classification" : "Plant type"}</td>
+                  <td className="py-3 text-xs">{label}</td>
+                  <td className="py-3 text-xs">×{r.required_count}</td>
+                  <td className="py-3 text-xs text-right">
+                    <button onClick={() => remove(r.id)} className="text-meta hover:text-[color:var(--brand)] uppercase tracking-[0.16em] font-semibold">Remove</button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
+
 
 function NewProjectDialog({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
   const [code, setCode] = useState("");
