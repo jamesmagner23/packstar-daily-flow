@@ -194,6 +194,16 @@ function AllocationsPage() {
           >
             <ChevronRight className="h-4 w-4" />
           </button>
+          {(isAdmin || isSupervisor) && (
+            <Link
+              to="/allocations/wrap/$date"
+              params={{ date: today }}
+              className="h-9 px-3 inline-flex items-center text-xs uppercase tracking-[0.16em] font-semibold rounded-md text-white"
+              style={{ background: GREEN }}
+            >
+              {isAdmin ? "Wrap Today" : "Wrap My Crew"}
+            </Link>
+          )}
         </div>
       </header>
 
