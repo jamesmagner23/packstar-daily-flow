@@ -728,7 +728,7 @@ function AllocationModal({ modal, crew, projects, classifications, plant, onClos
   useEffect(() => {
     if (isEdit) return;
     const c = crew.find((x) => x.id === personId);
-    if (c?.employment_type) setEmploymentType(c.employment_type);
+    if (c?.employment_type) setEmploymentType(normEmployment(c.employment_type));
   }, [personId, crew, isEdit]);
 
   useEffect(() => {
