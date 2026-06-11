@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell } from "@/components/SiteShell";
+import { useRole } from "@/hooks/use-role";
 
 export const Route = createFileRoute("/allocations")({
   head: () => ({ meta: [{ title: "Allocations — PACC HQ" }] }),
@@ -12,6 +13,7 @@ export const Route = createFileRoute("/allocations")({
 
 const BRAND = "#DC3D3F";
 const GREEN = "#22c55e";
+const ORANGE = "#f59e0b";
 
 // ---------- date helpers (AU week Mon–Sun) ----------
 function startOfWeek(d: Date) {
@@ -51,8 +53,15 @@ type Allocation = {
   employment_type: string | null;
   planned_hours: number | null;
   actual_hours: number | null;
+  planned_allocation_id: string | null;
   notes: string | null;
 };
+
+function isPast(d: Date) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const dd = new Date(d); dd.setHours(0, 0, 0, 0);
+  return dd.getTime() < today.getTime();
+}
 
 // ---------- page ----------
 function AllocationsPage() {
@@ -61,6 +70,9 @@ function AllocationsPage() {
   const weekEnd = weekDays[6];
   const fromIso = isoDate(weekStart);
   const toIso = isoDate(weekEnd);
+
+  const { isAdmin, isSupervisor } = useRole();
+  const today = isoDate(new Date());
 
   const [modal, setModal] = useState<
     | { mode: "create"; person_id: string; date: string }
@@ -122,7 +134,7 @@ function AllocationsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("daily_allocations")
-        .select("id, allocation_date, person_id, job_id, classification_id, plant_item_id, supervisor_id, status, source, employment_type, planned_hours, actual_hours, notes")
+        .select("id, allocation_date, person_id, job_id, classification_id, plant_item_id, supervisor_id, status, source, employment_type, planned_hours, actual_hours, planned_allocation_id, notes")
         .gte("allocation_date", fromIso)
         .lte("allocation_date", toIso);
       if (error) throw error;
@@ -182,6 +194,16 @@ function AllocationsPage() {
           >
             <ChevronRight className="h-4 w-4" />
           </button>
+          {(isAdmin || isSupervisor) && (
+            <Link
+              to="/allocations/wrap/$date"
+              params={{ date: today }}
+              className="h-9 px-3 inline-flex items-center text-xs uppercase tracking-[0.16em] font-semibold rounded-md text-white"
+              style={{ background: GREEN }}
+            >
+              {isAdmin ? "Wrap Today" : "Wrap My Crew"}
+            </Link>
+          )}
         </div>
       </header>
 
@@ -193,8 +215,19 @@ function AllocationsPage() {
                 Crew
               </th>
               {weekDays.map((d) => (
-                <th key={isoDate(d)} className="text-left px-3 py-2 border-b border-rule font-semibold text-meta uppercase tracking-wider min-w-[160px]">
-                  {fmtCol(d)}
+                <th key={isoDate(d)} className="text-left px-3 py-2 border-b border-rule font-semibold text-meta uppercase tracking-wider min-w-[200px]">
+                  <div className="flex items-center justify-between gap-2">
+                    <span>{fmtCol(d)}</span>
+                    {(isAdmin || isSupervisor) && (
+                      <Link
+                        to="/allocations/wrap/$date"
+                        params={{ date: isoDate(d) }}
+                        className="text-[10px] normal-case tracking-normal font-semibold text-meta hover:text-[color:var(--brand)]"
+                      >
+                        Wrap
+                      </Link>
+                    )}
+                  </div>
                 </th>
               ))}
             </tr>
@@ -214,28 +247,71 @@ function AllocationsPage() {
                 {weekDays.map((d) => {
                   const k = `${c.id}|${isoDate(d)}`;
                   const items = grid.get(k) ?? [];
+                  const planned = items.filter((a) => a.status === "planned");
+                  const actuals = items.filter((a) => a.status === "actual");
+                  const actualByPlanned = new Map(actuals.filter((a) => a.planned_allocation_id).map((a) => [a.planned_allocation_id!, a]));
+                  const orphanActuals = actuals.filter((a) => !a.planned_allocation_id);
+                  const past = isPast(d);
+
+                  const renderMini = (a: Allocation, kind: "planned" | "actual") => (
+                    <button
+                      key={`${kind}-${a.id}`}
+                      type="button"
+                      onClick={() => setModal({ mode: "edit", allocation: a })}
+                      className="flex-1 min-w-0 text-left bg-white border border-rule rounded px-1.5 py-1 hover:shadow-sm transition"
+                      style={{ borderLeft: `3px solid ${kind === "actual" ? GREEN : BRAND}` }}
+                    >
+                      <div className="font-semibold text-ink truncate text-[11px]" style={{ fontFamily: "Poppins" }}>
+                        {projectName(a.job_id)}
+                      </div>
+                      <div className="text-[9px] text-meta truncate">
+                        {classCode(a.classification_id)}
+                        {a.plant_item_id ? ` · ${plantCode(a.plant_item_id)}` : ""}
+                        {" · "}
+                        {kind === "actual" ? `${a.actual_hours ?? 0}h` : `${a.planned_hours ?? 0}h`}
+                      </div>
+                    </button>
+                  );
+
+                  const diffs = (p: Allocation, a: Allocation) =>
+                    p.job_id !== a.job_id ||
+                    p.classification_id !== a.classification_id ||
+                    p.plant_item_id !== a.plant_item_id ||
+                    (p.planned_hours ?? 0) !== (a.actual_hours ?? 0);
+
                   return (
                     <td key={k} className="px-2 py-2 border-b border-rule align-top">
                       <div className="flex flex-col gap-1.5 min-h-[64px]">
-                        {items.map((a) => (
-                          <button
-                            key={a.id}
-                            type="button"
-                            onClick={() => setModal({ mode: "edit", allocation: a })}
-                            className="text-left bg-white border border-rule rounded px-2 py-1.5 hover:shadow-sm transition"
-                            style={{ borderLeft: `3px solid ${a.status === "actual" ? GREEN : BRAND}` }}
-                          >
-                            <div className="font-semibold text-ink truncate" style={{ fontFamily: "Poppins" }}>
-                              {projectName(a.job_id)}
+                        {planned.map((p) => {
+                          const a = actualByPlanned.get(p.id);
+                          if (a) {
+                            const variance = diffs(p, a);
+                            return (
+                              <div key={p.id} className="flex items-stretch gap-1">
+                                {renderMini(p, "planned")}
+                                {variance && (
+                                  <span
+                                    title="Variance"
+                                    className="self-center w-1.5 h-1.5 rounded-full flex-shrink-0"
+                                    style={{ background: ORANGE }}
+                                  />
+                                )}
+                                {renderMini(a, "actual")}
+                              </div>
+                            );
+                          }
+                          return (
+                            <div key={p.id} className="flex flex-col gap-0.5">
+                              {renderMini(p, "planned")}
+                              {past && (
+                                <span className="text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded self-start" style={{ color: BRAND, border: `1px solid ${BRAND}` }}>
+                                  Not wrapped
+                                </span>
+                              )}
                             </div>
-                            {a.classification_id && (
-                              <div className="text-[10px] uppercase tracking-wider text-meta">{classCode(a.classification_id)}</div>
-                            )}
-                            {a.plant_item_id && (
-                              <div className="text-[10px] text-meta truncate">{plantCode(a.plant_item_id)}</div>
-                            )}
-                          </button>
-                        ))}
+                          );
+                        })}
+                        {orphanActuals.map((a) => renderMini(a, "actual"))}
                         <button
                           type="button"
                           onClick={() => setModal({ mode: "create", person_id: c.id, date: isoDate(d) })}
