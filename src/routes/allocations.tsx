@@ -90,7 +90,7 @@ function AllocationsPage() {
   const isoD = isoDate(date);
 
   const [modal, setModal] = useState<
-    | { mode: "create"; project_id?: string; person_id?: string; date: string }
+    | { mode: "create"; project_id?: string; person_id?: string; plant_id?: string; date: string }
     | { mode: "edit"; allocation: Allocation }
     | null
   >(null);
@@ -227,6 +227,7 @@ function AllocationsPage() {
             plant={plantQ.data ?? []}
             projects={projectsQ.data ?? []}
             crew={crewQ.data ?? []}
+            onCell={(plant_id, d) => setModal({ mode: "create", plant_id, date: d })}
             onEdit={(a, rect) => setQuickEdit({ a, rect })}
           />
         )}
@@ -662,8 +663,9 @@ function MonthView({ date, setDate, setView, projects }: {
 }
 
 // ---------- plant view ----------
-function PlantView({ weekStart, plant, projects, crew, onEdit }: {
+function PlantView({ weekStart, plant, projects, crew, onCell, onEdit }: {
   weekStart: Date; plant: PlantItem[]; projects: Project[]; crew: Crew[];
+  onCell: (plant_id: string, date: string) => void;
   onEdit: (a: Allocation, rect: DOMRect) => void;
 }) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -722,9 +724,9 @@ function PlantView({ weekStart, plant, projects, crew, onEdit }: {
                           </button>
                         );
                       })}
-                      {items.length === 0 && (
-                        <div style={{ height: 6 }} />
-                      )}
+                      <button onClick={() => onCell(pl.id, iso)} className="rounded h-6 inline-flex items-center justify-center" style={{ border: `1px dashed ${C.rule}`, color: "#BBBBBB" }}>
+                        <Plus className="h-3 w-3" />
+                      </button>
                     </div>
                   </td>
                 );
@@ -819,7 +821,7 @@ function PersonView({ weekStart, crew, projects, classifications, plant, onCell,
 // ---------- modal ----------
 function AllocationModal({ modal, crew, projects, classifications, plant, onClose }: {
   modal:
-    | { mode: "create"; project_id?: string; person_id?: string; date: string }
+    | { mode: "create"; project_id?: string; person_id?: string; plant_id?: string; date: string }
     | { mode: "edit"; allocation: Allocation };
   crew: Crew[]; projects: Project[]; classifications: Classification[]; plant: PlantItem[];
   onClose: () => void;
@@ -831,7 +833,7 @@ function AllocationModal({ modal, crew, projects, classifications, plant, onClos
   const [personId, setPersonId] = useState<string>(isEdit ? a!.person_id : (modal.person_id ?? ""));
   const [projectId, setProjectId] = useState<string>(isEdit ? a!.job_id : (modal.project_id ?? ""));
   const [classificationId, setClassificationId] = useState<string>(isEdit ? (a!.classification_id ?? "") : "");
-  const [plantIds, setPlantIds] = useState<string[]>(isEdit ? (a!.plant_asset_ids ?? []) : []);
+  const [plantIds, setPlantIds] = useState<string[]>(isEdit ? (a!.plant_asset_ids ?? []) : (modal.plant_id ? [modal.plant_id] : []));
   const [employmentType, setEmploymentType] = useState<string>(() => {
     if (isEdit) return normEmployment(a!.employment_type ?? crew.find((c) => c.id === a!.person_id)?.employment_type);
     const c = crew.find((x) => x.id === modal.person_id);
