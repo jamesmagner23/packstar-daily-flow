@@ -277,6 +277,9 @@ function Header({ date, setDate, view, setView, onPlanWeek }: { date: Date; setD
           <button onClick={() => setDate(addDays(date, 1))} aria-label="Next" className="h-9 w-9 inline-flex items-center justify-center rounded-md border" style={{ borderColor: C.rule, background: C.surface, color: C.ink }}>
             <ChevronRight className="h-4 w-4" />
           </button>
+          <button onClick={onPlanWeek} className="h-9 px-3 text-xs uppercase tracking-[0.16em] font-semibold rounded-md text-white" style={{ background: C.brand }}>
+            + Plan week
+          </button>
         </div>
       </div>
 
