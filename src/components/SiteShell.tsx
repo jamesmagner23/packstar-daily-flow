@@ -66,14 +66,13 @@ function getTabs(projectType: ProjectType): Tab[] {
         ];
 
 
+  const projectPathsWithAllocations = [...projectPaths, "/allocations"];
+  const projectSubNavWithAllocations: SubNavItem[] = [
+    ...projectSubNav,
+    { to: "/allocations", label: "Allocations" },
+  ];
+
   return [
-    {
-      key: "today",
-      label: "Daily site",
-      to: "/today",
-      icon: CalendarDays,
-      paths: ["/today"],
-    },
     {
       key: "overview",
       label: "Overview",
@@ -86,8 +85,8 @@ function getTabs(projectType: ProjectType): Tab[] {
       label: "Project",
       to: "/",
       icon: Briefcase,
-      paths: projectPaths,
-      subNav: projectSubNav,
+      paths: projectPathsWithAllocations,
+      subNav: projectSubNavWithAllocations,
     },
     {
       key: "people",
@@ -103,13 +102,6 @@ function getTabs(projectType: ProjectType): Tab[] {
         { to: "/people/roles", label: "Roles" },
         { to: "/people/training", label: "Training" },
       ],
-    },
-    {
-      key: "allocations",
-      label: "Allocations",
-      to: "/allocations",
-      icon: CalendarRange,
-      paths: ["/allocations"],
     },
     {
       key: "plant",
@@ -474,10 +466,17 @@ function UserMenu() {
             <p className="text-xs text-meta">Signed in as</p>
             <p className="text-sm text-ink truncate">{email}</p>
           </div>
+          <Link
+            to="/today"
+            onClick={() => setOpen(false)}
+            className="block px-3 py-2 text-sm text-ink hover:bg-neutral-50"
+          >
+            My day
+          </Link>
           <button
             type="button"
             onClick={signOut}
-            className="w-full text-left px-3 py-2 text-sm text-ink hover:bg-neutral-50"
+            className="w-full text-left px-3 py-2 text-sm text-ink hover:bg-neutral-50 border-t border-rule"
           >
             Sign out
           </button>
