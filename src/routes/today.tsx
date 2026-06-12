@@ -153,7 +153,7 @@ function TodayPage() {
     },
   });
 
-  if (roleLoading || !userId) {
+  if (!authChecked || !userId) {
     return <div className="min-h-screen flex items-center justify-center text-meta text-sm">Loading…</div>;
   }
 
