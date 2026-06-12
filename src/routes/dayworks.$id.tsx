@@ -78,8 +78,9 @@ function DayworkEditor() {
     queryFn: async () => {
       const { data } = await supabase
         .from("classifications")
-        .select("id, name, eba_normal_hourly_rate")
-        .order("name");
+        .select("id, classification, employment_type, nt_cost_per_hr")
+        .eq("active", true)
+        .order("classification");
       return data ?? [];
     },
   });
