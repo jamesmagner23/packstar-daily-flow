@@ -103,6 +103,25 @@ function Dashboard() {
     return { rev, cost, margin, gp: gpPct(rev, margin), count: reports.length };
   }, [reports]);
 
+  // Expected revenue across the selected range (weekdays × sum of daily expected)
+  const expectedRev = useMemo(() => {
+    const start = new Date(range.from);
+    const end = new Date(range.to);
+    let weekdays = 0;
+    const cur = new Date(start);
+    while (cur <= end) {
+      const d = cur.getDay();
+      if (d !== 0 && d !== 6) weekdays += 1;
+      cur.setDate(cur.getDate() + 1);
+    }
+    const dailyExpected = projects
+      .filter((p) => p.active)
+      .reduce((acc, p) => acc + Number(p.expected_daily_revenue_aud ?? 0), 0);
+    return dailyExpected * weekdays;
+  }, [projects, range.from, range.to]);
+
+  const variance = totals.rev - expectedRev;
+
   // Breakdown by project type
   const byType = useMemo(() => {
     const out: Record<ProjectType, { rev: number; cost: number; margin: number; gp: number | null; reportCount: number; projectIds: Set<string> }> = {
