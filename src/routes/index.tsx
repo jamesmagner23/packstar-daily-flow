@@ -254,6 +254,35 @@ function Dashboard() {
           )}
         </section>
 
+        {/* Contract vs Dayworks split */}
+        <section>
+          <div className="t-eyebrow mb-4">Revenue mix</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <SplitTile
+              title="Contract"
+              subtitle="From daily wraps · lump sum + hire"
+              rev={contractTotals.rev}
+              cost={contractTotals.cost}
+              margin={contractTotals.margin}
+              count={contractTotals.count}
+              countLabel="wraps"
+              tone="brand"
+            />
+            <SplitTile
+              title="Dayworks / Variations"
+              subtitle="Plant + labour + materials billed separately"
+              rev={dayworksTotals.rev}
+              cost={dayworksTotals.cost}
+              margin={dayworksTotals.margin}
+              count={dayworksTotals.count}
+              countLabel="lines"
+              tone="accent"
+              cta={{ to: "/dayworks", label: "Manage dayworks →" }}
+            />
+          </div>
+        </section>
+
+
         {/* By project type */}
         <section>
           <div className="t-eyebrow mb-4">By project type</div>
