@@ -29,7 +29,7 @@ export const Route = createFileRoute("/")({
 const TYPE_ORDER: ProjectType[] = ["lump_sum", "labour_hire", "plant_hire", "dry_hire"];
 const HIRE_TYPES: ProjectType[] = ["labour_hire", "plant_hire", "dry_hire"];
 
-type ProjectRow = { id: string; code: string; name: string; project_type: string | null; active: boolean | null };
+type ProjectRow = { id: string; code: string; name: string; project_type: string | null; active: boolean | null; expected_daily_revenue_aud: number | null };
 type ReportRow = {
   id: string;
   project_id: string | null;
