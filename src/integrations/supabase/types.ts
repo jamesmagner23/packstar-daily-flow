@@ -508,6 +508,166 @@ export type Database = {
           },
         ]
       }
+      daywork_lines: {
+        Row: {
+          classification_id: string | null
+          client_rate_aud: number
+          cost_aud: number | null
+          cost_rate_aud: number
+          created_at: string
+          daywork_id: string
+          description: string
+          id: string
+          line_type: string
+          plant_item_id: string | null
+          plant_rate_card_id: string | null
+          quantity: number
+          revenue_aud: number | null
+          sort_order: number
+          unit: string
+        }
+        Insert: {
+          classification_id?: string | null
+          client_rate_aud?: number
+          cost_aud?: number | null
+          cost_rate_aud?: number
+          created_at?: string
+          daywork_id: string
+          description: string
+          id?: string
+          line_type: string
+          plant_item_id?: string | null
+          plant_rate_card_id?: string | null
+          quantity?: number
+          revenue_aud?: number | null
+          sort_order?: number
+          unit?: string
+        }
+        Update: {
+          classification_id?: string | null
+          client_rate_aud?: number
+          cost_aud?: number | null
+          cost_rate_aud?: number
+          created_at?: string
+          daywork_id?: string
+          description?: string
+          id?: string
+          line_type?: string
+          plant_item_id?: string | null
+          plant_rate_card_id?: string | null
+          quantity?: number
+          revenue_aud?: number | null
+          sort_order?: number
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daywork_lines_classification_id_fkey"
+            columns: ["classification_id"]
+            isOneToOne: false
+            referencedRelation: "classifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daywork_lines_daywork_id_fkey"
+            columns: ["daywork_id"]
+            isOneToOne: false
+            referencedRelation: "dayworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daywork_lines_plant_item_id_fkey"
+            columns: ["plant_item_id"]
+            isOneToOne: false
+            referencedRelation: "plant_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daywork_lines_plant_rate_card_id_fkey"
+            columns: ["plant_rate_card_id"]
+            isOneToOne: false
+            referencedRelation: "plant_hire_rate_card"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dayworks: {
+        Row: {
+          client_contact_email: string | null
+          client_contact_name: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          generated_pdf_url: string | null
+          id: string
+          notes: string | null
+          project_id: string
+          reference: string
+          signature_image_url: string | null
+          signed_at: string | null
+          signed_by_name: string | null
+          signed_docket_pdf_url: string | null
+          signing_method: string | null
+          signing_token: string | null
+          signing_token_expires_at: string | null
+          status: string
+          updated_at: string
+          work_date: string
+        }
+        Insert: {
+          client_contact_email?: string | null
+          client_contact_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          generated_pdf_url?: string | null
+          id?: string
+          notes?: string | null
+          project_id: string
+          reference: string
+          signature_image_url?: string | null
+          signed_at?: string | null
+          signed_by_name?: string | null
+          signed_docket_pdf_url?: string | null
+          signing_method?: string | null
+          signing_token?: string | null
+          signing_token_expires_at?: string | null
+          status?: string
+          updated_at?: string
+          work_date: string
+        }
+        Update: {
+          client_contact_email?: string | null
+          client_contact_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          generated_pdf_url?: string | null
+          id?: string
+          notes?: string | null
+          project_id?: string
+          reference?: string
+          signature_image_url?: string | null
+          signed_at?: string | null
+          signed_by_name?: string | null
+          signed_docket_pdf_url?: string | null
+          signing_method?: string | null
+          signing_token?: string | null
+          signing_token_expires_at?: string | null
+          status?: string
+          updated_at?: string
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dayworks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dockets: {
         Row: {
           allocation_date: string
@@ -2099,7 +2259,12 @@ export type Database = {
         Returns: string
       }
       is_admin: { Args: never; Returns: boolean }
+      is_admin_or_engineer: { Args: never; Returns: boolean }
       is_admin_or_supervisor: { Args: never; Returns: boolean }
+      next_daywork_reference: {
+        Args: { p_project_id: string }
+        Returns: string
+      }
       reconcile_timesheets: {
         Args: { p_work_date: string }
         Returns: {
@@ -2114,7 +2279,7 @@ export type Database = {
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
-      user_role: "admin" | "supervisor" | "crew"
+      user_role: "admin" | "supervisor" | "crew" | "engineer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2242,7 +2407,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      user_role: ["admin", "supervisor", "crew"],
+      user_role: ["admin", "supervisor", "crew", "engineer"],
     },
   },
 } as const
