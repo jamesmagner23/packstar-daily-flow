@@ -29,7 +29,7 @@ export const Route = createFileRoute("/")({
 const TYPE_ORDER: ProjectType[] = ["lump_sum", "labour_hire", "plant_hire", "dry_hire"];
 const HIRE_TYPES: ProjectType[] = ["labour_hire", "plant_hire", "dry_hire"];
 
-type ProjectRow = { id: string; code: string; name: string; project_type: string | null; active: boolean | null };
+type ProjectRow = { id: string; code: string; name: string; project_type: string | null; active: boolean | null; expected_daily_revenue_aud: number | null };
 type ReportRow = {
   id: string;
   project_id: string | null;
@@ -58,7 +58,7 @@ function Dashboard() {
     queryFn: async () => {
       const { data } = await supabase
         .from("projects")
-        .select("id, code, name, project_type, active")
+        .select("id, code, name, project_type, active, expected_daily_revenue_aud")
         .order("code");
       return (data ?? []) as ProjectRow[];
     },
@@ -102,6 +102,25 @@ function Dashboard() {
     const margin = sum(reports, "margin_aud");
     return { rev, cost, margin, gp: gpPct(rev, margin), count: reports.length };
   }, [reports]);
+
+  // Expected revenue across the selected range (weekdays × sum of daily expected)
+  const expectedRev = useMemo(() => {
+    const start = new Date(range.from);
+    const end = new Date(range.to);
+    let weekdays = 0;
+    const cur = new Date(start);
+    while (cur <= end) {
+      const d = cur.getDay();
+      if (d !== 0 && d !== 6) weekdays += 1;
+      cur.setDate(cur.getDate() + 1);
+    }
+    const dailyExpected = projects
+      .filter((p) => p.active)
+      .reduce((acc, p) => acc + Number(p.expected_daily_revenue_aud ?? 0), 0);
+    return dailyExpected * weekdays;
+  }, [projects, range.from, range.to]);
+
+  const variance = totals.rev - expectedRev;
 
   // Breakdown by project type
   const byType = useMemo(() => {
@@ -181,13 +200,20 @@ function Dashboard() {
               onChange={(k, r) => { setKind(k); setRange(r); }}
             />
           </div>
-          <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-8 md:gap-8">
-            <Big label="Revenue" value={totals.count ? aud(totals.rev) : "—"} tone="var(--ink)" />
-            <Big label="Cost" value={totals.count ? aud(totals.cost) : "—"} tone="oklch(0.65 0.18 50)" />
+          <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-8 md:gap-8">
             <Big
               label="Profit"
               value={totals.count ? audAcct(totals.margin) : "—"}
               tone={totals.count === 0 ? "var(--ink)" : totals.margin >= 0 ? "oklch(0.55 0.15 160)" : "var(--brand)"}
+              hint={totals.gp == null ? undefined : `${pct(totals.gp)} margin`}
+            />
+            <Big label="Revenue" value={totals.count ? aud(totals.rev) : "—"} tone="var(--ink)" />
+            <Big label="Costs" value={totals.count ? aud(totals.cost) : "—"} tone="oklch(0.65 0.18 50)" />
+            <Big
+              label="Variance vs expected"
+              value={totals.count ? audAcct(variance) : "—"}
+              tone={totals.count === 0 ? "var(--ink)" : variance >= 0 ? "oklch(0.55 0.15 160)" : "var(--brand)"}
+              hint={expectedRev > 0 ? `Expected ${aud(expectedRev)}` : "No daily target set"}
             />
           </div>
           {totals.count === 0 && (
@@ -272,7 +298,7 @@ function Dashboard() {
   );
 }
 
-function Big({ label, value, tone }: { label: string; value: string; tone: string }) {
+function Big({ label, value, tone, hint }: { label: string; value: string; tone: string; hint?: string }) {
   return (
     <div className="flex min-w-0 flex-col gap-2">
       <div
@@ -283,6 +309,7 @@ function Big({ label, value, tone }: { label: string; value: string; tone: strin
         {value}
       </div>
       <div className="t-stat-label">{label}</div>
+      {hint ? <div className="text-[10px] uppercase tracking-wider text-meta">{hint}</div> : null}
     </div>
   );
 }
