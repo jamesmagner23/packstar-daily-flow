@@ -39,6 +39,7 @@ import { Route as ProcureQuotesRouteImport } from './routes/procure.quotes'
 import { Route as ProcureEquipmentRouteImport } from './routes/procure.equipment'
 import { Route as PlantIdRouteImport } from './routes/plant.$id'
 import { Route as PilesRatesRouteImport } from './routes/piles.rates'
+import { Route as DayworksIdRouteImport } from './routes/dayworks.$id'
 import { Route as CrewIdRouteImport } from './routes/crew.$id'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as PeopleTrainingIndexRouteImport } from './routes/people.training.index'
@@ -206,6 +207,11 @@ const PilesRatesRoute = PilesRatesRouteImport.update({
   path: '/piles/rates',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DayworksIdRoute = DayworksIdRouteImport.update({
+  id: '/dayworks/$id',
+  path: '/dayworks/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CrewIdRoute = CrewIdRouteImport.update({
   id: '/crew/$id',
   path: '/crew/$id',
@@ -305,6 +311,7 @@ export interface FileRoutesByFullPath {
   '/today': typeof TodayRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/crew/$id': typeof CrewIdRoute
+  '/dayworks/$id': typeof DayworksIdRoute
   '/piles/rates': typeof PilesRatesRoute
   '/plant/$id': typeof PlantIdRouteWithChildren
   '/procure/equipment': typeof ProcureEquipmentRoute
@@ -353,6 +360,7 @@ export interface FileRoutesByTo {
   '/today': typeof TodayRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/crew/$id': typeof CrewIdRoute
+  '/dayworks/$id': typeof DayworksIdRoute
   '/piles/rates': typeof PilesRatesRoute
   '/plant/$id': typeof PlantIdRouteWithChildren
   '/procure/equipment': typeof ProcureEquipmentRoute
@@ -402,6 +410,7 @@ export interface FileRoutesById {
   '/today': typeof TodayRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/crew/$id': typeof CrewIdRoute
+  '/dayworks/$id': typeof DayworksIdRoute
   '/piles/rates': typeof PilesRatesRoute
   '/plant/$id': typeof PlantIdRouteWithChildren
   '/procure/equipment': typeof ProcureEquipmentRoute
@@ -452,6 +461,7 @@ export interface FileRouteTypes {
     | '/today'
     | '/auth/callback'
     | '/crew/$id'
+    | '/dayworks/$id'
     | '/piles/rates'
     | '/plant/$id'
     | '/procure/equipment'
@@ -500,6 +510,7 @@ export interface FileRouteTypes {
     | '/today'
     | '/auth/callback'
     | '/crew/$id'
+    | '/dayworks/$id'
     | '/piles/rates'
     | '/plant/$id'
     | '/procure/equipment'
@@ -548,6 +559,7 @@ export interface FileRouteTypes {
     | '/today'
     | '/auth/callback'
     | '/crew/$id'
+    | '/dayworks/$id'
     | '/piles/rates'
     | '/plant/$id'
     | '/procure/equipment'
@@ -597,6 +609,7 @@ export interface RootRouteChildren {
   TodayRoute: typeof TodayRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   CrewIdRoute: typeof CrewIdRoute
+  DayworksIdRoute: typeof DayworksIdRoute
   PilesRatesRoute: typeof PilesRatesRoute
   PlantIdRoute: typeof PlantIdRouteWithChildren
   ProcureEquipmentRoute: typeof ProcureEquipmentRoute
@@ -845,6 +858,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PilesRatesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dayworks/$id': {
+      id: '/dayworks/$id'
+      path: '/dayworks/$id'
+      fullPath: '/dayworks/$id'
+      preLoaderRoute: typeof DayworksIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crew/$id': {
       id: '/crew/$id'
       path: '/crew/$id'
@@ -994,6 +1014,7 @@ const rootRouteChildren: RootRouteChildren = {
   TodayRoute: TodayRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   CrewIdRoute: CrewIdRoute,
+  DayworksIdRoute: DayworksIdRoute,
   PilesRatesRoute: PilesRatesRoute,
   PlantIdRoute: PlantIdRouteWithChildren,
   ProcureEquipmentRoute: ProcureEquipmentRoute,
