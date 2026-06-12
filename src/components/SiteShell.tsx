@@ -466,10 +466,17 @@ function UserMenu() {
             <p className="text-xs text-meta">Signed in as</p>
             <p className="text-sm text-ink truncate">{email}</p>
           </div>
+          <Link
+            to="/today"
+            onClick={() => setOpen(false)}
+            className="block px-3 py-2 text-sm text-ink hover:bg-neutral-50"
+          >
+            My day
+          </Link>
           <button
             type="button"
             onClick={signOut}
-            className="w-full text-left px-3 py-2 text-sm text-ink hover:bg-neutral-50"
+            className="w-full text-left px-3 py-2 text-sm text-ink hover:bg-neutral-50 border-t border-rule"
           >
             Sign out
           </button>
