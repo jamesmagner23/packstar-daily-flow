@@ -200,13 +200,20 @@ function Dashboard() {
               onChange={(k, r) => { setKind(k); setRange(r); }}
             />
           </div>
-          <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-8 md:gap-8">
-            <Big label="Revenue" value={totals.count ? aud(totals.rev) : "—"} tone="var(--ink)" />
-            <Big label="Cost" value={totals.count ? aud(totals.cost) : "—"} tone="oklch(0.65 0.18 50)" />
+          <div className="hairline pt-6 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-8 md:gap-8">
             <Big
               label="Profit"
               value={totals.count ? audAcct(totals.margin) : "—"}
               tone={totals.count === 0 ? "var(--ink)" : totals.margin >= 0 ? "oklch(0.55 0.15 160)" : "var(--brand)"}
+              hint={totals.gp == null ? undefined : `${pct(totals.gp)} margin`}
+            />
+            <Big label="Revenue" value={totals.count ? aud(totals.rev) : "—"} tone="var(--ink)" />
+            <Big label="Costs" value={totals.count ? aud(totals.cost) : "—"} tone="oklch(0.65 0.18 50)" />
+            <Big
+              label="Variance vs expected"
+              value={totals.count ? audAcct(variance) : "—"}
+              tone={totals.count === 0 ? "var(--ink)" : variance >= 0 ? "oklch(0.55 0.15 160)" : "var(--brand)"}
+              hint={expectedRev > 0 ? `Expected ${aud(expectedRev)}` : "No daily target set"}
             />
           </div>
           {totals.count === 0 && (
