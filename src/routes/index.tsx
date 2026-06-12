@@ -87,6 +87,23 @@ function Dashboard() {
     },
   });
 
+  const { data: dayworkLines = [] } = useQuery({
+    queryKey: ["dayworks-lines-range", range.from, range.to],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("daywork_lines")
+        .select("revenue_aud, cost_aud, dayworks!inner(project_id, work_date, status)")
+        .gte("dayworks.work_date", range.from)
+        .lte("dayworks.work_date", range.to)
+        .in("dayworks.status", ["awaiting_signature", "signed"]);
+      return (data ?? []) as unknown as {
+        revenue_aud: number | null;
+        cost_aud: number | null;
+        dayworks: { project_id: string | null; work_date: string; status: string };
+      }[];
+    },
+  });
+
   const projectIndex = useMemo(() => {
     const m = new Map<string, ProjectRow & { type: ProjectType }>();
     for (const p of projects) {
@@ -95,13 +112,29 @@ function Dashboard() {
     return m;
   }, [projects]);
 
-  // Totals overall
-  const totals = useMemo(() => {
+  // Contract totals (daily_reports)
+  const contractTotals = useMemo(() => {
     const rev = sum(reports, "revenue_aud");
     const cost = sum(reports, "cost_aud");
     const margin = sum(reports, "margin_aud");
     return { rev, cost, margin, gp: gpPct(rev, margin), count: reports.length };
   }, [reports]);
+
+  // Dayworks totals
+  const dayworksTotals = useMemo(() => {
+    const rev = dayworkLines.reduce((a, l) => a + Number(l.revenue_aud ?? 0), 0);
+    const cost = dayworkLines.reduce((a, l) => a + Number(l.cost_aud ?? 0), 0);
+    return { rev, cost, margin: rev - cost, count: dayworkLines.length };
+  }, [dayworkLines]);
+
+  // Combined for variance / aggregate tile
+  const totals = useMemo(() => ({
+    rev: contractTotals.rev + dayworksTotals.rev,
+    cost: contractTotals.cost + dayworksTotals.cost,
+    margin: contractTotals.margin + dayworksTotals.margin,
+    gp: gpPct(contractTotals.rev + dayworksTotals.rev, contractTotals.margin + dayworksTotals.margin),
+    count: contractTotals.count + dayworksTotals.count,
+  }), [contractTotals, dayworksTotals]);
 
   // Expected revenue across the selected range (weekdays × sum of daily expected)
   const expectedRev = useMemo(() => {
@@ -221,6 +254,35 @@ function Dashboard() {
           )}
         </section>
 
+        {/* Contract vs Dayworks split */}
+        <section>
+          <div className="t-eyebrow mb-4">Revenue mix</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <SplitTile
+              title="Contract"
+              subtitle="From daily wraps · lump sum + hire"
+              rev={contractTotals.rev}
+              cost={contractTotals.cost}
+              margin={contractTotals.margin}
+              count={contractTotals.count}
+              countLabel="wraps"
+              tone="brand"
+            />
+            <SplitTile
+              title="Dayworks / Variations"
+              subtitle="Plant + labour + materials billed separately"
+              rev={dayworksTotals.rev}
+              cost={dayworksTotals.cost}
+              margin={dayworksTotals.margin}
+              count={dayworksTotals.count}
+              countLabel="lines"
+              tone="accent"
+              cta={{ to: "/dayworks", label: "Manage dayworks →" }}
+            />
+          </div>
+        </section>
+
+
         {/* By project type */}
         <section>
           <div className="t-eyebrow mb-4">By project type</div>
@@ -310,6 +372,53 @@ function Big({ label, value, tone, hint }: { label: string; value: string; tone:
       </div>
       <div className="t-stat-label">{label}</div>
       {hint ? <div className="text-[10px] uppercase tracking-wider text-meta">{hint}</div> : null}
+    </div>
+  );
+}
+
+function SplitTile({
+  title,
+  subtitle,
+  rev,
+  cost,
+  margin,
+  count,
+  countLabel,
+  tone,
+  cta,
+}: {
+  title: string;
+  subtitle: string;
+  rev: number;
+  cost: number;
+  margin: number;
+  count: number;
+  countLabel: string;
+  tone: "brand" | "accent";
+  cta?: { to: string; label: string };
+}) {
+  const marginColor = count === 0 ? "var(--ink)" : margin >= 0 ? "oklch(0.55 0.15 160)" : "var(--brand)";
+  return (
+    <div className={`border border-rule p-5 ${tone === "brand" ? "bg-white" : "bg-[color:var(--accent)]"}`}>
+      <div className="flex items-baseline justify-between">
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-meta">{title}</div>
+          <p className="text-[11px] text-meta mt-0.5">{subtitle}</p>
+        </div>
+        <span className="t-stat-label">{count} {countLabel}</span>
+      </div>
+      <div className="mt-4 text-3xl font-semibold tabular-nums" style={{ color: marginColor }}>
+        {count ? aud(margin) : "—"}
+      </div>
+      <div className="grid grid-cols-2 gap-3 mt-3 text-[11px] text-meta">
+        <div>Revenue <span className="text-ink font-semibold">{count ? aud(rev) : "—"}</span></div>
+        <div>Cost <span className="text-ink font-semibold">{count ? aud(cost) : "—"}</span></div>
+      </div>
+      {cta && (
+        <Link to={cta.to} className="mt-4 inline-block text-xs font-semibold text-[color:var(--brand)] hover:underline">
+          {cta.label}
+        </Link>
+      )}
     </div>
   );
 }

@@ -35,7 +35,7 @@ import { normalizeProjectType, type ProjectType } from "@/lib/project-types";
 
 function getTabs(projectType: ProjectType): Tab[] {
   const projectPaths = [
-    "/", "/variations", "/reports", "/setup", "/piles", "/compliance", "/safety",
+    "/", "/variations", "/dayworks", "/reports", "/setup", "/piles", "/compliance", "/safety",
   ];
   const projectSubNav: SubNavItem[] =
     projectType === "labour_hire"
@@ -59,6 +59,7 @@ function getTabs(projectType: ProjectType): Tab[] {
       : [
           { to: "/", label: "P&L" },
           { to: "/setup", label: "Project setup" },
+          { to: "/dayworks", label: "Dayworks" },
           { to: "/variations", label: "Variations" },
           { to: "/compliance", label: "Compliance" },
           { to: "/safety", label: "Safety" },
