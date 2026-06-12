@@ -1736,6 +1736,90 @@ export type Database = {
           },
         ]
       }
+      site_assets: {
+        Row: {
+          asset_type: string
+          code: string
+          cover_size_mm: string | null
+          created_at: string
+          depth_m: number | null
+          diameter_mm: number | null
+          from_code: string | null
+          id: string
+          installed_at: string | null
+          installed_by: string | null
+          length_m: number | null
+          notes: string | null
+          project_id: string
+          source_report_id: string | null
+          status: string
+          to_code: string | null
+          updated_at: string
+          x_m: number
+          y_m: number
+          z_m: number
+        }
+        Insert: {
+          asset_type: string
+          code: string
+          cover_size_mm?: string | null
+          created_at?: string
+          depth_m?: number | null
+          diameter_mm?: number | null
+          from_code?: string | null
+          id?: string
+          installed_at?: string | null
+          installed_by?: string | null
+          length_m?: number | null
+          notes?: string | null
+          project_id: string
+          source_report_id?: string | null
+          status?: string
+          to_code?: string | null
+          updated_at?: string
+          x_m?: number
+          y_m?: number
+          z_m?: number
+        }
+        Update: {
+          asset_type?: string
+          code?: string
+          cover_size_mm?: string | null
+          created_at?: string
+          depth_m?: number | null
+          diameter_mm?: number | null
+          from_code?: string | null
+          id?: string
+          installed_at?: string | null
+          installed_by?: string | null
+          length_m?: number | null
+          notes?: string | null
+          project_id?: string
+          source_report_id?: string | null
+          status?: string
+          to_code?: string | null
+          updated_at?: string
+          x_m?: number
+          y_m?: number
+          z_m?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_assets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_assets_source_report_id_fkey"
+            columns: ["source_report_id"]
+            isOneToOne: false
+            referencedRelation: "daily_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_requirements: {
         Row: {
           competency_id: string | null
