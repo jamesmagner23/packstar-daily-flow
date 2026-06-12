@@ -112,13 +112,29 @@ function Dashboard() {
     return m;
   }, [projects]);
 
-  // Totals overall
-  const totals = useMemo(() => {
+  // Contract totals (daily_reports)
+  const contractTotals = useMemo(() => {
     const rev = sum(reports, "revenue_aud");
     const cost = sum(reports, "cost_aud");
     const margin = sum(reports, "margin_aud");
     return { rev, cost, margin, gp: gpPct(rev, margin), count: reports.length };
   }, [reports]);
+
+  // Dayworks totals
+  const dayworksTotals = useMemo(() => {
+    const rev = dayworkLines.reduce((a, l) => a + Number(l.revenue_aud ?? 0), 0);
+    const cost = dayworkLines.reduce((a, l) => a + Number(l.cost_aud ?? 0), 0);
+    return { rev, cost, margin: rev - cost, count: dayworkLines.length };
+  }, [dayworkLines]);
+
+  // Combined for variance / aggregate tile
+  const totals = useMemo(() => ({
+    rev: contractTotals.rev + dayworksTotals.rev,
+    cost: contractTotals.cost + dayworksTotals.cost,
+    margin: contractTotals.margin + dayworksTotals.margin,
+    gp: gpPct(contractTotals.rev + dayworksTotals.rev, contractTotals.margin + dayworksTotals.margin),
+    count: contractTotals.count + dayworksTotals.count,
+  }), [contractTotals, dayworksTotals]);
 
   // Expected revenue across the selected range (weekdays × sum of daily expected)
   const expectedRev = useMemo(() => {
