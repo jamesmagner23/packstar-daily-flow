@@ -35,11 +35,12 @@ import { normalizeProjectType, type ProjectType } from "@/lib/project-types";
 
 function getTabs(projectType: ProjectType): Tab[] {
   const projectPaths = [
-    "/variations", "/reports", "/setup", "/piles", "/compliance", "/safety",
+    "/", "/variations", "/reports", "/setup", "/piles", "/compliance", "/safety",
   ];
   const projectSubNav: SubNavItem[] =
     projectType === "labour_hire"
       ? [
+          { to: "/", label: "P&L" },
           { to: "/setup", label: "Project setup" },
           { to: "/piles", label: "Pile schedule" },
           { to: "/compliance", label: "Compliance" },
@@ -49,12 +50,14 @@ function getTabs(projectType: ProjectType): Tab[] {
         ]
       : projectType === "plant_hire" || projectType === "dry_hire"
       ? [
+          { to: "/", label: "P&L" },
           { to: "/setup", label: "Project setup" },
           { to: "/plant", label: "Plant" },
           { to: "/utilisation", label: "Utilisation" },
           { to: "/reports", label: "Reports" },
         ]
       : [
+          { to: "/", label: "P&L" },
           { to: "/setup", label: "Project setup" },
           { to: "/variations", label: "Variations" },
           { to: "/compliance", label: "Compliance" },
@@ -63,24 +66,18 @@ function getTabs(projectType: ProjectType): Tab[] {
         ];
 
 
-  const projectPathsWithAllocations = [...projectPaths, "/allocations"];
+  const projectPathsWithAllocations = [...projectPaths, "/allocations", "/overview"];
   const projectSubNavWithAllocations: SubNavItem[] = [
     ...projectSubNav,
     { to: "/allocations", label: "Allocations" },
+    { to: "/overview", label: "Allocation overview" },
   ];
 
   return [
     {
-      key: "overview",
-      label: "Overview",
-      to: "/overview",
-      icon: BarChart3,
-      paths: ["/overview"],
-    },
-    {
       key: "project",
       label: "Project",
-      to: "/setup",
+      to: "/",
       icon: Briefcase,
       paths: projectPathsWithAllocations,
       subNav: projectSubNavWithAllocations,
@@ -222,7 +219,7 @@ export function SiteShell({ section, children }: { section: string; children: Re
             <Menu className="h-5 w-5" />
           </button>
 
-          <Link to="/overview" className="flex items-baseline gap-1.5 shrink-0">
+          <Link to="/" className="flex items-baseline gap-1.5 shrink-0">
             <span className="brand-wordmark text-xl md:text-2xl leading-none text-[color:var(--brand)]">PACC</span>
             <span className="brand-wordmark text-base md:text-lg leading-none tracking-[0.18em] font-sans text-neutral-700">HQ</span>
           </Link>
