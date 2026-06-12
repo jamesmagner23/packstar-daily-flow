@@ -87,6 +87,23 @@ function Dashboard() {
     },
   });
 
+  const { data: dayworkLines = [] } = useQuery({
+    queryKey: ["dayworks-lines-range", range.from, range.to],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("daywork_lines")
+        .select("revenue_aud, cost_aud, dayworks!inner(project_id, work_date, status)")
+        .gte("dayworks.work_date", range.from)
+        .lte("dayworks.work_date", range.to)
+        .in("dayworks.status", ["awaiting_signature", "signed"]);
+      return (data ?? []) as unknown as {
+        revenue_aud: number | null;
+        cost_aud: number | null;
+        dayworks: { project_id: string | null; work_date: string; status: string };
+      }[];
+    },
+  });
+
   const projectIndex = useMemo(() => {
     const m = new Map<string, ProjectRow & { type: ProjectType }>();
     for (const p of projects) {
