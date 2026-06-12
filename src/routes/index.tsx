@@ -58,7 +58,7 @@ function Dashboard() {
     queryFn: async () => {
       const { data } = await supabase
         .from("projects")
-        .select("id, code, name, project_type, active")
+        .select("id, code, name, project_type, active, expected_daily_revenue_aud")
         .order("code");
       return (data ?? []) as ProjectRow[];
     },
