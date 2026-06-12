@@ -1,89 +1,58 @@
-# Piling labour-hire project type
+## Goal
 
-A second project flavour alongside drainage. Same project switcher, same crew/plant plumbing — the daily flow, commercials, and reports branch on `project_type`.
+On lump-sum projects, let the team log dayworks (plant, labour, materials) against the project. Each daywork entry auto-generates a client docket (digitally signed or signed-offline + uploaded). Dayworks flow into the project P&L as a separate "Dayworks / Variations" tile beside the contract, costed using the project's existing rate cards. Admin + Engineer can backfill historic dayworks (e.g. Thompson's Rd) and edit the rate cards.
 
-## 1. Data model
+## Data model (new migration)
 
-Add to `projects`:
-- `project_type text not null default 'drainage'` — `'drainage' | 'piling_labour'`
+**`dayworks`** — header per daywork event
+- `project_id`, `work_date`, `reference` (auto e.g. `DW-THR-0007`), `client_contact_name`, `client_contact_email`, `description`, `status` (`draft|awaiting_signature|signed|void`), `signing_method` (`in_app|offline`), `signed_at`, `signed_by_name`, `signature_image_url`, `signed_docket_pdf_url`, `created_by`, `notes`
 
-New tables (all RLS-on, scoped via `project_id`):
+**`daywork_lines`** — one row per item on the docket
+- `daywork_id`, `line_type` (`plant|labour|material`), `plant_item_id` (nullable, FK), `classification_id` (nullable, FK), `description`, `quantity` (hours or units), `unit` (`hr|day|ea|m|m3|t|L`), `client_rate_aud`, `cost_rate_aud`, `revenue_aud` (generated: qty × client_rate), `cost_aud` (generated: qty × cost_rate)
 
-- **`pile_schedule`** — one row per pile from the uploaded schedule
-  - `project_id`, `pile_ref` (e.g. P37-01), `sheet_ref`, `diameter_mm`, `design_depth_m`, `design_volume_m3`, `notes`, `status` ('pending'|'drilled'|'poured'|'complete')
-- **`pile_events`** — drilled/poured events per pile per day
-  - `project_id`, `pile_id`, `event_date`, `event_type` ('drilled'|'poured'|'cage_set'), `person_id`, `daily_report_id`, `volume_m3`, `notes`
-- **`concrete_dockets`** — uploaded docket photos
-  - `project_id`, `pile_id` (nullable), `event_date`, `volume_m3`, `supplier`, `docket_number`, `photo_url`, `daily_report_id`
-- **`cage_deliveries`** — reo cage drops
-  - `project_id`, `delivery_date`, `count`, `photo_urls[]`, `notes`, `daily_report_id`
-- **`labour_hire_rates`** — schedule rates the client pays us
-  - `project_id`, `classification_id` (nullable for ute), `kind` ('labour'|'ute'|'other'), `nt_rate`, `ot_rate`, `day_rate`, `description`
+**`daywork_rate_overrides`** (optional — keep simple: just store snapshot rates on the line itself; engineers edit `plant_hire_rate_card` / `labour_hire_rates` directly for future entries).
 
-New storage buckets: `pile-schedules`, `concrete-dockets`, `cage-photos`.
+Storage bucket: `daywork-dockets` (private) for generated + signed PDFs and signature pngs.
 
-## 2. Commercials
+### Roles
+Add `'engineer'` to the `app_role` enum. Backfill + rate-card edit screens gated via `has_role(uid, 'admin') OR has_role(uid, 'engineer')`.
 
-For `project_type = 'piling_labour'`:
-- **Revenue** = Σ (crew hours × labour_hire_rates.nt_rate/ot_rate by classification) + ute day rate × ute-days
-- **Cost** = existing classification EBA cost × hours (unchanged)
-- **Margin** = revenue − cost
-- No BOQ involvement — `lib/evening-summary/compute.ts` branches on project_type.
+### RLS / GRANTs
+Standard project-scoped pattern, mirroring `daily_reports`. authenticated SELECT/INSERT/UPDATE/DELETE for project members; service_role full.
 
-## 3. Pile schedule upload
+## P&L integration
 
-- New screen `/setup/piles` (only visible when project_type='piling_labour').
-- Upload PDF/CSV; PDF parsed with Lovable AI (gemini-2.5-pro, vision) into `pile_schedule` rows. User reviews + confirms before insert.
-- The uploaded PDF (e.g. `CH 4200 - Pile Schedule - Sheet 37.pdf`) stored in `pile-schedules` bucket and linked on `projects.pile_schedule_url`.
+Extend `lib/evening-summary/compute.ts` (and the per-project reports query) so that for `project_type='lump_sum'`:
+- `contractRev/Cost/Margin` = today's daily_reports figures (unchanged)
+- `dayworksRev/Cost/Margin` = sum of `daywork_lines` for date range where status in (`awaiting_signature`,`signed`)
+- Surface both on project overview as **two side-by-side tiles**: "Contract" and "Dayworks / Variations" with a combined total underneath.
 
-## 4. Slack daily wrap — piling variant
+## UI surface
 
-New prompt template in `lib/prompts/` for piling, asked by the bot at end of shift:
-1. Which piles drilled today? (multi-select from outstanding pile_refs)
-2. Any concrete pours? → for each: pile_ref, m³, docket photo upload
-3. Cages delivered? → count + photos
-4. Plant pre-starts confirmed (existing flow)
-5. SWMS sign-on (later — flagging out of scope unless wanted now)
-6. Issues / variations (existing trigger keyword scan)
+1. **Project overview (`/`)** — when a project is selected (or in the per-project drilldown), split KPI band into Contract vs Dayworks tiles.
+2. **`/dayworks` (project-scoped tab under Projects sidebar)** — list of dayworks, filter by date, status badge, "+ New daywork" button. Row click → editor.
+3. **`/dayworks/$id` editor** —
+   - Header: date, description, client contact
+   - Lines table: add plant (pick from project's `plant_hire_rate_card`, autofills client + cost rate), add labour (pick classification, autofills NT/OT rates from `labour_hire_rates` + EBA cost), add material (free text + qty + unit + rate). Each line shows revenue, cost, margin live.
+   - "Generate docket" → renders PDF via `lib/pdf/report-pdf.server.ts` pattern, stores in `daywork-dockets` bucket.
+   - Signing: toggle "Sign in-app" (signature pad component, captures PNG, marks signed) OR "Signed offline" (file upload of scanned signed PDF).
+4. **`/setup/rates` (admin + engineer)** — edit `plant_hire_rate_card` and `labour_hire_rates` per project; add new line items. Already partly exists at `/piles/rates` for piling — generalise into per-project rate editor reachable from project Setup.
+5. **Backfill** — daywork editor accepts any past `work_date`; engineer role granted same access as admin via `has_role` checks. Audit fields (`created_by`, `created_at`) capture who backfilled.
 
-Slack webhook handler branches on `project_type` to pick the prompt set. Photos uploaded via Slack get pushed to the right bucket and linked to the relevant `pile_events` / `concrete_dockets` / `cage_deliveries` row.
+## Build order
 
-## 5. Reports — two new sub-tabs
+1. **Migration**: `dayworks` + `daywork_lines` + bucket + `engineer` role + GRANTs/RLS.
+2. **Rate editor** (`/setup/rates/$projectId`) — admin/engineer can edit plant + labour rate cards, add items.
+3. **Daywork list + editor** — line builder pulling from rate cards, save as draft.
+4. **PDF generation + offline-signed upload path.**
+5. **In-app signature pad + signing flow.**
+6. **P&L compute split** — extend `compute.ts` and project overview tiles.
+7. **Backfill polish**: surface Thompson's Rd shortcut, validate engineer can edit any historic date.
 
-Under `/overview` (or a new top-level `/project-reports` if you prefer), add tabs that appear only for piling projects:
+## Open items (call out before building)
 
-**Client tab** (`/reports/client`)
-- Date, piles drilled today (refs), concrete poured (m³ + docket thumbnails), cages delivered, photo gallery, supervisor signoff.
-- "Export PDF" — branded, share with head contractor.
+- Docket numbering: format `DW-{project.code}-{seq}` — seq per project. OK?
+- Client signing link: email contains tokenised URL `/sign/daywork/$token`, public route (no login). Token stored on `dayworks.signing_token`, expires in 14 days. OK?
+- "Materials" cost rate: do we track a cost separate from client rate, or is materials usually rebill-at-cost + markup %? Assuming separate client/cost columns; markup is implicit in the difference.
 
-**Internal tab** (`/reports/internal`)
-- Pile schedule burn-down (X of Y complete, % done, ahead/behind est)
-- Daily revenue / cost / margin (same KPI band component, fed from piling commercials)
-- Plant utilisation, crew hours
-
-## 6. UI surface changes
-
-- Project switcher: group projects by type (Drainage / Piling labour-hire).
-- Nav: hide `/variations` and BOQ-driven `/reports` rows for piling projects; show piles + client-report instead.
-- New `/setup/piles` and `/setup/labour-hire-rates` screens.
-
-## 7. Build order (so it's usable early)
-
-1. Schema migration + GRANTs + RLS + storage buckets
-2. `labour_hire_rates` admin screen + project_type toggle on project setup
-3. Pile schedule PDF upload + AI parse + review screen
-4. Piling commercials in compute.ts + KPI band feeds
-5. Slack piling wrap prompt + concrete docket / cage capture flows
-6. Client report tab + PDF export
-7. Internal dashboard tab (pile burn-down + $)
-
-## Technical notes
-
-- All new tables: `GRANT SELECT, INSERT, UPDATE, DELETE ... TO authenticated; GRANT ALL ... TO service_role;` + RLS policies mirroring existing project-scoped patterns.
-- PDF parse uses Lovable AI Gateway (`google/gemini-2.5-pro`, no extra API key).
-- Server-side logic via `createServerFn` — no new edge functions.
-- The uploaded `CH 4200 - Pile Schedule - Sheet 37.pdf` will be used as the first test fixture for the parser.
-
----
-
-Want me to ship in the order above, or shuffle (e.g. Slack flow first, dashboard later)?
+Want me to ship in this order, or jump straight to (3) + (6) so the operational + P&L value lands first, then come back to rates editor + signing polish?
