@@ -59,14 +59,18 @@ export const setDaywokStatus = createServerFn({ method: "POST" })
     }) => input,
   )
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = { status: data.status };
-    if (data.signing_method !== undefined) patch.signing_method = data.signing_method;
-    if (data.signed_docket_pdf_url !== undefined)
-      patch.signed_docket_pdf_url = data.signed_docket_pdf_url;
-    if (data.signed_by_name !== undefined) patch.signed_by_name = data.signed_by_name;
-    if (data.status === "signed") patch.signed_at = new Date().toISOString();
-
-    const { error } = await context.supabase.from("dayworks").update(patch).eq("id", data.id);
+    const { error } = await context.supabase
+      .from("dayworks")
+      .update({
+        status: data.status,
+        ...(data.signing_method !== undefined ? { signing_method: data.signing_method } : {}),
+        ...(data.signed_docket_pdf_url !== undefined
+          ? { signed_docket_pdf_url: data.signed_docket_pdf_url }
+          : {}),
+        ...(data.signed_by_name !== undefined ? { signed_by_name: data.signed_by_name } : {}),
+        ...(data.status === "signed" ? { signed_at: new Date().toISOString() } : {}),
+      })
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
