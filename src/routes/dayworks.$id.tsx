@@ -299,9 +299,9 @@ function DayworkEditor() {
                                 id: l.id,
                                 patch: {
                                   classification_id: e.target.value || null,
-                                  description: c?.name ?? l.description,
+                                  description: c?.classification ?? l.description,
                                   client_rate_aud: lr?.nt_rate ?? l.client_rate_aud,
-                                  cost_rate_aud: Number(c?.eba_normal_hourly_rate ?? l.cost_rate_aud),
+                                  cost_rate_aud: Number(c?.nt_cost_per_hr ?? l.cost_rate_aud),
                                 },
                               });
                             }}
@@ -309,7 +309,7 @@ function DayworkEditor() {
                           >
                             <option value="">— pick classification —</option>
                             {classifications.map((c) => (
-                              <option key={c.id} value={c.id}>{c.name}</option>
+                              <option key={c.id} value={c.id}>{c.classification} · {c.employment_type}</option>
                             ))}
                           </select>
                         ) : (
