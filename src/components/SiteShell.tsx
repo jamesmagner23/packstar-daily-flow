@@ -35,34 +35,31 @@ import { normalizeProjectType, type ProjectType } from "@/lib/project-types";
 
 function getTabs(projectType: ProjectType): Tab[] {
   const projectPaths = [
-    "/", "/variations", "/reports", "/setup", "/piles", "/compliance", "/safety",
+    "/variations", "/reports", "/setup", "/piles", "/compliance", "/safety",
   ];
   const projectSubNav: SubNavItem[] =
     projectType === "labour_hire"
       ? [
-          { to: "/", label: "Dashboard" },
+          { to: "/setup", label: "Project setup" },
           { to: "/piles", label: "Pile schedule" },
           { to: "/compliance", label: "Compliance" },
           { to: "/safety", label: "Safety" },
           { to: "/reports", label: "Reports" },
           { to: "/piles/rates", label: "Labour-hire rates" },
-          { to: "/setup", label: "Project setup" },
         ]
       : projectType === "plant_hire" || projectType === "dry_hire"
       ? [
-          { to: "/", label: "Dashboard" },
+          { to: "/setup", label: "Project setup" },
           { to: "/plant", label: "Plant" },
           { to: "/utilisation", label: "Utilisation" },
           { to: "/reports", label: "Reports" },
-          { to: "/setup", label: "Project setup" },
         ]
       : [
-          { to: "/", label: "Dashboard" },
+          { to: "/setup", label: "Project setup" },
           { to: "/variations", label: "Variations" },
           { to: "/compliance", label: "Compliance" },
           { to: "/safety", label: "Safety" },
           { to: "/reports", label: "Reports" },
-          { to: "/setup", label: "Project setup" },
         ];
 
 
@@ -83,7 +80,7 @@ function getTabs(projectType: ProjectType): Tab[] {
     {
       key: "project",
       label: "Project",
-      to: "/",
+      to: "/setup",
       icon: Briefcase,
       paths: projectPathsWithAllocations,
       subNav: projectSubNavWithAllocations,
