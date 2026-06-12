@@ -17,18 +17,27 @@ export const Route = createFileRoute("/today")({
 
 function TodayPage() {
   const navigate = useNavigate();
-  const { personId, loading: roleLoading } = useRole();
+  const { personId } = useRole();
   const [userId, setUserId] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+    supabase.auth.getUser().then(({ data }) => {
+      setUserId(data.user?.id ?? null);
+      setAuthChecked(true);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUserId(session?.user?.id ?? null);
+      setAuthChecked(true);
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
-    if (userId === null && !roleLoading) {
+    if (authChecked && userId === null) {
       navigate({ to: "/login", search: { redirect: "/today" } as any });
     }
-  }, [userId, roleLoading, navigate]);
+  }, [authChecked, userId, navigate]);
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const today = format(selectedDate, "yyyy-MM-dd");
