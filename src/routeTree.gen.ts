@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TodayRouteImport } from './routes/today'
+import { Route as Site3dRouteImport } from './routes/site-3d'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as OverviewRouteImport } from './routes/overview'
@@ -60,6 +61,11 @@ import { Route as ApiPublicHooksAllocationEligibilityRouteImport } from './route
 const TodayRoute = TodayRouteImport.update({
   id: '/today',
   path: '/today',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Site3dRoute = Site3dRouteImport.update({
+  id: '/site-3d',
+  path: '/site-3d',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
@@ -308,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/overview': typeof OverviewRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/site-3d': typeof Site3dRoute
   '/today': typeof TodayRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/crew/$id': typeof CrewIdRoute
@@ -357,6 +364,7 @@ export interface FileRoutesByTo {
   '/overview': typeof OverviewRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/site-3d': typeof Site3dRoute
   '/today': typeof TodayRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/crew/$id': typeof CrewIdRoute
@@ -407,6 +415,7 @@ export interface FileRoutesById {
   '/overview': typeof OverviewRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/site-3d': typeof Site3dRoute
   '/today': typeof TodayRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/crew/$id': typeof CrewIdRoute
@@ -458,6 +467,7 @@ export interface FileRouteTypes {
     | '/overview'
     | '/reset-password'
     | '/signup'
+    | '/site-3d'
     | '/today'
     | '/auth/callback'
     | '/crew/$id'
@@ -507,6 +517,7 @@ export interface FileRouteTypes {
     | '/overview'
     | '/reset-password'
     | '/signup'
+    | '/site-3d'
     | '/today'
     | '/auth/callback'
     | '/crew/$id'
@@ -556,6 +567,7 @@ export interface FileRouteTypes {
     | '/overview'
     | '/reset-password'
     | '/signup'
+    | '/site-3d'
     | '/today'
     | '/auth/callback'
     | '/crew/$id'
@@ -606,6 +618,7 @@ export interface RootRouteChildren {
   OverviewRoute: typeof OverviewRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  Site3dRoute: typeof Site3dRoute
   TodayRoute: typeof TodayRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   CrewIdRoute: typeof CrewIdRoute
@@ -653,6 +666,13 @@ declare module '@tanstack/react-router' {
       path: '/today'
       fullPath: '/today'
       preLoaderRoute: typeof TodayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/site-3d': {
+      id: '/site-3d'
+      path: '/site-3d'
+      fullPath: '/site-3d'
+      preLoaderRoute: typeof Site3dRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -1011,6 +1031,7 @@ const rootRouteChildren: RootRouteChildren = {
   OverviewRoute: OverviewRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  Site3dRoute: Site3dRoute,
   TodayRoute: TodayRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   CrewIdRoute: CrewIdRoute,
