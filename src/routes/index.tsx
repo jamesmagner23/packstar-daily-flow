@@ -298,7 +298,7 @@ function Dashboard() {
   );
 }
 
-function Big({ label, value, tone }: { label: string; value: string; tone: string }) {
+function Big({ label, value, tone, hint }: { label: string; value: string; tone: string; hint?: string }) {
   return (
     <div className="flex min-w-0 flex-col gap-2">
       <div
@@ -309,6 +309,7 @@ function Big({ label, value, tone }: { label: string; value: string; tone: strin
         {value}
       </div>
       <div className="t-stat-label">{label}</div>
+      {hint ? <div className="text-[10px] uppercase tracking-wider text-meta">{hint}</div> : null}
     </div>
   );
 }
