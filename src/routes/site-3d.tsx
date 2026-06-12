@@ -42,8 +42,9 @@ function Site3DPage() {
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: SiteAsset["status"] }) => {
-      const patch: Record<string, unknown> = { status };
-      if (status === "installed") patch.installed_at = new Date().toISOString();
+      const patch = status === "installed"
+        ? { status, installed_at: new Date().toISOString() }
+        : { status, installed_at: null };
       const { error } = await supabase.from("site_assets").update(patch).eq("id", id);
       if (error) throw error;
     },
