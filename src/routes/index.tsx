@@ -376,6 +376,53 @@ function Big({ label, value, tone, hint }: { label: string; value: string; tone:
   );
 }
 
+function SplitTile({
+  title,
+  subtitle,
+  rev,
+  cost,
+  margin,
+  count,
+  countLabel,
+  tone,
+  cta,
+}: {
+  title: string;
+  subtitle: string;
+  rev: number;
+  cost: number;
+  margin: number;
+  count: number;
+  countLabel: string;
+  tone: "brand" | "accent";
+  cta?: { to: string; label: string };
+}) {
+  const marginColor = count === 0 ? "var(--ink)" : margin >= 0 ? "oklch(0.55 0.15 160)" : "var(--brand)";
+  return (
+    <div className={`border border-rule p-5 ${tone === "brand" ? "bg-white" : "bg-[color:var(--accent)]"}`}>
+      <div className="flex items-baseline justify-between">
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-meta">{title}</div>
+          <p className="text-[11px] text-meta mt-0.5">{subtitle}</p>
+        </div>
+        <span className="t-stat-label">{count} {countLabel}</span>
+      </div>
+      <div className="mt-4 text-3xl font-semibold tabular-nums" style={{ color: marginColor }}>
+        {count ? aud(margin) : "—"}
+      </div>
+      <div className="grid grid-cols-2 gap-3 mt-3 text-[11px] text-meta">
+        <div>Revenue <span className="text-ink font-semibold">{count ? aud(rev) : "—"}</span></div>
+        <div>Cost <span className="text-ink font-semibold">{count ? aud(cost) : "—"}</span></div>
+      </div>
+      {cta && (
+        <Link to={cta.to} className="mt-4 inline-block text-xs font-semibold text-[color:var(--brand)] hover:underline">
+          {cta.label}
+        </Link>
+      )}
+    </div>
+  );
+}
+
 type ProjectRollup = Map<string, { rev: number; cost: number; margin: number; reportCount: number; lastDate: string | null }>;
 
 function ProjectSection({
