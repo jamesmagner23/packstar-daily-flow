@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteShell } from "@/components/SiteShell";
+import heroTopo from "@/assets/hero-topo.jpg";
 import { RangeToggle } from "@/components/RangeToggle";
 import { aud, audAcct, pct, shortDate } from "@/lib/format";
 import {
@@ -205,24 +206,44 @@ function Dashboard() {
 
   return (
     <SiteShell section="Dashboard">
-      <div className="space-y-8">
+      <div className="space-y-12">
+        {/* Hero band */}
+        <section className="relative -mx-4 md:-mx-8 lg:-mx-12 -mt-6 md:-mt-10 overflow-hidden">
+          <div className="relative h-[420px] md:h-[520px]">
+            <img
+              src={heroTopo}
+              alt="Stylised topographic site render"
+              className="absolute inset-0 h-full w-full object-cover"
+              width={1920}
+              height={1024}
+            />
+            <div className="absolute inset-0 hero-overlay" />
+            <div className="relative h-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 flex flex-col justify-end pb-12 md:pb-16">
+              <div className="t-eyebrow mb-4">Today · {shortDate(new Date())}</div>
+              <h1 className="t-display text-[color:var(--cream)] max-w-3xl">
+                Every site, every pit, every dollar.
+              </h1>
+              <p className="t-lead text-[color:var(--cream)]/75 mt-5 max-w-xl">
+                Daily P&amp;L, drainage runs and crew allocations across PACC's active civil projects — in one operational view.
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link to="/reports" className="btn-orange">View reports</Link>
+                <Link to="/site-3d" className="btn-ghost !bg-white/5 !text-[color:var(--cream)] !border-white/15 hover:!bg-white/10">
+                  Open Site 3D
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <header className="flex items-center justify-between gap-4">
-          <p className="text-sm text-meta">All active projects · {shortDate(new Date())}</p>
+          <p className="t-caption">All active projects · {shortDate(new Date())}</p>
           <div className="flex gap-2 shrink-0">
-            <Link
-              to="/reports"
-              className="inline-flex items-center px-3 py-1.5 border border-[color:var(--brand)] text-[color:var(--brand)] text-xs hover:bg-[color:var(--brand)] hover:text-white transition-colors whitespace-nowrap"
-            >
-              Reports →
-            </Link>
-            <Link
-              to="/setup"
-              className="inline-flex items-center px-3 py-1.5 border border-rule text-meta text-xs hover:text-ink whitespace-nowrap"
-            >
-              Setup
-            </Link>
+            <Link to="/reports" className="btn-ghost !py-1.5 !px-3 !text-xs">Reports →</Link>
+            <Link to="/setup" className="btn-ghost !py-1.5 !px-3 !text-xs">Setup</Link>
           </div>
         </header>
+
 
         {/* Range + totals */}
         <section>
