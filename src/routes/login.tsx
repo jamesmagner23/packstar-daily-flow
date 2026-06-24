@@ -123,7 +123,7 @@ function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-rule px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand)]/30 focus:border-[color:var(--brand)]"
+                  className="w-full rounded-lg border border-rule bg-white text-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand)]/30 focus:border-[color:var(--brand)]"
                   autoComplete="email"
                 />
               </Field>
@@ -133,7 +133,7 @@ function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-rule px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand)]/30 focus:border-[color:var(--brand)]"
+                  className="w-full rounded-lg border border-rule bg-white text-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand)]/30 focus:border-[color:var(--brand)]"
                   autoComplete="current-password"
                 />
               </Field>
@@ -157,7 +157,7 @@ function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-rule px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand)]/30 focus:border-[color:var(--brand)]"
+                  className="w-full rounded-lg border border-rule bg-white text-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--brand)]/30 focus:border-[color:var(--brand)]"
                   autoComplete="email"
                 />
               </Field>
