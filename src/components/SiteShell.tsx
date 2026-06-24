@@ -208,30 +208,30 @@ export function SiteShell({ section, children }: { section: string; children: Re
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Top bar */}
-      <header className="border-b border-rule bg-white sticky top-0 z-30">
-        <div className="px-3 md:px-6 h-14 flex items-center gap-3">
+    <div className="min-h-screen flex flex-col bg-background">
+      {/* Top bar — charcoal */}
+      <header className="bg-[color:var(--charcoal)] text-[color:var(--cream)] sticky top-0 z-30 border-b border-[color:var(--charcoal-2)]">
+        <div className="px-3 md:px-6 h-16 flex items-center gap-4">
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
-            className="md:hidden h-9 w-9 inline-flex items-center justify-center rounded-md text-meta hover:text-ink hover:bg-neutral-100"
+            className="md:hidden h-9 w-9 inline-flex items-center justify-center rounded-md text-[color:var(--cream)]/70 hover:text-[color:var(--cream)] hover:bg-white/5"
             aria-label="Open navigation"
           >
             <Menu className="h-5 w-5" />
           </button>
 
           <Link to="/" className="flex items-baseline gap-1.5 shrink-0">
-            <span className="brand-wordmark text-xl md:text-2xl leading-none text-[color:var(--brand)]">PACC</span>
-            <span className="brand-wordmark text-base md:text-lg leading-none tracking-[0.18em] font-sans text-neutral-700">HQ</span>
+            <span className="brand-wordmark text-2xl md:text-[26px] leading-none text-[color:var(--cream)]">PACC</span>
+            <span className="mono-tag text-[10px] leading-none text-[color:var(--orange)] ml-1">HQ</span>
           </Link>
 
-          <div className="hidden sm:block flex-1 min-w-0 max-w-md ml-2">
+          <div className="hidden sm:block flex-1 min-w-0 max-w-md ml-4">
             <ProjectSelector />
           </div>
 
-          <div className="ml-auto flex items-center gap-3">
-            <span className="hidden md:inline text-xs text-meta">{today}</span>
+          <div className="ml-auto flex items-center gap-4">
+            <span className="hidden md:inline mono-tag text-[10px] text-[color:var(--cream)]/60">{today}</span>
             <UserMenu />
           </div>
         </div>
@@ -240,6 +240,7 @@ export function SiteShell({ section, children }: { section: string; children: Re
           <ProjectSelector />
         </div>
       </header>
+
 
       <div className="flex-1 flex min-h-0">
         {/* Desktop sidebar */}
@@ -391,20 +392,21 @@ function ProjectSelector() {
       <select
         value={selectedId}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full appearance-none bg-neutral-50 border border-rule rounded-md pl-3 pr-8 py-1.5 text-xs md:text-sm text-ink hover:border-neutral-400 focus:outline-none focus:ring-1 focus:ring-[color:var(--brand)] truncate"
+        className="w-full appearance-none bg-white/5 border border-white/10 rounded-full pl-4 pr-9 py-1.5 text-xs md:text-sm text-[color:var(--cream)] hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-[color:var(--orange)] truncate"
         aria-label="Select project"
       >
-        {projects.length === 0 && <option value="">No projects</option>}
+        {projects.length === 0 && <option value="" className="text-ink">No projects</option>}
         {projects.map((p) => (
-          <option key={p.id} value={p.id}>
+          <option key={p.id} value={p.id} className="text-ink">
             {p.code} — {p.name}
           </option>
         ))}
       </select>
-      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-meta pointer-events-none" />
+      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--cream)]/60 pointer-events-none" />
     </div>
   );
 }
+
 
 function UserMenu() {
   const navigate = useNavigate();
