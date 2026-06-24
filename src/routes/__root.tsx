@@ -139,47 +139,8 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthGate>
-        <Outlet />
-      </AuthGate>
+      <Outlet />
     </QueryClientProvider>
   );
 }
 
-function AuthGate({ children }: { children: React.ReactNode }) {
-  const path = useRouterState({ select: (s) => s.location.pathname });
-  const navigate = useNavigate();
-  const [status, setStatus] = useState<"loading" | "authed" | "anon">("loading");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    let active = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!active) return;
-      setStatus(data.session ? "authed" : "anon");
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setStatus(session ? "authed" : "anon");
-    });
-    return () => {
-      active = false;
-      sub.subscription.unsubscribe();
-    };
-  }, []);
-
-  const publicPath = isPublicPath(path);
-
-  useEffect(() => {
-    if (mounted && status === "anon" && !publicPath) {
-      navigate({ to: "/login" });
-    }
-  }, [mounted, status, publicPath, navigate]);
-
-  if (publicPath) return <>{children}</>;
-  if (!mounted || status === "loading") {
-    return <div suppressHydrationWarning className="min-h-screen bg-background" />;
-  }
-  if (status === "anon") return null;
-  return <>{children}</>;
-}
