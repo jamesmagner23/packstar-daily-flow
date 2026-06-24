@@ -59,9 +59,9 @@
   /* Brand aliases */
   --brand: var(--crimson);
   --brand-deep: var(--crimson-deep);
-  --ink: oklch(1 0 0);
-  --meta: var(--slate);
-  --rule: var(--ghost);
+  --ink: oklch(0.18 0.008 20);
+  --meta: oklch(0.5 0.005 20);
+  --rule: oklch(0.9 0.003 20);
 
   /* Semantic tokens — dark by default */
   --background: var(--void);
