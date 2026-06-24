@@ -5,18 +5,17 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * PACC brand system.
- * Single typeface (Poppins). 70% white, 20% ink, 10% brand red.
- * Australian English. No em dashes anywhere in user-facing copy.
+ * PACC — Andercore-inspired industrial control-panel system.
+ * Dark canvas, crimson action, Archivo + Space Mono.
+ * Australian English. No em dashes in user-facing copy.
  */
 
-
-
 @theme inline {
-  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, "Roboto Mono", monospace;
 
   --radius-sm: 2px;
-  --radius-md: 3px;
+  --radius-md: 4px;
   --radius-lg: 4px;
   --radius-xl: 6px;
 
@@ -47,34 +46,43 @@
 }
 
 :root {
-  --radius: 3px;
+  --radius: 4px;
 
-  /* PACC core */
-  --brand: oklch(0.612 0.197 24.5);        /* #DC3D3F */
-  --brand-deep: oklch(0.555 0.183 23.5);   /* #C8333A */
-  --ink: oklch(0.18 0 0);                  /* #1A1A1A */
-  --meta: oklch(0.42 0 0);                 /* #4A4A4A */
-  --rule: oklch(0.91 0 0);                 /* #E5E5E5 */
+  /* Andercore palette */
+  --void: oklch(0.08 0.008 20);              /* #0b0405 Midnight Void */
+  --shroud: oklch(0.13 0.008 20);            /* #150e0f Dark Shroud */
+  --ghost: oklch(0.27 0.012 20);             /* #382e30 Ghostly Gray */
+  --slate: oklch(0.62 0.005 20);             /* #858182 Slate Text */
+  --crimson: oklch(0.612 0.197 24.5);        /* #e32735 Crimson Action */
+  --crimson-deep: oklch(0.555 0.183 23.5);
 
-  --background: oklch(1 0 0);
-  --foreground: var(--ink);
-  --card: oklch(1 0 0);
-  --card-foreground: var(--ink);
-  --popover: oklch(1 0 0);
-  --popover-foreground: var(--ink);
-  --primary: var(--brand);
+  /* Brand aliases */
+  --brand: var(--crimson);
+  --brand-deep: var(--crimson-deep);
+  --ink: oklch(1 0 0);
+  --meta: var(--slate);
+  --rule: var(--ghost);
+
+  /* Semantic tokens — dark by default */
+  --background: var(--void);
+  --foreground: oklch(1 0 0);
+  --card: var(--shroud);
+  --card-foreground: oklch(1 0 0);
+  --popover: var(--shroud);
+  --popover-foreground: oklch(1 0 0);
+  --primary: var(--crimson);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: var(--ink);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: var(--meta);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: var(--ink);
-  --destructive: var(--brand);
+  --secondary: color-mix(in oklab, white 10%, transparent);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: var(--shroud);
+  --muted-foreground: var(--slate);
+  --accent: color-mix(in oklab, white 8%, transparent);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: var(--crimson);
   --destructive-foreground: oklch(1 0 0);
-  --border: var(--rule);
-  --input: var(--rule);
-  --ring: var(--brand);
+  --border: var(--ghost);
+  --input: var(--ghost);
+  --ring: var(--crimson);
 }
 
 @layer base {
@@ -84,13 +92,18 @@
   html, body {
     font-family: var(--font-sans);
     background-color: var(--color-background);
-    color: var(--color-ink);
+    color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+  }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+    line-height: 1.1;
   }
 }
 
 @layer components {
-  /* Brand bar */
+  /* Brand bar — crimson industrial header strip */
   .brand-bar {
     background-color: var(--brand);
     color: white;
@@ -98,30 +111,64 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 0.625rem;
-    font-weight: 600;
-    letter-spacing: 0.42em;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.32em;
     text-transform: uppercase;
   }
   .brand-wordmark {
     font-weight: 700;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
   }
 
-  /* Type scale */
-  .t-display { font-size: 2.25rem; font-weight: 700; color: var(--brand); letter-spacing: -0.025em; line-height: 1.05; }
-  .t-headline { font-size: 1.375rem; font-weight: 700; color: var(--brand); letter-spacing: -0.02em; line-height: 1.15; }
-  .t-subhead { font-size: 0.875rem; font-weight: 700; color: var(--brand); letter-spacing: -0.015em; }
-  .t-lead { font-size: 0.75rem; font-weight: 500; color: var(--brand); line-height: 1.4; }
-  .t-body { font-size: 0.625rem; font-weight: 400; color: var(--ink); line-height: 1.55; }
-  .t-eyebrow { font-size: 0.5rem; font-weight: 600; color: var(--brand); letter-spacing: 0.42em; text-transform: uppercase; }
-  .t-stat { font-size: 2rem; font-weight: 700; color: var(--brand); letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
-  .t-stat-lg { font-size: 2.25rem; font-weight: 700; color: var(--brand); letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
-  .t-stat-label { font-size: 0.4375rem; font-weight: 600; color: var(--meta); letter-spacing: 0.16em; text-transform: uppercase; }
+  /* Mono technical badge */
+  .mono-tag {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
 
-  .hairline { border-top: 1px solid color-mix(in oklab, var(--brand) 25%, transparent); }
-  .hairline-strong { border-top: 2px solid var(--brand); width: 30mm; }
+  /* Type scale — Archivo, white-dominant, crimson accents */
+  .t-display { font-size: 3.5rem; font-weight: 700; color: var(--foreground); letter-spacing: -0.028em; line-height: 1.05; }
+  .t-headline { font-size: 2.5rem; font-weight: 700; color: var(--foreground); letter-spacing: -0.02em; line-height: 1.1; }
+  .t-subhead { font-size: 1.5rem; font-weight: 600; color: var(--foreground); letter-spacing: -0.015em; line-height: 1.2; }
+  .t-lead { font-size: 1rem; font-weight: 400; color: var(--slate); line-height: 1.5; }
+  .t-body { font-size: 0.875rem; font-weight: 400; color: var(--foreground); line-height: 1.5; }
+  .t-caption { font-size: 0.75rem; font-weight: 400; color: var(--slate); line-height: 1.5; }
+  .t-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    color: var(--crimson);
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+  }
+  .t-stat { font-size: 2.25rem; font-weight: 700; color: var(--foreground); letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .t-stat-lg { font-size: 3.5rem; font-weight: 700; color: var(--foreground); letter-spacing: -0.028em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .t-stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 400;
+    color: var(--slate);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .hairline { border-top: 1px solid var(--ghost); }
+  .hairline-strong { border-top: 2px solid var(--crimson); width: 30mm; }
+
+  /* Industrial grid backdrop — subtle */
+  .grid-backdrop {
+    background-image:
+      linear-gradient(to right, color-mix(in oklab, white 3%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklab, white 3%, transparent) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
 }
 
 @utility no-scrollbar {
